@@ -71,16 +71,6 @@ export default function BrowsePage() {
     <div className="min-h-screen flex animated-bg">
       <Sidebar />
       <main className="flex-1 p-8 lg:p-12 relative z-10">
-        {/* Header */}
-        <div className="mb-10 animate-fade-in">
-          <h1 className="font-display text-4xl lg:text-5xl font-semibold mb-3 gradient-text">
-            数据浏览
-          </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            搜索和浏览 JavStash 数据库中的内容
-          </p>
-        </div>
-
         {/* Search Bar */}
         <div className="mb-10 animate-fade-in stagger-1">
           <form onSubmit={handleSearch}>

@@ -68,16 +68,6 @@ export default function PlaygroundPage() {
     <div className="min-h-screen flex animated-bg">
       <Sidebar />
       <main className="flex-1 p-8 lg:p-12 relative z-10">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-display text-4xl lg:text-5xl font-semibold mb-3 gradient-text">
-            GraphQL Playground
-          </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            交互式 GraphQL 查询测试环境
-          </p>
-        </div>
-
         {/* Editor Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Left Panel - Input */}

@@ -60,16 +60,6 @@ export default function AdminPage() {
     <div className="min-h-screen flex animated-bg">
       <Sidebar />
       <main className="flex-1 p-8 lg:p-12 relative z-10">
-        {/* Header */}
-        <div className="mb-10 animate-fade-in">
-          <h1 className="font-display text-4xl lg:text-5xl font-semibold mb-3 gradient-text">
-            缓存管理
-          </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            查看系统统计信息和管理翻译缓存
-          </p>
-        </div>
-
         {loading ? (
           <div className="flex items-center justify-center py-20 animate-fade-in">
             <div className="w-12 h-12 border-2 rounded-full animate-spin" style={{
