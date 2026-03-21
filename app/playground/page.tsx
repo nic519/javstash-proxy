@@ -5,30 +5,28 @@ import { Sidebar } from '@/components/sidebar';
 
 const defaultQuery = `# GraphQL 查询示例
 # title 和 details 会被代理自动翻译为中文
-query QueryScenes($input: SceneQueryInput!) {
-  queryScenes(input: $input) {
-    scenes {
-      code
-      title
-      details
-      date
-      performers {
-        performer {
-          name
-        }
-      }
-      tags {
+# searchScene: 关键词搜索（推荐用于番号/演员搜索）
+query Search($term: String!) {
+  searchScene(term: $term) {
+    id
+    code
+    title
+    details
+    date
+    images { url }
+    performers {
+      performer {
         name
       }
+    }
+    tags {
+      name
     }
   }
 }`;
 
 const defaultVariables = `{
-  "input": {
-    "text": "SSIS",
-    "per_page": 10
-  }
+  "term": "MIAE-209"
 }`;
 
 export default function PlaygroundPage() {
