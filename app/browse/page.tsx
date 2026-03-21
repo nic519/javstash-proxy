@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/sidebar';
 
 interface Scene {
+  id: string;
   code: string;
   title: string;
   titleZh?: string;
   details?: string;
   summaryZh?: string;
   date?: string;
+  images?: { url: string }[];
   performers?: { performer: { name: string } }[];
   tags?: { name: string }[];
 }
@@ -33,26 +35,19 @@ export default function BrowsePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `
-            query QueryScenes($input: SceneQueryInput!) {
-              queryScenes(input: $input) {
-                scenes {
-                  code
-                  title
-                  details
-                  date
-                  performers {
-                    performer {
-                      name
-                    }
-                  }
-                  tags {
-                    name
-                  }
+            query Search($term: String!) {
+              searchScene(term: $term) {
+                id
+                code
+                title
+                images { url }
+                performers {
+                  performer { name }
                 }
               }
             }
           `,
-          variables: { input: { text: keyword, per_page: 20 } },
+          variables: { term: keyword },
         }),
       });
 
@@ -60,7 +55,7 @@ export default function BrowsePage() {
       if (data.errors) {
         setError(data.errors[0]?.message || '查询失败');
       } else {
-        setResults(data.data?.queryScenes?.scenes || []);
+        setResults(data.data?.searchScene || []);
       }
     } catch {
       setError('请求失败，请重试');
@@ -81,7 +76,7 @@ export default function BrowsePage() {
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="搜索关键词..."
+              placeholder="搜索番号或关键词..."
               className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
             <button
@@ -102,32 +97,22 @@ export default function BrowsePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.map((scene) => (
-            <div key={scene.code || scene.title} className="bg-white p-6 rounded-lg shadow">
+            <div key={scene.id} className="bg-white p-6 rounded-lg shadow">
+              {scene.images?.[0]?.url && (
+                <img
+                  src={scene.images[0].url}
+                  alt={scene.code}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              )}
               <div className="text-sm text-gray-500 mb-1">{scene.code}</div>
-              <h3 className="font-semibold mb-2">
+              <h3 className="font-semibold mb-2 line-clamp-2">
                 {scene.titleZh || scene.title}
               </h3>
-              {scene.summaryZh && (
-                <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-                  {scene.summaryZh}
-                </p>
-              )}
               {scene.performers && scene.performers.length > 0 && (
                 <div className="text-sm">
                   <span className="text-gray-500">演员: </span>
                   {scene.performers.map((p) => p.performer?.name).filter(Boolean).join(', ')}
-                </div>
-              )}
-              {scene.tags && scene.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {scene.tags.slice(0, 5).map((tag) => (
-                    <span
-                      key={tag.name}
-                      className="text-xs bg-gray-100 px-2 py-1 rounded"
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
                 </div>
               )}
             </div>

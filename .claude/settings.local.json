@@ -7,7 +7,10 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(curl -s http://localhost:3000)",
       "Bash(curl -s http://localhost:3000/_next/static/chunks/app_globals_0jn8.0u.css)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(bun run:*)",
+      "Bash(kill:*)",
+      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)"
     ]
   }
 }
