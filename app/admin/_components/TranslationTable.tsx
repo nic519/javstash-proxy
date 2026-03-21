@@ -41,7 +41,7 @@ export function TranslationTable({ items, loading, onSelect }: TranslationTableP
               中文标题
             </th>
             {/* 大屏幕下才显示简介列 */}
-            <th className="text-left px-3 py-2 font-medium hidden lg:table-cell" style={{ color: 'var(--text-muted)' }}>
+            <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
               中文简介
             </th>
           </tr>
@@ -67,8 +67,8 @@ export function TranslationTable({ items, loading, onSelect }: TranslationTableP
                 </p>
               </td>
               {/* 简介列：大屏幕可见，超长文本截断 */}
-              <td className="px-3 py-2 hidden lg:table-cell">
-                <p className="truncate max-w-md" style={{ color: 'var(--text-secondary)' }}>
+              <td className="px-3 py-2 hidden max-w-md lg:table-cell">
+                <p className="truncate" style={{ color: 'var(--text-secondary)' }}>
                   {item.summaryZh || '-'}
                 </p>
               </td>
