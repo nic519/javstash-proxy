@@ -26,12 +26,13 @@ javstash-proxy/
 │   ├── browse/
 │   │   └── page.tsx              # 数据浏览（搜索/筛选/结果列表）
 │   ├── admin/
-│   │   ├── page.tsx              # 缓存统计概览
-│   │   └── cache/
-│   │       └── page.tsx          # 缓存管理（查看/清除）
+│   │   └── page.tsx              # 缓存与统计管理
 │   └── api/
 │       ├── auth/
 │       │   └── route.ts          # 登录验证 API
+│       ├── admin/
+│       │   └── cache/
+│       │       └── route.ts      # 缓存管理 API
 │       └── graphql/
 │           └── route.ts          # GraphQL 代理（迁移自 api/graphql.ts）
 │
@@ -67,10 +68,9 @@ javstash-proxy/
 |------|------|----------|
 | `/login` | 密码登录 | PasswordForm |
 | `/` | Dashboard 概览 | StatCard, RecentQueries |
-| `/playground` | GraphQL 测试 | QueryEditor, ResponseViewer |
+| `/playground` | GraphQL 测试 | QueryEditor (GraphiQL) |
 | `/browse` | 数据浏览 | SearchBar, FilterPanel, ResultGrid |
-| `/admin` | 缓存统计 | CacheStats, TranslationStats |
-| `/admin/cache` | 缓存管理 | CacheTable, ClearButton |
+| `/admin` | 缓存与统计 | CacheStats, TranslationStats, ClearButton |
 
 ### 侧边栏导航
 
@@ -83,8 +83,7 @@ javstash-proxy/
 │ 🧪 GraphQL 测试     │
 ├─────────────────────┤
 │ ⚙️ 管理             │
-│   └─ 缓存统计       │
-│   └─ 翻译统计       │
+│   └─ 缓存与统计     │
 ├─────────────────────┤
 │ 🚪 退出登录         │
 └─────────────────────┘
@@ -97,7 +96,7 @@ javstash-proxy/
 - `Dialog` - 确认操作
 - `Toast` - 操作反馈
 - `Sidebar` - 导航
-- `DateRangePicker` - 日期筛选
+- `Calendar` + `Popover` - 日期筛选（需配合 `react-day-picker`）
 - `Badge` - 标签展示
 
 ## 数据流与 API
@@ -115,18 +114,42 @@ POST /api/auth ──► 验证 ADMIN_PASSWORD 环境变量
     └── 失败 ──► 返回 401 ──► 显示错误
 ```
 
-**中间件保护**：所有 `/playground`、`/browse`、`/admin` 路由检查 cookie，未登录重定向到 `/login`
+**中间件保护**：
+- 前端路由：`/playground`、`/browse`、`/admin` - 未登录重定向到 `/login`
+- API 路由：`/api/admin/*` - 未登录返回 401
+- 公开路由：`/api/auth`、`/api/graphql`（保持现有公开访问）
 
 ### API 端点
 
-| 端点 | 方法 | 功能 |
-|------|------|------|
-| `/api/auth` | POST | 登录验证 |
-| `/api/auth` | DELETE | 退出登录 |
-| `/api/graphql` | POST | GraphQL 代理（现有逻辑） |
-| `/api/admin/cache` | GET | 获取缓存统计 |
-| `/api/admin/cache` | DELETE | 清除缓存 |
-| `/api/admin/stats` | GET | 翻译统计 |
+| 端点 | 方法 | 功能 | 认证 |
+|------|------|------|------|
+| `/api/auth` | POST | 登录验证 | 公开 |
+| `/api/auth` | DELETE | 退出登录 | 公开 |
+| `/api/graphql` | POST | GraphQL 代理（现有逻辑） | 公开 |
+| `/api/admin/cache` | GET | 获取缓存统计 + 翻译统计 | 需登录 |
+| `/api/admin/cache` | DELETE | 清除缓存 | 需登录 |
+
+### 缓存 API 响应格式
+
+```typescript
+// GET /api/admin/cache
+{
+  cacheCount: number,      // 缓存条目数
+  lastUpdated: string,     // 最后更新时间
+  translationCount: number // 翻译次数（从 Turso 查询）
+}
+```
+
+### 缓存模块集成
+
+Admin API 直接导入现有 `TursoCache` 类：
+```typescript
+import { TursoCache } from '@/src/cache/turso.js';
+```
+
+需在 `src/cache/turso.ts` 中添加：
+- `getStats()` - 获取缓存统计
+- `clearAll()` - 清除所有缓存
 
 ### 数据浏览查询流
 
@@ -167,14 +190,14 @@ POST /api/graphql (代理)
 
 ## 测试策略
 
+扩展现有 `tests/` 目录结构：
+
 ```
 tests/
-├── unit/
-│   └── auth.test.ts        # 密码验证逻辑
-├── integration/
-│   └── api.test.ts         # API 端点测试
-└── e2e/
-    └── login-flow.test.ts  # 登录流程（可选）
+├── cache.test.ts           # 现有：缓存测试
+├── translator.test.ts      # 现有：翻译测试
+├── auth.test.ts            # 新增：密码验证逻辑
+└── api.test.ts             # 新增：API 端点测试
 ```
 
 **测试重点：**
@@ -204,3 +227,30 @@ DEEPLX_API_URL=xxx
 - **认证**：Cookie-based，iron-session 或自实现
 - **状态管理**：React useState + URL params（搜索条件）
 - **数据获取**：Server Actions / fetch
+
+## 迁移注意事项
+
+### vercel.json 更新
+
+迁移到 Next.js App Router 后，删除现有 `vercel.json` 中的 Edge Runtime 配置。Next.js 会自动处理路由。
+
+```json
+// 删除此文件或清空内容，Next.js 15 自动处理
+```
+
+### 现有 api/ 目录
+
+迁移后删除旧的 `api/graphql.ts`，功能由 `app/api/graphql/route.ts` 替代。
+
+### GraphQL Playground 实现
+
+使用 `@graphiql/react` + `graphiql` 包实现 GraphQL 测试界面：
+```bash
+bun add graphiql @graphiql/react @graphiql/toolkit
+```
+
+### Session 配置
+
+- Cookie 有效期：7 天
+- Cookie 名称：`admin_session`
+- 使用 `iron-session` 或自实现 HMAC 签名
