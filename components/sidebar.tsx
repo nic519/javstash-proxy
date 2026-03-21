@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Search, Code, Database, LogOut, Layers } from 'lucide-react';
 
 const navItems = [
   { href: '/browse', label: '数据浏览', icon: 'search' },
@@ -10,26 +11,10 @@ const navItems = [
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
-  search: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  ),
-  code: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-    </svg>
-  ),
-  database: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-    </svg>
-  ),
-  logout: (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-    </svg>
-  ),
+  search: <Search className="w-5 h-5" />,
+  code: <Code className="w-5 h-5" />,
+  database: <Database className="w-5 h-5" />,
+  logout: <LogOut className="w-5 h-5" />,
 };
 
 export function Sidebar() {
@@ -44,9 +29,7 @@ export function Sidebar() {
             background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
             boxShadow: 'var(--shadow-gold)'
           }}>
-            <svg className="w-5 h-5" fill="var(--bg-primary)" viewBox="0 0 24 24">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+            <Layers className="w-5 h-5" style={{ color: 'var(--bg-primary)' }} />
           </div>
           <div>
             <h1 className="font-display text-xl font-semibold tracking-wide gradient-text">

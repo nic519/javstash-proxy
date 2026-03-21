@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { Pencil, Trash2, X, Loader2 } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 
 /**
@@ -126,7 +127,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 hoverColor="rgba(212,175,55,0.15)"
                 title="编辑"
               >
-                <EditIcon />
+                <Pencil className="w-5 h-5" />
               </IconButton>
               <IconButton
                 onClick={handleDelete}
@@ -135,7 +136,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 hoverColor="rgba(239,68,68,0.15)"
                 title="删除"
               >
-                {deleting ? <SpinnerIcon /> : <TrashIcon />}
+                {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
               </IconButton>
               <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
               <IconButton
@@ -144,7 +145,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 hoverColor="var(--bg-tertiary)"
                 title="关闭"
               >
-                <CloseIcon />
+                <X className="w-5 h-5" />
               </IconButton>
             </div>
           </div>
@@ -340,7 +341,7 @@ function EditFormView({
             boxShadow: '0 4px 15px -3px rgba(212,175,55,0.4)',
           }}
         >
-          {saving && <SpinnerIcon size={4} />}
+          {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           保存
         </button>
       </div>
@@ -453,40 +454,4 @@ function TextAreaField({
 }
 
 /* ==================== 图标组件 ==================== */
-
-/** 编辑图标 */
-function EditIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  );
-}
-
-/** 删除图标 */
-function TrashIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  );
-}
-
-/** 关闭图标 */
-function CloseIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
-/** 加载旋转图标 */
-function SpinnerIcon({ size = 5 }: { size?: number }) {
-  return (
-    <svg className={`w-${size} h-${size} animate-spin`} fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-    </svg>
-  );
-}
+// 图标已使用 lucide-react 库

@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PaginationProps } from './types';
 
 /**
@@ -28,9 +29,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
           className="p-1 rounded transition-colors disabled:opacity-50"
           style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ChevronLeft className="w-4 h-4" />
         </button>
         {/* 下一页按钮：末页时禁用 */}
         <button
@@ -39,9 +38,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
           className="p-1 rounded transition-colors disabled:opacity-50"
           style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
