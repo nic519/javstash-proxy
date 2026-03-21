@@ -5,6 +5,7 @@ export interface Translation {
   code: string;
   titleZh: string;
   summaryZh: string;
+  coverUrl?: string;
 }
 
 /**
@@ -14,6 +15,7 @@ export interface SceneNode {
   code?: string;
   title?: string;
   details?: string;
+  coverUrl?: string;
 }
 
 /**

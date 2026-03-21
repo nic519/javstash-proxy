@@ -16,7 +16,7 @@ export class TursoCache {
 
     const placeholders = codes.map(() => '?').join(',');
     const result = await this.client.execute({
-      sql: `SELECT code, title_zh, summary_zh FROM translations WHERE code IN (${placeholders})`,
+      sql: `SELECT code, title_zh, summary_zh, cover_url FROM translations WHERE code IN (${placeholders})`,
       args: codes,
     });
 
@@ -24,6 +24,7 @@ export class TursoCache {
       code: row.code as string,
       titleZh: (row.title_zh as string) ?? '',
       summaryZh: (row.summary_zh as string) ?? '',
+      coverUrl: (row.cover_url as string) ?? undefined,
     }));
   }
 
@@ -34,12 +35,13 @@ export class TursoCache {
     if (translations.length === 0) return;
 
     const statements = translations.map((t) => ({
-      sql: `INSERT INTO translations (code, title_zh, summary_zh)
-            VALUES (?, ?, ?)
+      sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(code) DO UPDATE SET
               title_zh = excluded.title_zh,
-              summary_zh = excluded.summary_zh`,
-      args: [t.code, t.titleZh, t.summaryZh],
+              summary_zh = excluded.summary_zh,
+              cover_url = excluded.cover_url`,
+      args: [t.code, t.titleZh, t.summaryZh, t.coverUrl ?? null],
     }));
 
     await this.client.batch(statements, 'write');

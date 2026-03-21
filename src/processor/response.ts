@@ -24,6 +24,7 @@ export function extractScenes(data: unknown): SceneNode[] {
         code: record.code as string,
         title: record.title as string | undefined,
         details: record.details as string | undefined,
+        coverUrl: record.cover_url as string | undefined,
       });
     }
 

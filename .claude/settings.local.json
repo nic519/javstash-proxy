@@ -10,7 +10,12 @@
       "Bash(curl:*)",
       "Bash(bun run:*)",
       "Bash(kill:*)",
-      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)"
+      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)",
+      "Bash(npx tsc:*)",
+      "Bash(npm test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

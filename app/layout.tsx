@@ -13,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased" style={{ background: 'var(--bg-primary)' }}>
+        {children}
+      </body>
     </html>
   );
 }

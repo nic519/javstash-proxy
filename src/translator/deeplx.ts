@@ -29,6 +29,7 @@ export class DeepLXTranslator {
         code: s.code ?? '',
         titleZh: s.title ?? '',
         summaryZh: s.details ?? '',
+        coverUrl: s.coverUrl,
       }));
     }
 
@@ -42,6 +43,7 @@ export class DeepLXTranslator {
         code: s.code ?? '',
         titleZh: s.title ?? '',
         summaryZh: s.details ?? '',
+        coverUrl: s.coverUrl,
       }));
     }
 
@@ -62,6 +64,7 @@ export class DeepLXTranslator {
       code: s.code ?? '',
       titleZh: finalTexts[i * 2] ?? s.title ?? '',
       summaryZh: finalTexts[i * 2 + 1] ?? s.details ?? '',
+      coverUrl: s.coverUrl,
     }));
   }
 
