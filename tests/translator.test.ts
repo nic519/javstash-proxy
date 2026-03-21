@@ -16,7 +16,7 @@ describe('DeepLXTranslator', () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({
         code: 200,
-        data: '中文标题\n===SEP===\n中文简介',
+        data: '中文标题\n===@¥@¥===\n中文简介',
       }))
     );
 

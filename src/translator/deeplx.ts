@@ -1,6 +1,6 @@
 import type { Translation, SceneNode } from '../types';
 
-const SEPARATOR = '\n===SEP===\n';
+const SEPARATOR = '\n===@¥@¥===\n';
 
 export class DeepLXTranslator {
   private apiUrl: string;
@@ -47,7 +47,7 @@ export class DeepLXTranslator {
       }));
     }
 
-    const parts = translated.split('===SEP===').map((p) => p.trim());
+    const parts = translated.split('===@¥@¥===').map((p) => p.trim());
 
     // Restore to original positions
     let partIndex = 0;
