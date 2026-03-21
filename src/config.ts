@@ -1,0 +1,28 @@
+import type { AppConfig } from './types';
+
+/**
+ * Load configuration from environment variables
+ */
+export function loadConfig(): AppConfig {
+  const javstashApiKey = process.env.JAVSTASH_API_KEY;
+  const tursoUrl = process.env.TURSO_URL;
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
+  const deeplxApiUrl = process.env.DEEPLX_API_URL ?? '';
+
+  if (!javstashApiKey) {
+    throw new Error('JAVSTASH_API_KEY is required');
+  }
+  if (!tursoUrl) {
+    throw new Error('TURSO_URL is required');
+  }
+  if (!tursoAuthToken) {
+    throw new Error('TURSO_AUTH_TOKEN is required');
+  }
+
+  return {
+    javstashApiKey,
+    tursoUrl,
+    tursoAuthToken,
+    deeplxApiUrl,
+  };
+}
