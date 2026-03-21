@@ -10,7 +10,7 @@ interface Scene {
   details?: string;
   summaryZh?: string;
   date?: string;
-  performers?: { name: string }[];
+  performers?: { performer: { name: string } }[];
   tags?: { name: string }[];
 }
 
@@ -33,15 +33,17 @@ export default function BrowsePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `
-            query SearchScenes($filter: SceneFilterType) {
-              findScenes(filter: $filter) {
+            query QueryScenes($input: SceneQueryInput!) {
+              queryScenes(input: $input) {
                 scenes {
                   code
                   title
                   details
                   date
                   performers {
-                    name
+                    performer {
+                      name
+                    }
                   }
                   tags {
                     name
@@ -50,7 +52,7 @@ export default function BrowsePage() {
               }
             }
           `,
-          variables: { filter: { q: keyword } },
+          variables: { input: { text: keyword, per_page: 20 } },
         }),
       });
 
@@ -58,7 +60,7 @@ export default function BrowsePage() {
       if (data.errors) {
         setError(data.errors[0]?.message || '查询失败');
       } else {
-        setResults(data.data?.findScenes?.scenes || []);
+        setResults(data.data?.queryScenes?.scenes || []);
       }
     } catch {
       setError('请求失败，请重试');
@@ -100,7 +102,7 @@ export default function BrowsePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.map((scene) => (
-            <div key={scene.code} className="bg-white p-6 rounded-lg shadow">
+            <div key={scene.code || scene.title} className="bg-white p-6 rounded-lg shadow">
               <div className="text-sm text-gray-500 mb-1">{scene.code}</div>
               <h3 className="font-semibold mb-2">
                 {scene.titleZh || scene.title}
@@ -113,7 +115,7 @@ export default function BrowsePage() {
               {scene.performers && scene.performers.length > 0 && (
                 <div className="text-sm">
                   <span className="text-gray-500">演员: </span>
-                  {scene.performers.map((p) => p.name).join(', ')}
+                  {scene.performers.map((p) => p.performer?.name).filter(Boolean).join(', ')}
                 </div>
               )}
               {scene.tags && scene.tags.length > 0 && (

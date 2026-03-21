@@ -19,7 +19,8 @@ export async function forwardToJavStash(
   });
 
   if (!response.ok) {
-    throw new Error(`JavStash error: ${response.status} ${response.statusText}`);
+    const body = await response.text();
+    throw new Error(`JavStash error: ${response.status} ${response.statusText} - ${body}`);
   }
 
   return response.json();

@@ -4,23 +4,35 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/sidebar';
 
 const defaultQuery = `# GraphQL 查询示例
-query FindScenes {
-  findScenes(filter: { q: "SSIS" }) {
+query QueryScenes($input: SceneQueryInput!) {
+  queryScenes(input: $input) {
     scenes {
       code
       title
       details
       date
       performers {
+        performer {
+          name
+        }
+      }
+      tags {
         name
       }
     }
   }
 }`;
 
+const defaultVariables = `{
+  "input": {
+    "text": "SSIS",
+    "per_page": 10
+  }
+}`;
+
 export default function PlaygroundPage() {
   const [query, setQuery] = useState(defaultQuery);
-  const [variables, setVariables] = useState('{}');
+  const [variables, setVariables] = useState(defaultVariables);
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
 
