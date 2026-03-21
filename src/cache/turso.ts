@@ -68,4 +68,104 @@ export class TursoCache {
   async clearAll(): Promise<void> {
     await this.client.execute('DELETE FROM translations');
   }
+
+  /**
+   * List translations with pagination and search
+   */
+  async listTranslations(options: {
+    page: number;
+    pageSize: number;
+    search?: string;
+  }): Promise<{ items: Translation[]; total: number }> {
+    const offset = (options.page - 1) * options.pageSize;
+    const searchCondition = options.search
+      ? `WHERE code LIKE ? OR title_zh LIKE ? OR summary_zh LIKE ?`
+      : '';
+    const searchArgs = options.search
+      ? [`%${options.search}%`, `%${options.search}%`, `%${options.search}%`]
+      : [];
+
+    // Get total count
+    const countResult = await this.client.execute({
+      sql: `SELECT COUNT(*) as count FROM translations ${searchCondition}`,
+      args: searchArgs,
+    });
+    const total = countResult.rows[0]?.count as number ?? 0;
+
+    // Get items
+    const result = await this.client.execute({
+      sql: `SELECT code, title_zh, summary_zh, cover_url FROM translations ${searchCondition}
+            ORDER BY code LIMIT ? OFFSET ?`,
+      args: [...searchArgs, options.pageSize, offset],
+    });
+
+    return {
+      items: result.rows.map((row) => ({
+        code: row.code as string,
+        titleZh: (row.title_zh as string) ?? '',
+        summaryZh: (row.summary_zh as string) ?? '',
+        coverUrl: (row.cover_url as string) ?? undefined,
+      })),
+      total,
+    };
+  }
+
+  /**
+   * Get a single translation by code
+   */
+  async getTranslation(code: string): Promise<Translation | null> {
+    const result = await this.client.execute({
+      sql: 'SELECT code, title_zh, summary_zh, cover_url FROM translations WHERE code = ?',
+      args: [code],
+    });
+
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0];
+    return {
+      code: row.code as string,
+      titleZh: (row.title_zh as string) ?? '',
+      summaryZh: (row.summary_zh as string) ?? '',
+      coverUrl: (row.cover_url as string) ?? undefined,
+    };
+  }
+
+  /**
+   * Update a single translation
+   */
+  async updateTranslation(code: string, data: Partial<Omit<Translation, 'code'>>): Promise<void> {
+    const updates: string[] = [];
+    const args: (string | null)[] = [];
+
+    if (data.titleZh !== undefined) {
+      updates.push('title_zh = ?');
+      args.push(data.titleZh);
+    }
+    if (data.summaryZh !== undefined) {
+      updates.push('summary_zh = ?');
+      args.push(data.summaryZh);
+    }
+    if (data.coverUrl !== undefined) {
+      updates.push('cover_url = ?');
+      args.push(data.coverUrl || null);
+    }
+
+    if (updates.length === 0) return;
+
+    args.push(code);
+    await this.client.execute({
+      sql: `UPDATE translations SET ${updates.join(', ')} WHERE code = ?`,
+      args,
+    });
+  }
+
+  /**
+   * Delete a single translation by code
+   */
+  async deleteTranslation(code: string): Promise<void> {
+    await this.client.execute({
+      sql: 'DELETE FROM translations WHERE code = ?',
+      args: [code],
+    });
+  }
 }
