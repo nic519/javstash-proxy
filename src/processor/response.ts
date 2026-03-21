@@ -20,11 +20,18 @@ export function extractScenes(data: unknown): SceneNode[] {
 
     // Check if this is a scene node (has code and title/details)
     if (record.code && (record.title || record.details)) {
+      // Extract cover URL from images array
+      let coverUrl: string | undefined;
+      const images = record.images;
+      if (Array.isArray(images) && images.length > 0 && images[0]?.url) {
+        coverUrl = images[0].url as string;
+      }
+
       results.push({
         code: record.code as string,
         title: record.title as string | undefined,
         details: record.details as string | undefined,
-        coverUrl: record.cover_url as string | undefined,
+        coverUrl,
       });
     }
 
