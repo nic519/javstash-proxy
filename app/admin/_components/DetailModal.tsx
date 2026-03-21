@@ -97,11 +97,22 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
               style={{ background: 'var(--accent-gold)' }}
             />
             <h3
-              className="font-mono font-semibold text-xl tracking-wide"
-              style={{ color: 'var(--accent-gold)' }}
+              className="font-mono text-sm tracking-wide"
+              style={{ color: 'var(--text-muted)' }}
             >
               {item.code}
             </h3>
+            {form.titleZh && (
+              <>
+                <span style={{ color: 'var(--text-muted)' }}>·</span>
+                <h2
+                  className="font-medium text-lg"
+                  style={{ color: 'var(--accent-gold)' }}
+                >
+                  {form.titleZh}
+                </h2>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <IconButton
@@ -242,9 +253,6 @@ function DetailView({ item, form }: { item: DetailModalProps['item']; form: Edit
       )}
       {/* 文字信息区域 */}
       <div className="flex-1 space-y-6 min-w-0 py-2">
-        <Field label="中文标题" highlight>
-          <span className="text-lg font-medium">{form.titleZh || '-'}</span>
-        </Field>
         <Field label="中文简介">
           <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
         </Field>
