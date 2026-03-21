@@ -68,98 +68,104 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
       {/* 背景遮罩：点击关闭 */}
       <div
         className="absolute inset-0 backdrop-blur-sm"
-        style={{ background: 'rgba(0,0,0,0.7)' }}
+        style={{ background: 'rgba(0,0,0,0.1)' }}
         onClick={onClose}
       />
 
       {/* 弹窗主体 */}
       <div
-        className="absolute inset-0 flex flex-col m-4 rounded-2xl overflow-hidden animate-scale-in cursor-pointer"
-        style={{
-          background: 'rgba(15, 15, 20, 0.85)',
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 25px 80px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)',
-        }}
+        className="absolute inset-0 flex justify-center items-center"
         onClick={onClose}
       >
-        {/* 顶部栏：标题和操作按钮 */}
         <div
-          className="flex items-center justify-between px-6 py-4 cursor-default"
+          className="flex flex-col my-4 mx-4 max-w-7xl w-full rounded-2xl overflow-hidden animate-scale-in cursor-pointer"
           style={{
-            background: 'linear-gradient(180deg, rgba(25, 25, 35, 0.8) 0%, transparent 100%)',
-            borderBottom: '1px solid var(--border-color)',
+            background: 'rgba(15, 15, 20, 0.85)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 25px 80px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)',
+            maxHeight: 'min(680px, calc(100vh - 2rem))',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-1 h-6 rounded-full"
-              style={{ background: 'var(--accent-gold)' }}
-            />
-            <h3
-              className="font-mono text-sm tracking-wide"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {item.code}
-            </h3>
-            {form.titleZh && (
-              <>
-                <span style={{ color: 'var(--text-muted)' }}>·</span>
-                <h2
-                  className="font-medium text-lg"
-                  style={{ color: 'var(--accent-gold)' }}
-                >
-                  {form.titleZh}
-                </h2>
-              </>
+          {/* 顶部栏：标题和操作按钮 */}
+          <div
+            className="flex items-center justify-between px-6 py-4 cursor-default"
+            style={{
+              background: 'linear-gradient(180deg, rgba(25, 25, 35, 0.8) 0%, transparent 100%)',
+              borderBottom: '1px solid var(--border-color)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-1 h-6 rounded-full"
+                style={{ background: 'var(--accent-gold)' }}
+              />
+              <h3
+                className="font-mono text-sm tracking-wide"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                {item.code}
+              </h3>
+              {form.titleZh && (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>·</span>
+                  <h2
+                    className="font-medium text-lg"
+                    style={{ color: 'var(--accent-gold)' }}
+                  >
+                    {form.titleZh}
+                  </h2>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <IconButton
+                onClick={() => setEditing(!editing)}
+                color="var(--accent-gold)"
+                hoverColor="rgba(212,175,55,0.15)"
+                title="编辑"
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                onClick={handleDelete}
+                disabled={deleting}
+                color="#ef4444"
+                hoverColor="rgba(239,68,68,0.15)"
+                title="删除"
+              >
+                {deleting ? <SpinnerIcon /> : <TrashIcon />}
+              </IconButton>
+              <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
+              <IconButton
+                onClick={onClose}
+                color="var(--text-muted)"
+                hoverColor="var(--bg-tertiary)"
+                title="关闭"
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+          </div>
+
+          {/* 内容区域 */}
+          <div
+            className="flex-1 overflow-y-auto p-6 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {editing ? (
+              <EditFormView
+                form={form}
+                onChange={setForm}
+                onSave={handleSave}
+                onCancel={() => setEditing(false)}
+                saving={saving}
+              />
+            ) : (
+              <DetailView item={item} form={form} onClose={onClose} />
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <IconButton
-              onClick={() => setEditing(!editing)}
-              color="var(--accent-gold)"
-              hoverColor="rgba(212,175,55,0.15)"
-              title="编辑"
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
-              onClick={handleDelete}
-              disabled={deleting}
-              color="#ef4444"
-              hoverColor="rgba(239,68,68,0.15)"
-              title="删除"
-            >
-              {deleting ? <SpinnerIcon /> : <TrashIcon />}
-            </IconButton>
-            <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
-            <IconButton
-              onClick={onClose}
-              color="var(--text-muted)"
-              hoverColor="var(--bg-tertiary)"
-              title="关闭"
-            >
-              <CloseIcon />
-            </IconButton>
-          </div>
-        </div>
-
-        {/* 内容区域 */}
-        <div
-          className="flex-1 overflow-y-auto p-6 cursor-default"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {editing ? (
-            <EditFormView
-              form={form}
-              onChange={setForm}
-              onSave={handleSave}
-              onCancel={() => setEditing(false)}
-              saving={saving}
-            />
-          ) : (
-            <DetailView item={item} form={form} />
-          )}
         </div>
       </div>
 
@@ -223,17 +229,18 @@ function IconButton({
  * 详情视图
  * 左侧展示封面大图，右侧展示文字信息
  */
-function DetailView({ item, form }: { item: DetailModalProps['item']; form: EditForm }) {
+function DetailView({ item, form, onClose }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void }) {
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
       {/* 封面大图 */}
       {form.coverUrl && (
         <div className="flex-shrink-0">
           <div
-            className="relative rounded-xl overflow-hidden"
+            className="relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
             style={{
               boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 0 30px -5px rgba(212,175,55,0.15)',
             }}
+            onClick={onClose}
           >
             <Image
               src={form.coverUrl}
