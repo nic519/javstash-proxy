@@ -15,8 +15,6 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
   const [saving, setSaving] = useState(false);
   // 删除中状态
   const [deleting, setDeleting] = useState(false);
-  // 全屏图片查看状态
-  const [showLightbox, setShowLightbox] = useState(false);
   // 编辑表单数据
   const [form, setForm] = useState<EditForm>({
     titleZh: item.titleZh,
@@ -66,62 +64,110 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-      {/* 顶部栏：标题和操作按钮 */}
+    <div className="fixed inset-0 z-50 animate-fade-in">
+      {/* 背景遮罩：点击关闭 */}
       <div
-        className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: 'var(--border-color)' }}
+        className="absolute inset-0 backdrop-blur-sm"
+        style={{ background: 'rgba(0,0,0,0.7)' }}
+        onClick={onClose}
+      />
+
+      {/* 弹窗主体 */}
+      <div
+        className="absolute inset-0 flex flex-col m-4 rounded-2xl overflow-hidden animate-scale-in cursor-pointer"
+        style={{
+          background: 'rgba(15, 15, 20, 0.85)',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 25px 80px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)',
+        }}
+        onClick={onClose}
       >
-        <h3 className="font-mono font-medium text-xl" style={{ color: 'var(--accent-gold)' }}>
-          {item.code}
-        </h3>
-        <div className="flex items-center gap-1">
-          {/* 编辑按钮：切换编辑模式 */}
-          <IconButton
-            onClick={() => setEditing(!editing)}
-            color="var(--accent-gold)"
-            hoverColor="rgba(212,175,55,0.1)"
-            title="编辑"
-          >
-            <EditIcon />
-          </IconButton>
-          {/* 删除按钮 */}
-          <IconButton
-            onClick={handleDelete}
-            disabled={deleting}
-            color="#ef4444"
-            hoverColor="rgba(239,68,68,0.1)"
-            title="删除"
-          >
-            {deleting ? <SpinnerIcon /> : <TrashIcon />}
-          </IconButton>
-          {/* 关闭按钮 */}
-          <IconButton
-            onClick={onClose}
-            color="var(--text-muted)"
-            hoverColor="var(--bg-tertiary)"
-            title="关闭"
-          >
-            <CloseIcon />
-          </IconButton>
+        {/* 顶部栏：标题和操作按钮 */}
+        <div
+          className="flex items-center justify-between px-6 py-4 cursor-default"
+          style={{
+            background: 'linear-gradient(180deg, rgba(25, 25, 35, 0.8) 0%, transparent 100%)',
+            borderBottom: '1px solid var(--border-color)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-1 h-6 rounded-full"
+              style={{ background: 'var(--accent-gold)' }}
+            />
+            <h3
+              className="font-mono font-semibold text-xl tracking-wide"
+              style={{ color: 'var(--accent-gold)' }}
+            >
+              {item.code}
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <IconButton
+              onClick={() => setEditing(!editing)}
+              color="var(--accent-gold)"
+              hoverColor="rgba(212,175,55,0.15)"
+              title="编辑"
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleDelete}
+              disabled={deleting}
+              color="#ef4444"
+              hoverColor="rgba(239,68,68,0.15)"
+              title="删除"
+            >
+              {deleting ? <SpinnerIcon /> : <TrashIcon />}
+            </IconButton>
+            <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
+            <IconButton
+              onClick={onClose}
+              color="var(--text-muted)"
+              hoverColor="var(--bg-tertiary)"
+              title="关闭"
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
+        </div>
+
+        {/* 内容区域 */}
+        <div
+          className="flex-1 overflow-y-auto p-6 cursor-default"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {editing ? (
+            <EditFormView
+              form={form}
+              onChange={setForm}
+              onSave={handleSave}
+              onCancel={() => setEditing(false)}
+              saving={saving}
+            />
+          ) : (
+            <DetailView item={item} form={form} />
+          )}
         </div>
       </div>
 
-      {/* 内容区域 */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {editing ? (
-          <EditFormView
-            form={form}
-            onChange={setForm}
-            onSave={handleSave}
-            onCancel={() => setEditing(false)}
-            saving={saving}
-          />
-        ) : (
-          <DetailView item={item} form={form} />
-        )}
-      </div>
-      </div>
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.25s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
@@ -151,7 +197,7 @@ function IconButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+      className="p-2 rounded-xl transition-all duration-200 disabled:opacity-40 hover:scale-105 active:scale-95"
       style={{ color, backgroundColor: 'transparent' }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -164,44 +210,43 @@ function IconButton({
 
 /**
  * 详情视图
- * 左侧展示封面缩略图，右侧展示文字信息
+ * 左侧展示封面大图，右侧展示文字信息
  */
-function DetailView({
-  item,
-  form,
-  onImageClick,
-}: {
-  item: DetailModalProps['item'];
-  form: EditForm;
-  onImageClick: () => void;
-}) {
+function DetailView({ item, form }: { item: DetailModalProps['item']; form: EditForm }) {
   return (
-    <div className="flex gap-5">
-      {/* 封面缩略图：点击可全屏查看 */}
+    <div className="flex gap-10 max-w-6xl mx-auto">
+      {/* 封面大图 */}
       {form.coverUrl && (
-        <div
-          className="flex-shrink-0 cursor-pointer group"
-          onClick={onImageClick}
-        >
-          <Image
-            src={form.coverUrl}
-            alt={item.code}
-            width={160}
-            height={240}
-            className="w-40 h-auto rounded-lg object-cover shadow-lg transition-transform group-hover:scale-105"
-            unoptimized
-          />
-          <p className="text-xs text-center mt-1" style={{ color: 'var(--text-muted)' }}>
-            点击查看大图
-          </p>
+        <div className="flex-shrink-0">
+          <div
+            className="relative rounded-xl overflow-hidden"
+            style={{
+              boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 0 30px -5px rgba(212,175,55,0.15)',
+            }}
+          >
+            <Image
+              src={form.coverUrl}
+              alt={item.code}
+              width={400}
+              height={600}
+              className="max-h-[70vh] w-auto object-cover"
+              unoptimized
+            />
+            {/* 底部渐变 */}
+            <div
+              className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)' }}
+            />
+          </div>
         </div>
       )}
       {/* 文字信息区域 */}
-      <div className="flex-1 space-y-3 min-w-0">
-        <Field label="中文标题">{form.titleZh || '-'}</Field>
+      <div className="flex-1 space-y-6 min-w-0 py-2">
+        <Field label="中文标题" highlight>
+          <span className="text-lg font-medium">{form.titleZh || '-'}</span>
+        </Field>
         <Field label="中文简介">
-          {/* 保留换行格式 */}
-          <p className="whitespace-pre-wrap">{form.summaryZh || '-'}</p>
+          <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
         </Field>
         <Field label="封面 URL">
           {form.coverUrl ? (
@@ -209,8 +254,8 @@ function DetailView({
               href={form.coverUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm break-all hover:underline"
-              style={{ color: '#3b82f6' }}
+              className="text-sm break-all hover:underline transition-colors"
+              style={{ color: 'var(--accent-gold)' }}
             >
               {form.coverUrl}
             </a>
@@ -241,7 +286,7 @@ function EditFormView({
   saving: boolean;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 max-w-2xl mx-auto">
       <InputField
         label="中文标题"
         value={form.titleZh}
@@ -251,7 +296,7 @@ function EditFormView({
         label="中文简介"
         value={form.summaryZh}
         onChange={(v) => onChange({ ...form, summaryZh: v })}
-        rows={5}
+        rows={6}
       />
       <InputField
         label="封面 URL"
@@ -259,21 +304,28 @@ function EditFormView({
         onChange={(v) => onChange({ ...form, coverUrl: v })}
       />
       {/* 操作按钮组 */}
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-3 pt-4">
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm rounded-lg"
-          style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+          className="px-4 py-2 text-sm rounded-xl transition-all hover:scale-105 active:scale-95"
+          style={{
+            background: 'var(--bg-tertiary)',
+            color: 'var(--text-primary)',
+          }}
         >
           取消
         </button>
         <button
           onClick={onSave}
           disabled={saving}
-          className="px-3 py-1.5 text-sm rounded-lg flex items-center gap-1"
-          style={{ background: 'var(--accent-gold)', color: 'var(--bg-primary)' }}
+          className="px-5 py-2 text-sm font-medium rounded-xl transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100 flex items-center gap-2"
+          style={{
+            background: 'var(--accent-gold)',
+            color: 'var(--bg-primary)',
+            boxShadow: '0 4px 15px -3px rgba(212,175,55,0.4)',
+          }}
         >
-          {saving && <SpinnerIcon size={3} />}
+          {saving && <SpinnerIcon size={4} />}
           保存
         </button>
       </div>
@@ -284,13 +336,29 @@ function EditFormView({
 /**
  * 只读字段展示
  */
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  highlight,
+  children,
+}: {
+  label: string;
+  highlight?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
+    <div className="group">
+      <label
+        className="block text-xs font-medium tracking-wide uppercase mb-2"
+        style={{ color: 'var(--text-muted)' }}
+      >
         {label}
       </label>
-      <div style={{ color: 'var(--text-primary)' }}>{children}</div>
+      <div
+        className={`transition-colors ${highlight ? '' : ''}`}
+        style={{ color: highlight ? 'var(--accent-gold)' : 'var(--text-primary)' }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -309,15 +377,23 @@ function InputField({
 }) {
   return (
     <div>
-      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
+      <label
+        className="block text-xs font-medium tracking-wide uppercase mb-2"
+        style={{ color: 'var(--text-muted)' }}
+      >
         {label}
       </label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-1.5 text-sm rounded-lg border-none outline-none"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+        className="w-full px-4 py-2.5 text-sm rounded-xl border-none outline-none transition-all focus:ring-2"
+        style={{
+          background: 'var(--bg-tertiary)',
+          color: 'var(--text-primary)',
+        }}
+        onFocus={(e) => (e.target.style.boxShadow = '0 0 0 2px var(--accent-gold)')}
+        onBlur={(e) => (e.target.style.boxShadow = 'none')}
       />
     </div>
   );
@@ -339,44 +415,23 @@ function TextAreaField({
 }) {
   return (
     <div>
-      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
+      <label
+        className="block text-xs font-medium tracking-wide uppercase mb-2"
+        style={{ color: 'var(--text-muted)' }}
+      >
         {label}
       </label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="w-full px-3 py-1.5 text-sm rounded-lg border-none outline-none resize-none"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-      />
-    </div>
-  );
-}
-
-/* ==================== 全屏图片组件 ==================== */
-
-/**
- * 全屏图片查看器
- * 点击任意位置关闭
- */
-function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 cursor-zoom-out"
-      onClick={onClose}
-    >
-      {/* 关闭提示 */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
-        点击任意位置关闭
-      </div>
-      {/* 图片 */}
-      <Image
-        src={src}
-        alt={alt}
-        width={800}
-        height={1200}
-        className="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain"
-        unoptimized
+        className="w-full px-4 py-2.5 text-sm rounded-xl border-none outline-none resize-none transition-all leading-relaxed"
+        style={{
+          background: 'var(--bg-tertiary)',
+          color: 'var(--text-primary)',
+        }}
+        onFocus={(e) => (e.target.style.boxShadow = '0 0 0 2px var(--accent-gold)')}
+        onBlur={(e) => (e.target.style.boxShadow = 'none')}
       />
     </div>
   );

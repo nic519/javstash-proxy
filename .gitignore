@@ -5,3 +5,4 @@ dist/
 .vercel
 .next
 *.tsbuildinfo
+tsconfig.tsbuildinfo

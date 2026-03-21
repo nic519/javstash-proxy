@@ -1,21 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(bun add:*)",
-      "Bash(pkill -f \"next dev\")",
-      "Bash(curl -s http://localhost:3000)",
-      "Bash(curl -s http://localhost:3000/_next/static/chunks/app_globals_0jn8.0u.css)",
+      "Bash(git:*)",
+      "Bash(bun:*)",
+      "Bash(npx:*)",
+      "Bash(npm:*)",
       "Bash(curl:*)",
-      "Bash(bun run:*)",
       "Bash(kill:*)",
-      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)",
-      "Bash(npx tsc:*)",
-      "Bash(npm test:*)",
-      "Bash(npx vitest:*)",
-      "Bash(git stash:*)",
-      "Bash(git checkout:*)"
+      "Bash(pkill:*)",
+      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)"
     ]
   }
 }
