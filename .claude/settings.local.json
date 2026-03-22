@@ -8,7 +8,9 @@
       "Bash(curl:*)",
       "Bash(kill:*)",
       "Bash(pkill:*)",
-      "Bash(source .env)"
+      "Bash(source .env)",
+      "Bash(identify /Users/nicholas/Downloads/il_1588xN.5743211421_gaep.avif)",
+      "Bash(ffmpeg:*)"
     ]
   }
 }

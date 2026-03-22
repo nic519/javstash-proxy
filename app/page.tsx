@@ -2,17 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, ExternalLink, Copy, Check } from 'lucide-react';
+import { ExternalLink, Copy, Check } from 'lucide-react';
 
 type LoginType = 'admin' | 'javstash';
 
 /**
- * 首页 - 登录入口
- * 支持两种登录方式：管理员密码 和 JavStash API Key
+ * 首页 - 端点展示为主，登录为辅
  */
 export default function HomePage() {
   const router = useRouter();
-  const [loginType, setLoginType] = useState<LoginType>('admin');
+  const [loginType, setLoginType] = useState<LoginType>('javstash');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,7 +57,6 @@ export default function HomePage() {
       const data = await res.json();
 
       if (res.ok) {
-        // 根据登录类型重定向到不同页面
         router.push(loginType === 'admin' ? '/admin' : '/browse');
       } else {
         setError(getErrorMessage(data.error));
@@ -71,36 +69,123 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-      {/* 顶部装饰线 */}
-      <div className="h-px w-full" style={{
-        background: 'linear-gradient(90deg, transparent, var(--accent-gold), transparent)'
+    <div className="min-h-screen flex flex-col relative" style={{ background: 'var(--bg-primary)' }}>
+      {/* 背景纹理 */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
       }} />
 
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* 左侧：品牌信息 */}
-          <div className="space-y-10">
-            {/* Logo + 标题 */}
-            <div className="flex items-end gap-5">
-              <img
-                src="/logo.svg"
-                alt="JavStash Logo"
-                className="w-10 h-14 object-contain"
-              />
-              <div>
-                <h1 className="font-display text-4xl lg:text-5xl font-semibold tracking-wide gradient-text">
-                  JavStash
-                </h1>
-                <p className="text-xs tracking-[0.25em] uppercase mt-1" style={{ color: 'var(--text-muted)' }}>
-                  中文翻译代理
-                </p>
-              </div>
+      {/* 顶部渐变光晕 */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[400px] opacity-[0.03]" style={{
+        background: 'radial-gradient(ellipse, var(--accent-gold) 0%, transparent 70%)',
+      }} />
+
+      {/* 主内容区 */}
+      <div className="flex-1 flex flex-col justify-center px-8 lg:px-20 relative z-10">
+        <div className="max-w-4xl">
+          {/* 品牌标识 */}
+          <div className="flex items-end gap-6 mb-16 animate-fade-in">
+            <img
+              src="/logo.svg"
+              alt="JavStash"
+              className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+            />
+            <div className="flex flex-col gap-1 pb-2">
+              <span className="font-display text-3xl lg:text-4xl font-medium tracking-wide" style={{ color: 'var(--text-primary)' }}>
+                JavStash
+              </span>
+              <span className="text-xs tracking-[0.25em] uppercase" style={{ color: 'var(--text-muted)' }}>
+                中文翻译代理
+              </span>
+            </div>
+          </div>
+
+          {/* 端点地址 - 视觉中心 */}
+          <div className="mb-12 animate-fade-in stagger-1">
+            <div className="text-xs tracking-[0.25em] uppercase mb-6" style={{ color: 'var(--text-muted)' }}>
+              GraphQL Endpoint
             </div>
 
-            {/* 介绍 */}
-            <p className="leading-relaxed text-base max-w-md" style={{ color: 'var(--text-secondary)' }}>
-              本站是{' '}
+            {/* URL 展示卡片 */}
+            <div
+              className="group relative inline-flex items-center gap-6 cursor-pointer transition-all duration-300"
+              onClick={handleCopy}
+            >
+              {/* 装饰性背景 */}
+              <div className="absolute -inset-6 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.03), rgba(212, 175, 55, 0.01))',
+                border: '1px solid rgba(212, 175, 55, 0.1)',
+              }} />
+
+              {/* URL 文字 */}
+              <code className="relative text-2xl sm:text-3xl lg:text-4xl font-light tracking-tight" style={{
+                fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace",
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.02em',
+              }}>
+                {endpointUrl}
+              </code>
+
+              {/* 复制按钮 */}
+              <button
+                type="button"
+                className="relative p-3 rounded-xl transition-all duration-300 opacity-40 group-hover:opacity-100"
+                style={{
+                  background: copied ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)',
+                  color: copied ? '#22c55e' : 'var(--text-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+                title={copied ? '已复制' : '点击复制'}
+              >
+                {copied ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+
+            {/* 复制提示 */}
+            <div className="mt-4 h-5 text-sm transition-opacity duration-300" style={{
+              color: copied ? '#22c55e' : 'var(--text-muted)',
+              opacity: copied ? 1 : 0,
+            }}>
+              已复制到剪贴板
+            </div>
+          </div>
+
+          {/* 使用说明 */}
+          <div className="mb-12 animate-fade-in stagger-2">
+            <div className="text-xs tracking-[0.25em] uppercase mb-5" style={{ color: 'var(--text-muted)' }}>
+              Authentication
+            </div>
+            <p className="text-base mb-5" style={{ color: 'var(--text-secondary)' }}>
+              请求需在 Header 中携带 API Key
+            </p>
+            {/* 代码示例 */}
+            <div
+              className="inline-block p-5 rounded-xl text-sm"
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace",
+              }}
+            >
+              <div style={{ color: 'var(--text-muted)' }}>fetch(<span style={{ color: 'var(--accent-gold)' }}>"{endpointUrl}"</span>, {'{'})</div>
+              <div className="pl-4" style={{ color: 'var(--text-muted)' }}>
+                headers: {'{\n'}
+                <span className="pl-4" style={{ color: 'var(--text-secondary)' }}>"Content-Type"</span>: <span style={{ color: 'var(--accent-gold)' }}>"application/json"</span>,{'\n'}
+                <span className="pl-4" style={{ color: 'var(--text-secondary)' }}>"ApiKey"</span>: <span style={{ color: 'var(--accent-gold)' }}>"your-api-key"</span>{'\n'}
+                {'  }'}
+              </div>
+              <div style={{ color: 'var(--text-muted)' }}>{'}'})</div>
+            </div>
+          </div>
+
+          {/* 说明文字 */}
+          <div className="max-w-lg animate-fade-in stagger-3">
+            <p className="text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
+              本站为{' '}
               <a
                 href="https://javstash.org"
                 target="_blank"
@@ -109,130 +194,100 @@ export default function HomePage() {
                 style={{ color: 'var(--accent-gold)' }}
               >
                 JavStash
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
               {' '}的中转代理，自动将日文元数据翻译为中文。
             </p>
 
-            {/* 端点信息 - 用排版强调，不用框 */}
-            <div className="space-y-4">
-              <div className="text-xs tracking-[0.2em] uppercase" style={{ color: 'var(--text-muted)' }}>
-                代理端点
-              </div>
-              <div
-                className="group flex items-center gap-4 cursor-pointer"
-                onClick={handleCopy}
+            {/* API Key 获取 */}
+            <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
+              <span>获取 API Key 方式：</span>
+              <a
+                href="https://discord.gg/javstash"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center  hover:underline font-medium transition-colors"
+                style={{ color: 'var(--accent-gold)' }}
               >
-                <code className="text-xl lg:text-2xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-                  {endpointUrl}
-                </code>
-                <button
-                  type="button"
-                  className="p-2 rounded-lg transition-all duration-200 opacity-50 group-hover:opacity-100"
-                  style={{
-                    background: copied ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
-                    color: copied ? '#22c55e' : 'var(--text-muted)',
-                  }}
-                  title={copied ? '已复制' : '点击复制'}
-                >
-                  {copied ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <Copy className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              <div className="flex items-center gap-2 text-sm pt-2" style={{ color: 'var(--text-muted)' }}>
-                <span>获取 API Key</span>
-                <span className="opacity-40">·</span>
-                <a
-                  href="https://discord.gg/javstash"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:underline font-medium"
-                  style={{ color: 'var(--accent-gold)' }}
-                >
-                  Discord
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* 右侧：登录框 - 唯一焦点 */}
-          <div className="lg:ml-auto lg:max-w-sm w-full">
-            <div className="p-8 rounded-2xl" style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12)',
-            }}>
-              {/* 登录方式选择 */}
-              <div className="flex mb-6 rounded-lg p-1" style={{ background: 'var(--bg-tertiary)' }}>
-
-                <button
-                  type="button"
-                  onClick={() => setLoginType('javstash')}
-                  className="flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200"
-                  style={{
-                    background: loginType === 'javstash' ? 'var(--bg-secondary)' : 'transparent',
-                    color: loginType === 'javstash' ? 'var(--accent-gold)' : 'var(--text-muted)',
-                    boxShadow: loginType === 'javstash' ? 'var(--shadow-sm)' : 'none',
-                  }}
-                >
-                  JavStash
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginType('admin')}
-                  className="flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200"
-                  style={{
-                    background: loginType === 'admin' ? 'var(--bg-secondary)' : 'transparent',
-                    color: loginType === 'admin' ? 'var(--accent-gold)' : 'var(--text-muted)',
-                    boxShadow: loginType === 'admin' ? 'var(--shadow-sm)' : 'none',
-                  }}
-                >
-                  管理员
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="mb-5">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-field text-base py-3"
-                    placeholder={loginType === 'admin' ? '请输入管理员密码' : '请输入 API Key'}
-                    autoFocus
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-sm mb-4 text-center" style={{ color: '#ef4444' }}>{error}</p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base"
-                >
-                  {loading ? '登录中...' : (
-                    <>
-                      登录
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
+                Discord
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
           </div>
         </div>
       </div>
 
+      {/* 登录入口 - 右上角 */}
+      <div className="absolute top-8 right-8 z-20">
+        <div
+          className="p-4 rounded-xl"
+          style={{
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          {/* 提示文字 */}
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            登录后可图形化调试接口
+          </p>
+
+          {/* 登录方式选择 */}
+          <div className="flex mb-3 rounded-md p-0.5" style={{ background: 'var(--bg-tertiary)' }}>
+            <button
+              type="button"
+              onClick={() => setLoginType('javstash')}
+              className="flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all"
+              style={{
+                background: loginType === 'javstash' ? 'var(--bg-secondary)' : 'transparent',
+                color: loginType === 'javstash' ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}
+            >
+              JavStash
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginType('admin')}
+              className="flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all"
+              style={{
+                background: loginType === 'admin' ? 'var(--bg-secondary)' : 'transparent',
+                color: loginType === 'admin' ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}
+            >
+              管理员
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-field text-sm py-2 flex-1"
+              placeholder={loginType === 'admin' ? '密码' : 'API Key'}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors shrink-0"
+              style={{
+                background: 'var(--accent-gold)',
+                color: 'var(--bg-primary)',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? '...' : '登录'}
+            </button>
+          </form>
+
+          {error && (
+            <p className="text-xs mt-2 text-center" style={{ color: '#ef4444' }}>{error}</p>
+          )}
+        </div>
+      </div>
+
       {/* 底部装饰线 */}
-      <div className="h-px w-full" style={{
-        background: 'linear-gradient(90deg, transparent, var(--border-light), transparent)'
+      <div className="h-px w-full relative z-10" style={{
+        background: 'linear-gradient(90deg, transparent, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent)',
       }} />
     </div>
   );
