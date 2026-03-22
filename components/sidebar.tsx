@@ -80,7 +80,7 @@ export function Sidebar() {
         <button
           onClick={async () => {
             await fetch('/api/auth', { method: 'DELETE' });
-            router.push('/login');
+            router.push('/');
           }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-red-500/10"
           style={{ color: '#ef4444' }}

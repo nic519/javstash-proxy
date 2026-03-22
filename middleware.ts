@@ -48,7 +48,7 @@ export function middleware(request: NextRequest) {
   // /admin 路由只允许 admin 类型会话
   if (pathname.startsWith('/admin')) {
     if (!authenticated) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
     if (type !== 'admin') {
       // javstash 用户重定向到 browse 页面
@@ -63,7 +63,7 @@ export function middleware(request: NextRequest) {
   );
 
   if (isProtectedRoute && !authenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // 受保护的 API 路由
@@ -71,14 +71,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // 已登录用户访问登录页时重定向
-  if (pathname === '/login' && authenticated) {
-    return NextResponse.redirect(new URL('/', request.url));
+  // 已登录用户访问首页时重定向到管理页
+  if (pathname === '/' && authenticated) {
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/playground/:path*', '/browse/:path*', '/admin/:path*', '/api/admin/:path*', '/login'],
+  matcher: ['/playground/:path*', '/browse/:path*', '/admin/:path*', '/api/admin/:path*'],
 };
