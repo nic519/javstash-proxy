@@ -21,7 +21,7 @@
 | 身份 | Token 格式 | 权限 |
 |-----|-----------|------|
 | 管理员 | `admin:${expires}` (base64) | 全部路由 |
-| API Key 用户 | `api_key:${expires}` (base64) | 除 `/admin` 外 |
+| JavStash 用户 | `javstash:${expires}` (base64) | 除 `/admin` 外 |
 
 ### 文件变更
 
@@ -34,13 +34,13 @@
 export async function validateApiKey(apiKey: string): Promise<'valid' | 'invalid' | 'network_error'>
 
 // 创建会话（支持类型参数）
-export async function createSession(type: 'admin' | 'api_key'): Promise<void>
+export async function createSession(type: 'admin' | 'javstash'): Promise<void>
 
 // 检查当前会话是否为管理员
 export async function isAdmin(): Promise<boolean>
 
 // 获取当前会话类型
-export async function getSessionType(): Promise<'admin' | 'api_key' | null>
+export async function getSessionType(): Promise<'admin' | 'javstash' | null>
 ```
 
 修改 `validatePassword` 保持不变。
@@ -51,11 +51,11 @@ export async function getSessionType(): Promise<'admin' | 'api_key' | null>
 
 ```typescript
 // 请求体
-{ password: string, type: 'admin' | 'api_key' }
+{ password: string, type: 'admin' | 'javstash' }
 
 // 响应
 { success: true }
-{ error: 'invalid_credentials' | 'api_key_invalid' | 'network_error' }
+{ error: 'invalid_credentials' | 'javstash_invalid' | 'network_error' }
 ```
 
 #### 3. `middleware.ts`
@@ -77,7 +77,7 @@ if (pathname.startsWith('/admin')) {
 - 添加登录方式选择（两个选项：管理员密码 / API Key）
 - 根据错误类型显示不同提示：
   - `invalid_credentials` → "密码错误"
-  - `api_key_invalid` → "API Key 无效"
+  - `javstash_invalid` → "API Key 无效"
   - `network_error` → "网络错误，请重试"
 
 ### API Key 验证逻辑
