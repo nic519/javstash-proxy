@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, Code, Database, LogOut, Layers } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +19,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="w-72 min-h-screen flex flex-col relative" style={{ background: 'var(--bg-secondary)' }}>
@@ -76,17 +77,17 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <form action="/api/auth" method="post">
-          <input type="hidden" name="_method" value="DELETE" />
-          <button
-            type="submit"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-red-500/10"
-            style={{ color: '#ef4444' }}
-          >
-            {iconMap.logout}
-            <span className="font-medium">退出登录</span>
-          </button>
-        </form>
+        <button
+          onClick={async () => {
+            await fetch('/api/auth', { method: 'DELETE' });
+            router.push('/login');
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-red-500/10"
+          style={{ color: '#ef4444' }}
+        >
+          {iconMap.logout}
+          <span className="font-medium">退出登录</span>
+        </button>
       </div>
 
       {/* Decorative Gradient */}
