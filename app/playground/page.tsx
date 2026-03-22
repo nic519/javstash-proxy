@@ -3,35 +3,14 @@
 import { useState } from 'react';
 import { Loader2, Play, Terminal } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
-
-const defaultQuery = `# GraphQL 查询示例
-# title 和 details 会被代理自动翻译为中文
-# searchScene: 关键词搜索（推荐用于番号/演员搜索）
-query Search($term: String!) {
-  searchScene(term: $term) {
-    id
-    code
-    title
-    details
-    date
-    images { url }
-    performers {
-      performer {
-        name
-      }
-    }
-    tags {
-      name
-    }
-  }
-}`;
+import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 
 const defaultVariables = `{
   "term": "MIAE-209"
 }`;
 
 export default function PlaygroundPage() {
-  const [query, setQuery] = useState(defaultQuery);
+  const [query, setQuery] = useState(SEARCH_SCENE_QUERY);
   const [variables, setVariables] = useState(defaultVariables);
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);

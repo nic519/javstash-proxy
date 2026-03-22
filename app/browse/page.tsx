@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Search, Loader2, AlertCircle, User, Frown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
+import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 
 interface Scene {
   id: string;
@@ -10,9 +11,13 @@ interface Scene {
   title: string;
   details?: string;
   date?: string;
+  duration?: number;
+  director?: string;
   images?: { url: string }[];
-  performers?: { performer: { name: string } }[];
+  urls?: { url: string }[];
+  performers?: { performer: { name: string; gender?: string } }[];
   tags?: { name: string }[];
+  studio?: { name: string };
 }
 
 export default function BrowsePage() {
@@ -33,24 +38,7 @@ export default function BrowsePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: `
-            query Search($term: String!) {
-              searchScene(term: $term) {
-                id
-                code
-                title
-                details
-                date
-                images { url }
-                performers {
-                  performer { name }
-                }
-                tags {
-                  name
-                }
-              }
-            }
-          `,
+          query: SEARCH_SCENE_QUERY,
           variables: { term: keyword },
         }),
       });
