@@ -8,7 +8,7 @@
       "Bash(curl:*)",
       "Bash(kill:*)",
       "Bash(pkill:*)",
-      "Bash(source /Users/nicholas/Desktop/my_program/javstash-proxy/.env)"
+      "Bash(source .env)"
     ]
   }
 }

@@ -6,6 +6,7 @@ export interface Translation {
   titleZh: string;
   summaryZh: string;
   coverUrl?: string;
+  rawResponse?: string; // Original scene JSON from upstream
 }
 
 /**

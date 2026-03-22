@@ -16,7 +16,7 @@ export class TursoCache {
 
     const placeholders = codes.map(() => '?').join(',');
     const result = await this.client.execute({
-      sql: `SELECT code, title_zh, summary_zh, cover_url FROM translations WHERE code IN (${placeholders})`,
+      sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response FROM translations WHERE code IN (${placeholders})`,
       args: codes,
     });
 
@@ -25,6 +25,7 @@ export class TursoCache {
       titleZh: (row.title_zh as string) ?? '',
       summaryZh: (row.summary_zh as string) ?? '',
       coverUrl: (row.cover_url as string) ?? undefined,
+      rawResponse: (row.raw_response as string) ?? undefined,
     }));
   }
 
@@ -35,13 +36,14 @@ export class TursoCache {
     if (translations.length === 0) return;
 
     const statements = translations.map((t) => ({
-      sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url)
-            VALUES (?, ?, ?, ?)
+      sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url, raw_response)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(code) DO UPDATE SET
               title_zh = excluded.title_zh,
               summary_zh = excluded.summary_zh,
-              cover_url = excluded.cover_url`,
-      args: [t.code, t.titleZh, t.summaryZh, t.coverUrl ?? null],
+              cover_url = excluded.cover_url,
+              raw_response = excluded.raw_response`,
+      args: [t.code, t.titleZh, t.summaryZh, t.coverUrl ?? null, t.rawResponse ?? null],
     }));
 
     await this.client.batch(statements, 'write');
@@ -94,7 +96,7 @@ export class TursoCache {
 
     // Get items
     const result = await this.client.execute({
-      sql: `SELECT code, title_zh, summary_zh, cover_url FROM translations ${searchCondition}
+      sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response FROM translations ${searchCondition}
             ORDER BY code LIMIT ? OFFSET ?`,
       args: [...searchArgs, options.pageSize, offset],
     });
@@ -105,6 +107,7 @@ export class TursoCache {
         titleZh: (row.title_zh as string) ?? '',
         summaryZh: (row.summary_zh as string) ?? '',
         coverUrl: (row.cover_url as string) ?? undefined,
+        rawResponse: (row.raw_response as string) ?? undefined,
       })),
       total,
     };
@@ -115,7 +118,7 @@ export class TursoCache {
    */
   async getTranslation(code: string): Promise<Translation | null> {
     const result = await this.client.execute({
-      sql: 'SELECT code, title_zh, summary_zh, cover_url FROM translations WHERE code = ?',
+      sql: 'SELECT code, title_zh, summary_zh, cover_url, raw_response FROM translations WHERE code = ?',
       args: [code],
     });
 
@@ -127,6 +130,7 @@ export class TursoCache {
       titleZh: (row.title_zh as string) ?? '',
       summaryZh: (row.summary_zh as string) ?? '',
       coverUrl: (row.cover_url as string) ?? undefined,
+      rawResponse: (row.raw_response as string) ?? undefined,
     };
   }
 
@@ -167,5 +171,22 @@ export class TursoCache {
       sql: 'DELETE FROM translations WHERE code = ?',
       args: [code],
     });
+  }
+
+  /**
+   * Check if all codes have raw_response cached
+   * Returns missing codes (those without raw_response)
+   */
+  async getMissingRawResponses(codes: string[]): Promise<string[]> {
+    if (codes.length === 0) return [];
+
+    const placeholders = codes.map(() => '?').join(',');
+    const result = await this.client.execute({
+      sql: `SELECT code FROM translations WHERE code IN (${placeholders}) AND raw_response IS NOT NULL`,
+      args: codes,
+    });
+
+    const cachedCodes = new Set(result.rows.map((row) => row.code as string));
+    return codes.filter((code) => !cachedCodes.has(code));
   }
 }
