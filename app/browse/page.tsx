@@ -5,27 +5,55 @@ import { Search, Loader2, AlertCircle, User, Frown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 
+/**
+ * 场景数据结构
+ * 定义 GraphQL 查询返回的场景信息类型
+ */
 interface Scene {
+  /** 场景唯一 ID */
   id: string;
+  /** 番号代码 */
   code: string;
+  /** 标题 */
   title: string;
+  /** 详细介绍 */
   details?: string;
+  /** 发布日期 */
   date?: string;
+  /** 时长（分钟） */
   duration?: number;
+  /** 导演 */
   director?: string;
+  /** 封面图片列表 */
   images?: { url: string }[];
+  /** 相关链接列表 */
   urls?: { url: string }[];
+  /** 演员列表 */
   performers?: { performer: { name: string; gender?: string } }[];
+  /** 标签列表 */
   tags?: { name: string }[];
+  /** 制作商 */
   studio?: { name: string };
 }
 
+/**
+ * 浏览页面组件
+ * 提供场景搜索和结果展示功能
+ */
 export default function BrowsePage() {
+  // 搜索关键词
   const [keyword, setKeyword] = useState('');
+  // 加载状态
   const [loading, setLoading] = useState(false);
+  // 搜索结果列表
   const [results, setResults] = useState<Scene[]>([]);
+  // 错误信息
   const [error, setError] = useState('');
 
+  /**
+   * 处理搜索表单提交
+   * 向 GraphQL API 发送搜索请求
+   */
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
@@ -34,6 +62,7 @@ export default function BrowsePage() {
     setError('');
 
     try {
+      // 发送 GraphQL 查询请求
       const res = await fetch('/api/graphql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,8 +74,10 @@ export default function BrowsePage() {
 
       const data = await res.json();
       if (data.errors) {
+        // GraphQL 返回错误
         setError(data.errors[0]?.message || '查询失败');
       } else {
+        // 更新搜索结果
         setResults(data.data?.searchScene || []);
       }
     } catch {

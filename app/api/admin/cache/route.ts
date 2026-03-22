@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server';
 import { TursoCache } from '@/src/cache/turso';
 import { loadConfig } from '@/src/config';
 
+/**
+ * 获取缓存实例
+ * 根据配置创建 Turso 缓存连接
+ */
 function getCache(): TursoCache {
   const config = loadConfig();
   return new TursoCache(config.tursoUrl, config.tursoAuthToken);
 }
 
+/**
+ * 获取缓存统计数据
+ * 返回缓存条目数量等信息
+ */
 export async function GET() {
   try {
     const cache = getCache();
@@ -18,6 +26,10 @@ export async function GET() {
   }
 }
 
+/**
+ * 清空所有缓存
+ * 删除数据库中的全部翻译缓存记录
+ */
 export async function DELETE() {
   try {
     const cache = getCache();

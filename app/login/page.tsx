@@ -3,18 +3,30 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * 登录页面组件
+ * 提供管理员密码输入和验证功能
+ */
 export default function LoginPage() {
   const router = useRouter();
+  // 密码输入值
   const [password, setPassword] = useState('');
+  // 错误提示信息
   const [error, setError] = useState('');
+  // 登录中加载状态
   const [loading, setLoading] = useState(false);
 
+  /**
+   * 处理登录表单提交
+   * 向后端发送密码验证请求
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      // 发送登录请求
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -22,6 +34,7 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
+        // 登录成功，跳转到首页
         router.push('/');
       } else {
         setError('密码错误');

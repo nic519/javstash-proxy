@@ -5,28 +5,43 @@ import { Loader2, Play, Terminal } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 
+// 默认的查询变量示例
 const defaultVariables = `{
   "term": "MIAE-209"
 }`;
 
+/**
+ * GraphQL 调试页面组件
+ * 提供交互式的 GraphQL 查询编辑和执行功能
+ */
 export default function PlaygroundPage() {
+  // GraphQL 查询语句
   const [query, setQuery] = useState(SEARCH_SCENE_QUERY);
+  // 查询变量（JSON 格式）
   const [variables, setVariables] = useState(defaultVariables);
+  // API 响应结果
   const [response, setResponse] = useState('');
+  // 执行中状态
   const [loading, setLoading] = useState(false);
 
+  /**
+   * 执行 GraphQL 查询
+   * 将查询和变量发送到 API 并显示结果
+   */
   const handleExecute = async () => {
     setLoading(true);
     setResponse('');
 
     try {
+      // 解析 JSON 变量，失败时使用空对象
       let parsedVariables = {};
       try {
         parsedVariables = JSON.parse(variables);
       } catch {
-        // ignore
+        // JSON 解析失败，忽略
       }
 
+      // 发送 GraphQL 请求
       const res = await fetch('/api/graphql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,6 +49,7 @@ export default function PlaygroundPage() {
       });
 
       const data = await res.json();
+      // 格式化显示响应结果
       setResponse(JSON.stringify(data, null, 2));
     } catch (error) {
       setResponse(`Error: ${error}`);
