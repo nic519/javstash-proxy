@@ -397,7 +397,7 @@ function DetailView({
           <>
 
             {/* 基本信息 - 2列布局 */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {typeof rawData.date === 'string' && rawData.date && (
                 <Field label="发行日期">
                   <span>{formatDate(rawData.date)}</span>
@@ -408,11 +408,11 @@ function DetailView({
                   <span>{rawData.studio.name}</span>
                 </Field>
               )}
-              {typeof rawData.duration === 'number' && rawData.duration && (
+              {/* {typeof rawData.duration === 'number' && rawData.duration && (
                 <Field label="时长">
                   <span>{formatDuration(rawData.duration)}</span>
                 </Field>
-              )}
+              )} */}
               {typeof rawData.director === 'string' && rawData.director && (
                 <Field label="导演">
                   <span>{rawData.director}</span>
@@ -466,7 +466,7 @@ function DetailView({
           </>
         ) : null}
 
-        <Field label="封面 URL">
+        {/* <Field label="封面 URL">
           {form.coverUrl ? (
             <a
               href={form.coverUrl}
@@ -480,16 +480,16 @@ function DetailView({
           ) : (
             <span style={{ color: 'var(--text-muted)' }}>-</span>
           )}
-        </Field>
+        </Field> */}
         {/* DEBUG: 显示原始数据结构 */}
-        <details className="mb-4">
+        {/* <details className="mb-4">
           <summary style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
             调试: 查看原始数据结构
           </summary>
           <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '200px', color: 'var(--text-muted)' }}>
             {JSON.stringify(rawData, null, 2)}
           </pre>
-        </details>
+        </details> */}
       </div>
     </div>
   );
