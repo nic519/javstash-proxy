@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
+import type { SceneData } from '@/src/graphql/queries';
 
 /**
  * 详情弹窗组件
@@ -18,12 +19,51 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
   const [deleting, setDeleting] = useState(false);
   // 复制成功状态
   const [copied, setCopied] = useState(false);
+  // 原始数据状态
+  const [rawData, setRawData] = useState<SceneData | null>(null);
+  const [rawDataLoading, setRawDataLoading] = useState(false);
   // 编辑表单数据
   const [form, setForm] = useState<EditForm>({
     titleZh: item.titleZh,
     summaryZh: item.summaryZh,
     coverUrl: item.coverUrl || '',
   });
+
+  // 当 item 变化时，尝试从 rawResponse 解析或获取原始数据
+  useEffect(() => {
+    const parseSceneData = (jsonStr: string): SceneData | null => {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        // 如果是数组格式，视为无效数据，返回 null 触发重新请求
+        if (Array.isArray(parsed)) {
+          return null;
+        }
+        return parsed as SceneData;
+      } catch {
+        return null;
+      }
+    };
+
+    const parsedData = item.rawResponse ? parseSceneData(item.rawResponse) : null;
+
+    if (parsedData) {
+      setRawData(parsedData);
+    } else {
+      // 没有 rawResponse 或格式无效，从 API 获取
+      setRawDataLoading(true);
+      fetch(`/api/admin/scenes/${encodeURIComponent(item.code)}/raw`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.rawResponse) {
+            setRawData(parseSceneData(data.rawResponse));
+          } else {
+            setRawData(null);
+          }
+        })
+        .catch(() => setRawData(null))
+        .finally(() => setRawDataLoading(false));
+    }
+  }, [item.code, item.rawResponse]);
 
   /**
    * 复制 code 到剪贴板
@@ -166,7 +206,15 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 saving={saving}
               />
             ) : (
-              <DetailView item={item} form={form} onClose={onClose} onCopyCode={handleCopyCode} copied={copied} />
+              <DetailView
+                item={item}
+                form={form}
+                onClose={onClose}
+                onCopyCode={handleCopyCode}
+                copied={copied}
+                rawData={rawData}
+                rawDataLoading={rawDataLoading}
+              />
             )}
           </div>
         </div>
@@ -229,18 +277,6 @@ function IconButton({
 }
 
 /**
- * 从 rawResponse 解析出原始场景数据
- */
-function parseRawData(rawResponse?: string): Record<string, unknown> | null {
-  if (!rawResponse) return null;
-  try {
-    return JSON.parse(rawResponse);
-  } catch {
-    return null;
-  }
-}
-
-/**
  * 格式化日期
  */
 function formatDate(dateStr?: string): string | null {
@@ -265,9 +301,24 @@ function formatDuration(minutes?: number): string | null {
  * 详情视图
  * 左侧展示封面大图，右侧展示文字信息
  */
-function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void; onCopyCode: () => void; copied: boolean }) {
+function DetailView({
+  item,
+  form,
+  onClose,
+  onCopyCode,
+  copied,
+  rawData,
+  rawDataLoading,
+}: {
+  item: DetailModalProps['item'];
+  form: EditForm;
+  onClose: () => void;
+  onCopyCode: () => void;
+  copied: boolean;
+  rawData: SceneData | null;
+  rawDataLoading: boolean;
+}) {
   const [imageLoading, setImageLoading] = useState(true);
-  const rawData = parseRawData(item.rawResponse);
 
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
@@ -337,8 +388,14 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
         <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
 
         {/* 原始数据区域 */}
-        {rawData && (
+        {rawDataLoading ? (
+          <div className="flex items-center gap-2 py-4">
+            <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--text-muted)' }} />
+            <span style={{ color: 'var(--text-muted)' }}>正在加载原始数据...</span>
+          </div>
+        ) : rawData ? (
           <>
+
             {/* 基本信息 - 2列布局 */}
             <div className="grid grid-cols-2 gap-4">
               {typeof rawData.date === 'string' && rawData.date && (
@@ -346,9 +403,9 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
                   <span>{formatDate(rawData.date)}</span>
                 </Field>
               )}
-              {typeof rawData.studio === 'string' && rawData.studio && (
+              {rawData.studio && typeof rawData.studio === 'object' && 'name' in rawData.studio && typeof rawData.studio.name === 'string' && (
                 <Field label="制作商">
-                  <span>{rawData.studio}</span>
+                  <span>{rawData.studio.name}</span>
                 </Field>
               )}
               {typeof rawData.duration === 'number' && rawData.duration && (
@@ -361,28 +418,25 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
                   <span>{rawData.director}</span>
                 </Field>
               )}
-              {typeof rawData.rating === 'number' && rawData.rating && (
-                <Field label="评分">
-                  <span>{rawData.rating}</span>
-                </Field>
-              )}
             </div>
 
             {/* 演员 - 跨列显示 */}
             {Array.isArray(rawData.performers) && rawData.performers.length > 0 && (
               <Field label="演员" className="col-span-2">
                 <div className="flex flex-wrap gap-2">
-                  {rawData.performers.slice(0, 6).map((p: { name: string }, idx: number) => (
-                    <span
-                      key={idx}
-                      className="inline-block px-2 py-1 text-xs rounded"
-                      style={{
-                        background: 'var(--bg-tertiary)',
-                        color: 'var(--accent-gold)',
-                      }}
-                    >
-                      {p.name}
-                    </span>
+                  {rawData.performers.slice(0, 6).map((p: { performer?: { name?: string } }, idx: number) => (
+                    p.performer?.name && (
+                      <span
+                        key={idx}
+                        className="inline-block px-2 py-1 text-xs rounded"
+                        style={{
+                          background: 'var(--bg-tertiary)',
+                          color: 'var(--accent-gold)',
+                        }}
+                      >
+                        {p.performer.name}
+                      </span>
+                    )
                   ))}
                 </div>
               </Field>
@@ -392,23 +446,25 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
             {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
               <Field label="标签" className="col-span-2">
                 <div className="flex flex-wrap gap-2">
-                  {rawData.tags.slice(0, 8).map((tag: { name: string } | string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="inline-block px-2 py-1 text-xs rounded"
-                      style={{
-                        background: 'var(--bg-tertiary)',
-                        color: 'var(--text-muted)',
-                      }}
-                    >
-                      {typeof tag === 'string' ? tag : tag.name}
-                    </span>
+                  {rawData.tags.slice(0, 8).map((tag: { name?: string }, idx: number) => (
+                    tag.name && (
+                      <span
+                        key={idx}
+                        className="inline-block px-2 py-1 text-xs rounded"
+                        style={{
+                          background: 'var(--bg-tertiary)',
+                          color: 'var(--text-muted)',
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    )
                   ))}
                 </div>
               </Field>
             )}
           </>
-        )}
+        ) : null}
 
         <Field label="封面 URL">
           {form.coverUrl ? (
@@ -425,6 +481,15 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
             <span style={{ color: 'var(--text-muted)' }}>-</span>
           )}
         </Field>
+        {/* DEBUG: 显示原始数据结构 */}
+        <details className="mb-4">
+          <summary style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
+            调试: 查看原始数据结构
+          </summary>
+          <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '200px', color: 'var(--text-muted)' }}>
+            {JSON.stringify(rawData, null, 2)}
+          </pre>
+        </details>
       </div>
     </div>
   );
@@ -603,3 +668,4 @@ function TextAreaField({
 
 /* ==================== 图标组件 ==================== */
 // 图标已使用 lucide-react 库
+

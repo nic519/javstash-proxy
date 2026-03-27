@@ -163,6 +163,10 @@ export class TursoCache {
       updates.push('cover_url = ?');
       args.push(data.coverUrl || null);
     }
+    if (data.rawResponse !== undefined) {
+      updates.push('raw_response = ?');
+      args.push(data.rawResponse || null);
+    }
 
     if (updates.length === 0) return;
 
