@@ -17,5 +17,9 @@
       "Bash(claude mcp:*)",
       "Bash(node:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "enableAllProjectMcpServers": true
 }

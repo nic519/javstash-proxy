@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowUpDown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   SearchBar,
   TranslationTable,
@@ -11,7 +17,6 @@ import {
   type Translation,
   type ListResult,
   type SortBy,
-  PAGE_SIZE_OPTIONS,
 } from './_components';
 
 /**
@@ -127,25 +132,21 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* 排序选择 */}
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-              <select
-                value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value as SortBy);
-                  setPage(1);
-                }}
-                className="text-sm px-2 py-1.5 rounded-lg focus:outline-none"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                <option value="updated">按修改时间</option>
-                <option value="code">按番号首字母</option>
-              </select>
-            </div>
+            <Select
+              value={sortBy}
+              onValueChange={(v) => {
+                setSortBy(v as SortBy);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-9 w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="updated">按修改时间</SelectItem>
+                <SelectItem value="code">按番号首字母</SelectItem>
+              </SelectContent>
+            </Select>
             <SearchBar value={searchInput} onChange={setSearchInput} onSearch={handleSearch} />
           </div>
         </div>
