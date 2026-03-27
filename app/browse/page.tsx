@@ -147,16 +147,16 @@ export default function BrowsePage() {
         )}
 
         {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {results.map((scene, index) => (
             <div
               key={scene.id}
-              className="glass-card group overflow-hidden animate-fade-in"
+              className="glass-card group animate-fade-in flex gap-5 p-5"
               style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s`, opacity: 0 }}
             >
               {/* Image */}
               {scene.images?.[0]?.url && (
-                <div className="image-hover aspect-[4/3]">
+                <div className="image-hover w-[400px] h-[240px] rounded-lg overflow-hidden flex-shrink-0">
                   <img
                     src={scene.images[0].url}
                     alt={scene.code}
@@ -166,9 +166,9 @@ export default function BrowsePage() {
               )}
 
               {/* Content */}
-              <div className="p-5">
-                {/* Code Badge */}
-                <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 min-w-0">
+                {/* Code Badge & Date */}
+                <div className="flex items-center gap-3 mb-2">
                   <span className="tag">{scene.code}</span>
                   {scene.date && (
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -178,20 +178,20 @@ export default function BrowsePage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2 transition-colors duration-200 group-hover:text-[var(--accent-gold)]">
+                <h3 className="font-semibold text-lg mb-2 line-clamp-1 transition-colors duration-200 group-hover:text-[var(--accent-gold)]">
                   {scene.title}
                 </h3>
 
                 {/* Description */}
                 {scene.details && (
-                  <p className="text-sm mb-4 line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
                     {scene.details}
                   </p>
                 )}
 
                 {/* Performers */}
                 {scene.performers && scene.performers.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm mb-3">
+                  <div className="flex items-center gap-2 text-sm mb-2">
                     <User className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                     <span style={{ color: 'var(--text-secondary)' }}>
                       {scene.performers.map((p) => p.performer?.name).filter(Boolean).join(', ')}
