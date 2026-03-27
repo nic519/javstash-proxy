@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Pencil, Trash2, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 
 /**
@@ -16,12 +16,23 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
   const [saving, setSaving] = useState(false);
   // 删除中状态
   const [deleting, setDeleting] = useState(false);
+  // 复制成功状态
+  const [copied, setCopied] = useState(false);
   // 编辑表单数据
   const [form, setForm] = useState<EditForm>({
     titleZh: item.titleZh,
     summaryZh: item.summaryZh,
     coverUrl: item.coverUrl || '',
   });
+
+  /**
+   * 复制 code 到剪贴板
+   */
+  const handleCopyCode = async () => {
+    await navigator.clipboard.writeText(item.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   /**
    * 保存编辑内容
@@ -102,22 +113,13 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 className="w-1 h-6 rounded-full"
                 style={{ background: 'var(--accent-gold)' }}
               />
-              <h3
-                className="font-mono text-sm tracking-wide"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                {item.code}
-              </h3>
               {form.titleZh && (
-                <>
-                  <span style={{ color: 'var(--text-muted)' }}>·</span>
-                  <h2
-                    className="font-medium text-lg"
-                    style={{ color: 'var(--accent-gold)' }}
-                  >
-                    {form.titleZh}
-                  </h2>
-                </>
+                <h2
+                  className="font-medium text-lg"
+                  style={{ color: 'var(--accent-gold)' }}
+                >
+                  {form.titleZh}
+                </h2>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -164,7 +166,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
                 saving={saving}
               />
             ) : (
-              <DetailView item={item} form={form} onClose={onClose} />
+              <DetailView item={item} form={form} onClose={onClose} onCopyCode={handleCopyCode} copied={copied} />
             )}
           </div>
         </div>
@@ -230,7 +232,7 @@ function IconButton({
  * 详情视图
  * 左侧展示封面大图，右侧展示文字信息
  */
-function DetailView({ item, form, onClose }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void }) {
+function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void; onCopyCode: () => void; copied: boolean }) {
   const [imageLoading, setImageLoading] = useState(true);
 
   return (
@@ -280,9 +282,25 @@ function DetailView({ item, form, onClose }: { item: DetailModalProps['item']; f
       </div>
       {/* 文字信息区域 */}
       <div className="flex-1 space-y-6 min-w-0 py-2">
-        <Field label="中文简介">
-          <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
-        </Field>
+
+        <button
+          onClick={onCopyCode}
+          className="flex items-center gap-2 group cursor-pointer"
+          title="点击复制"
+        >
+          <span
+            className="font-mono text-sm whitespace-nowrap"
+            style={{ color: 'var(--accent-gold)' }}
+          >
+            {item.code}
+          </span>
+          {copied ? (
+            <Check className="w-4 h-4 text-green-500" />
+          ) : (
+            <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+          )}
+        </button>
+        <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
         <Field label="封面 URL">
           {form.coverUrl ? (
             <a
@@ -374,14 +392,16 @@ function EditFormView({
 function Field({
   label,
   highlight,
+  className,
   children,
 }: {
   label: string;
   highlight?: boolean;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="group">
+    <div className={`group ${className || ''}`}>
       <label
         className="block text-xs font-medium tracking-wide uppercase mb-2"
         style={{ color: 'var(--text-muted)' }}
