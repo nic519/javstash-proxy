@@ -229,11 +229,45 @@ function IconButton({
 }
 
 /**
+ * 从 rawResponse 解析出原始场景数据
+ */
+function parseRawData(rawResponse?: string): Record<string, unknown> | null {
+  if (!rawResponse) return null;
+  try {
+    return JSON.parse(rawResponse);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 格式化日期
+ */
+function formatDate(dateStr?: string): string | null {
+  if (!dateStr) return null;
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('zh-CN');
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * 格式化时长（分钟）
+ */
+function formatDuration(minutes?: number): string | null {
+  if (!minutes) return null;
+  return `${minutes} 分钟`;
+}
+
+/**
  * 详情视图
  * 左侧展示封面大图，右侧展示文字信息
  */
 function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void; onCopyCode: () => void; copied: boolean }) {
   const [imageLoading, setImageLoading] = useState(true);
+  const rawData = parseRawData(item.rawResponse);
 
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
@@ -301,6 +335,81 @@ function DetailView({ item, form, onClose, onCopyCode, copied }: { item: DetailM
           )}
         </button>
         <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
+
+        {/* 原始数据区域 */}
+        {rawData && (
+          <>
+            {/* 基本信息 - 2列布局 */}
+            <div className="grid grid-cols-2 gap-4">
+              {typeof rawData.date === 'string' && rawData.date && (
+                <Field label="发行日期">
+                  <span>{formatDate(rawData.date)}</span>
+                </Field>
+              )}
+              {typeof rawData.studio === 'string' && rawData.studio && (
+                <Field label="制作商">
+                  <span>{rawData.studio}</span>
+                </Field>
+              )}
+              {typeof rawData.duration === 'number' && rawData.duration && (
+                <Field label="时长">
+                  <span>{formatDuration(rawData.duration)}</span>
+                </Field>
+              )}
+              {typeof rawData.director === 'string' && rawData.director && (
+                <Field label="导演">
+                  <span>{rawData.director}</span>
+                </Field>
+              )}
+              {typeof rawData.rating === 'number' && rawData.rating && (
+                <Field label="评分">
+                  <span>{rawData.rating}</span>
+                </Field>
+              )}
+            </div>
+
+            {/* 演员 - 跨列显示 */}
+            {Array.isArray(rawData.performers) && rawData.performers.length > 0 && (
+              <Field label="演员" className="col-span-2">
+                <div className="flex flex-wrap gap-2">
+                  {rawData.performers.slice(0, 6).map((p: { name: string }, idx: number) => (
+                    <span
+                      key={idx}
+                      className="inline-block px-2 py-1 text-xs rounded"
+                      style={{
+                        background: 'var(--bg-tertiary)',
+                        color: 'var(--accent-gold)',
+                      }}
+                    >
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
+              </Field>
+            )}
+
+            {/* 标签 - 跨列显示 */}
+            {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
+              <Field label="标签" className="col-span-2">
+                <div className="flex flex-wrap gap-2">
+                  {rawData.tags.slice(0, 8).map((tag: { name: string } | string, idx: number) => (
+                    <span
+                      key={idx}
+                      className="inline-block px-2 py-1 text-xs rounded"
+                      style={{
+                        background: 'var(--bg-tertiary)',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      {typeof tag === 'string' ? tag : tag.name}
+                    </span>
+                  ))}
+                </div>
+              </Field>
+            )}
+          </>
+        )}
+
         <Field label="封面 URL">
           {form.coverUrl ? (
             <a

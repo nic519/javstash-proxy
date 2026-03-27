@@ -236,13 +236,14 @@ export async function processResponse(
 
   // Update raw response only (no translation needed)
   if (toUpdateRaw.length > 0) {
-    const updates = toUpdateRaw.map(({ scene, rawJson }) => ({
-      code: scene.code!,
-      rawResponse: rawJson,
-    }));
-    await cache.saveBatch(updates);
-    // Add to cached map for replacement
-    updates.forEach((t) => cachedMap.set(t.code, cachedMap.get(t.code)!));
+    for (const { scene, rawJson } of toUpdateRaw) {
+      await cache.updateTranslation(scene.code!, { rawResponse: rawJson });
+      // Update cached map for replacement
+      const cachedItem = cachedMap.get(scene.code!);
+      if (cachedItem) {
+        cachedItem.rawResponse = rawJson;
+      }
+    }
   }
 
   // Restore from cache (replace with translated content)

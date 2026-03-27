@@ -10,6 +10,8 @@ export interface Translation {
   summaryZh: string;
   /** 封面图片地址 */
   coverUrl?: string;
+  /** 原始响应数据 */
+  rawResponse?: string;
   /** 更新时间 */
   updatedAt?: string;
 }
