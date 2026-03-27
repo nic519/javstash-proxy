@@ -68,7 +68,9 @@ export class DeepLXTranslator {
     }));
   }
 
-  private async translateText(text: string): Promise<string | null> {
+  private async translateText(text: string): Promise<string> {
+    let errorMsg = '翻译接口出错';
+
     try {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -80,12 +82,31 @@ export class DeepLXTranslator {
         }),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        errorMsg = `翻译接口出错: HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
 
-      const data = (await response.json()) as { code?: number; data?: string };
-      return data.code === 200 ? data.data ?? null : null;
-    } catch {
-      return null;
+      const data = (await response.json()) as { code?: number; data?: string; message?: string };
+
+      if (data.code !== 200) {
+        errorMsg = `翻译接口出错: ${data.message ?? `错误码 ${data.code}`}`;
+        throw new Error(errorMsg);
+      }
+
+      if (!data.data) {
+        errorMsg = '翻译接口出错: 返回数据为空';
+        throw new Error(errorMsg);
+      }
+
+      return data.data;
+    } catch (error) {
+      // 如果是我们自己抛出的错误，直接抛出
+      if (error instanceof Error && error.message.startsWith('翻译接口出错')) {
+        throw error;
+      }
+      // 网络错误等
+      throw new Error(`翻译接口出错: ${error instanceof Error ? error.message : '网络请求失败'}`);
     }
   }
 }

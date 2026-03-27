@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, Check, ArrowDownRight, ExternalLink, KeyRound, Shield } from 'lucide-react';
-import SplitText from '@/components/SplitText';
 import Magnet from '@/components/Magnet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -146,7 +145,7 @@ export default function HomePage() {
           PAGE 01 - ENDPOINT SHOWCASE
       ───────────────────────────────────────────────────────────────── */}
       <section
-        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20 transition-opacity duration-700 ${currentPage === 0 ? 'opacity-100' : 'opacity-50'}`}
+        className="min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20"
       >
         <div className="w-full max-w-6xl">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -160,16 +159,9 @@ export default function HomePage() {
 
               {/* Title */}
               <div className="space-y-5">
-                <SplitText
-                  text="JavStash"
-                  delay={60}
-                  duration={0.8}
-                  ease="power3.out"
-                  splitType="chars"
-                  from={{ opacity: 0, y: 30 }}
-                  to={{ opacity: 1, y: 0 }}
-                  className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text"
-                />
+                <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text">
+                  JavStash
+                </h1>
                 <div className="flex items-center gap-4">
                   <span className="text-base font-medium tracking-[0.15em] uppercase" style={{ color: 'var(--accent-gold)' }}>
                     中文翻译代理
@@ -273,7 +265,7 @@ export default function HomePage() {
           PAGE 02 - DEBUG LOGIN
       ───────────────────────────────────────────────────────────────── */}
       <section
-        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-50'}`}
+        className="min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20"
       >
         <div className="w-full max-w-sm">
 
@@ -316,14 +308,16 @@ export default function HomePage() {
               >
                 <TabsTrigger
                   value="javstash"
-                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all gap-1.5"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:shadow-sm text-sm font-medium transition-all gap-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
                   API Key
                 </TabsTrigger>
                 <TabsTrigger
                   value="admin"
-                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all gap-1.5"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:shadow-sm text-sm font-medium transition-all gap-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   <Shield className="w-3.5 h-3.5" />
                   管理员
