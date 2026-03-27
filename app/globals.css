@@ -6,31 +6,37 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --bg-primary: #0a0a0b;
-  --bg-secondary: #141419;
-  --bg-tertiary: #1a1a21;
-  --bg-card: rgba(26, 26, 33, 0.8);
-  --bg-card-hover: rgba(36, 36, 46, 0.9);
+  /* Deep noir palette - warm blacks with subtle brown undertones */
+  --bg-primary: #08080a;
+  --bg-secondary: #0f0f12;
+  --bg-tertiary: #16161a;
+  --bg-card: rgba(22, 22, 26, 0.85);
+  --bg-card-hover: rgba(32, 32, 38, 0.95);
 
-  --text-primary: #f5f5f7;
-  --text-secondary: #a1a1a6;
-  --text-muted: #6e6e73;
+  /* Text hierarchy - warm whites */
+  --text-primary: #f8f8f6;
+  --text-secondary: #9a9a97;
+  --text-muted: #5c5c5a;
 
-  --accent-gold: #d4af37;
-  --accent-gold-light: #e8c547;
-  --accent-gold-dark: #b8962f;
+  /* Signature gold - warmer, more sophisticated */
+  --accent-gold: #c9a227;
+  --accent-gold-light: #ddb832;
+  --accent-gold-dark: #a88520;
+  --accent-gold-glow: rgba(201, 162, 39, 0.12);
 
-  --accent-blue: #4a9eff;
-  --accent-blue-dark: #2d7dd2;
+  /* Cool accent for contrast */
+  --accent-ice: #7dd3fc;
 
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-light: rgba(255, 255, 255, 0.1);
-  --border-gold: rgba(212, 175, 55, 0.3);
+  /* Borders - subtle warmth */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(201, 162, 39, 0.25);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.15);
+  /* Shadows - softer, more diffuse */
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 8px 32px rgba(201, 162, 39, 0.1);
 
   --radius-sm: 8px;
   --radius-md: 12px;

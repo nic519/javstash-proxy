@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
+import { Copy, Check, ArrowDownRight, ExternalLink, KeyRound, Shield } from 'lucide-react';
 import SplitText from '@/components/SplitText';
-import SpotlightCard from '@/components/SpotlightCard';
 import Magnet from '@/components/Magnet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type LoginType = 'admin' | 'javstash';
 
-// Gold color palette for GradientText
-const GOLD_COLORS = ['#e8c547', '#d4af37', '#b8962f', '#d4af37', '#e8c547'];
-
 /**
- * JavStash Proxy - Unified Dark Theme Landing
+ * JavStash Proxy - Luxury Dark Theme Landing
+ *
+ * Design Direction: Refined luxury with editorial typography
+ * - Dark cinematic background with subtle gold accents
+ * - Clean spatial hierarchy with generous breathing room
+ * - Micro-interactions that feel intentional, not gratuitous
  */
 export default function HomePage() {
   const router = useRouter();
@@ -103,255 +104,282 @@ export default function HomePage() {
 
   return (
     <div ref={containerRef} className="relative animated-bg">
-      {/* Cinematic Background */}
+      {/* Atmospheric Background */}
       <div className="fixed inset-0 -z-10">
-        {/* Gold atmospheric overlay */}
+        {/* Subtle gold glow from top */}
         <div
-          className="absolute inset-0 opacity-[0.06]"
+          className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 100% 60% at 50% 0%, rgba(212, 175, 55, 0.4) 0%, transparent 60%),
-              radial-gradient(ellipse 80% 50% at 100% 100%, rgba(184, 150, 47, 0.25) 0%, transparent 50%)
+              radial-gradient(ellipse 120% 50% at 50% -20%, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 90% 100%, rgba(184, 150, 47, 0.05) 0%, transparent 50%)
             `
           }}
         />
-        {/* Film grain overlay */}
-        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
+        {/* Fine grain texture */}
+        <div
+          className="absolute inset-0 opacity-[0.025] mix-blend-overlay pointer-events-none"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
           }}
         />
       </div>
 
-      {/* Page Navigation - Gold accent */}
-      <nav className="fixed right-6 lg:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-6">
+      {/* Minimal Page Indicator */}
+      <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3">
         {[0, 1].map((page) => (
           <button
             key={page}
             onClick={() => scrollToPage(page)}
-            className="group relative cursor-pointer"
+            className="group relative w-6 h-6 flex items-center justify-center cursor-pointer"
             aria-label={`第${page + 1}页`}
           >
             <span
-              className={`block w-1.5 transition-all duration-500 ${currentPage === page
-                ? 'h-12'
-                : 'h-6 bg-white/20 group-hover:bg-white/40'
-                }`}
-              style={{
-                borderRadius: '1px',
-                background: currentPage === page ? 'var(--accent-gold)' : undefined
-              }}
+              className={`block w-1 rounded-full transition-all duration-500 ${currentPage === page ? 'h-4' : 'h-1.5 bg-white/20 group-hover:bg-white/40'}`}
+              style={{ background: currentPage === page ? 'var(--accent-gold)' : undefined }}
             />
           </button>
         ))}
-      </nav>
+      </div>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          PAGE 01 - THE REVEAL
-      ═══════════════════════════════════════════════════════════════ */}
+      {/* ─────────────────────────────────────────────────────────────────
+          PAGE 01 - ENDPOINT SHOWCASE
+      ───────────────────────────────────────────────────────────────── */}
       <section
-        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 0 ? 'opacity-100' : 'opacity-60'
-          }`}
+        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20 transition-opacity duration-700 ${currentPage === 0 ? 'opacity-100' : 'opacity-50'}`}
       >
         <div className="w-full max-w-6xl">
-          {/* Asymmetric Layout */}
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-            {/* Left Column - Brand */}
-            <div className="lg:col-span-5 space-y-8">
-              {/* Logo Mark */}
-              <Magnet magnetStrength={3} padding={60}>
-                <div className="relative inline-block">
-                  <img
-                    src="/logo2.png"
-                    alt=""
-                    className="w-38 h-43"
-                  />
-                  <div className="absolute -bottom-2 -right-2 w-6 h-6 border-t border-r" style={{ borderColor: 'var(--border-gold)' }} />
-                </div>
-              </Magnet>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-              {/* Title Stack */}
-              <div className="space-y-4">
+            {/* Left: Brand Identity */}
+            <div className="space-y-10">
+              {/* Logo */}
+              <div className="relative inline-block">
+                <img src="/logo2.png" alt="" className="w-32 h-auto" />
+              </div>
+
+              {/* Title */}
+              <div className="space-y-5">
                 <SplitText
                   text="JavStash"
-                  delay={80}
-                  duration={1}
+                  delay={60}
+                  duration={0.8}
                   ease="power3.out"
                   splitType="chars"
-                  from={{ opacity: 0, y: 40 }}
+                  from={{ opacity: 0, y: 30 }}
                   to={{ opacity: 1, y: 0 }}
                   className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text"
                 />
                 <div className="flex items-center gap-4">
-                  <span className="text-lg font-medium tracking-wider uppercase" style={{ color: 'var(--accent-gold)' }}>
+                  <span className="text-base font-medium tracking-[0.15em] uppercase" style={{ color: 'var(--accent-gold)' }}>
                     中文翻译代理
                   </span>
-                  <span className="w-12 h-px" style={{ background: 'linear-gradient(to right, var(--accent-gold), transparent)' }} />
+                  <span className="w-10 h-px" style={{ background: 'linear-gradient(to right, var(--accent-gold), transparent)' }} />
                 </div>
               </div>
 
-              {/* Mission Statement */}
+              {/* Description */}
               <p className="text-lg leading-relaxed max-w-md" style={{ color: 'var(--text-secondary)' }}>
-                为 Stash 提供 JavStash 数据源的中文翻译代理服务，自动将日文元数据转换为中文。
+                为 Stash 提供 JavStash 数据源的中文翻译代理，自动将日文元数据转换为中文显示。
               </p>
 
               {/* CTA */}
-              <Magnet magnetStrength={2.5} padding={50}>
-                <button
-                  onClick={() => scrollToPage(1)}
-                  className="group inline-flex items-center gap-3 transition-colors duration-300 cursor-pointer"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <span className="text-sm tracking-[0.2em] uppercase group-hover:text-[var(--text-primary)]">调试工具</span>
-                  <ArrowDownRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" style={{ color: 'var(--accent-gold)' }} />
-                </button>
-              </Magnet>
+              <button
+                onClick={() => scrollToPage(1)}
+                className="group inline-flex items-center gap-3 text-sm tracking-[0.15em] uppercase transition-colors duration-300 cursor-pointer"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <span className="group-hover:text-[var(--text-primary)] transition-colors">调试工具</span>
+                <ArrowDownRight
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"
+                  style={{ color: 'var(--accent-gold)' }}
+                />
+              </button>
             </div>
 
-            {/* Right Column - Endpoint Display */}
-            <div className="lg:col-span-7 relative">
-              {/* Decorative Frame */}
-              <div className="absolute -inset-6 border rounded-sm pointer-events-none" style={{ borderColor: 'var(--border-subtle)' }} />
-              <div className="absolute -top-3 -left-3 w-6 h-6 border-t border-l" style={{ borderColor: 'var(--border-gold)' }} />
-              <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b border-r" style={{ borderColor: 'var(--border-gold)' }} />
+            {/* Right: Endpoint Card */}
+            <div className="space-y-6">
+              {/* Card */}
+              <div
+                onClick={handleCopy}
+                className="group relative cursor-pointer rounded-2xl border overflow-hidden transition-all duration-300 hover:border-[var(--border-light)]"
+                style={{
+                  background: 'var(--bg-card)',
+                  borderColor: 'var(--border-subtle)'
+                }}
+              >
+                {/* Subtle hover glow */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%)'
+                  }}
+                />
 
-              {/* Endpoint Card with Spotlight */}
-              <div onClick={handleCopy} className="cursor-pointer group">
-                <SpotlightCard
-                  spotlightColor="rgba(212, 175, 55, 0.15)"
-                  className="!rounded-lg !border-[var(--border-subtle)] !bg-[var(--bg-card)] !p-8 lg:!p-12 hover:!shadow-[var(--shadow-gold)]"
-                >
-                  {/* Label */}
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-[11px] tracking-[0.3em] uppercase font-medium" style={{ color: 'var(--accent-gold)' }}>
-                      GraphQL Endpoint
+                {/* Card Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                  <span className="text-[10px] tracking-[0.25em] uppercase font-medium" style={{ color: 'var(--text-muted)' }}>
+                    GraphQL Endpoint
+                  </span>
+
+                  {/* Copy Status - Clear separation from icon */}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
+                      style={{ background: copied ? '#22c55e' : 'var(--accent-gold-dark)' }}
+                    />
+                    <span
+                      className="text-[10px] tracking-[0.2em] uppercase transition-colors duration-300"
+                      style={{ color: copied ? '#22c55e' : 'var(--text-muted)' }}
+                    >
+                      {copied ? '已复制' : '点击卡片复制'}
                     </span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: copied ? '#22c55e' : 'var(--accent-gold-dark)' }} />
-                      <span
-                        className={`text-[11px] tracking-[0.2em] uppercase ${copied ? 'text-emerald-400' : ''}`}
-                        style={{ color: copied ? undefined : 'var(--text-muted)' }}
-                      >
-                        {copied ? '已复制' : '点击复制'}
-                      </span>
-                    </div>
                   </div>
+                </div>
 
-                  {/* URL */}
-                  <code className="block text-xl sm:text-2xl lg:text-3xl font-light tracking-wide leading-relaxed font-mono break-all" style={{ color: 'var(--text-primary)' }}>
+                {/* Card Body - URL */}
+                <div className="relative px-6 py-8">
+                  <code
+                    className="block text-lg sm:text-xl lg:text-2xl font-light tracking-wide leading-relaxed font-mono break-all pr-12"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     {endpointUrl}
                   </code>
 
-                  {/* Copy Icon */}
-                  <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  {/* Copy Button - Separate, bottom-right */}
+                  <div
+                    className="absolute bottom-6 right-6 p-3 rounded-xl transition-all duration-300 group-hover:bg-[var(--bg-tertiary)]"
+                    style={{ border: '1px solid var(--border-subtle)' }}
+                  >
                     {copied ? (
-                      <Check className="w-6 h-6 text-emerald-400" />
+                      <Check className="w-5 h-5 text-emerald-400" />
                     ) : (
-                      <Copy className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
+                      <Copy className="w-5 h-5 transition-colors" style={{ color: 'var(--text-muted)' }} />
                     )}
                   </div>
-                </SpotlightCard>
+                </div>
               </div>
 
               {/* Usage Note */}
-              <div className="mt-8 flex items-start gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                <span className="w-8 h-px mt-3 shrink-0" style={{ background: 'var(--border-light)' }} />
-                <p>
-                  在 Stash 设置中将原 JavStash 端点地址替换为上方地址即可使用。
-                  API Key 保持不变。
-                </p>
-              </div>
+              <p className="text-sm leading-relaxed px-2" style={{ color: 'var(--text-muted)' }}>
+                在 Stash 设置中将 JavStash 端点替换为上方地址即可，API Key 无需更改。
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          PAGE 02 - DEBUG TOOL
-      ═══════════════════════════════════════════════════════════════ */}
+      {/* ─────────────────────────────────────────────────────────────────
+          PAGE 02 - DEBUG LOGIN
+      ───────────────────────────────────────────────────────────────── */}
       <section
-        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-60'
-          }`}
+        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-20 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-50'}`}
       >
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-sm">
+
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-3 mb-5">
-              <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
-              <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: 'var(--text-muted)' }}>可选功能</span>
-              <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
+            <div className="inline-flex items-center gap-3 mb-6">
+              <span className="w-6 h-px" style={{ background: 'var(--border-light)' }} />
+              <span className="text-[10px] tracking-[0.25em] uppercase" style={{ color: 'var(--text-muted)' }}>
+                可选功能
+              </span>
+              <span className="w-6 h-px" style={{ background: 'var(--border-light)' }} />
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-3 gradient-text">
+            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-4 gradient-text">
               在线调试
             </h2>
-            <p className="leading-relaxed text-sm" style={{ color: 'var(--text-secondary)' }}>
-              图形化界面调试接口，非必要功能
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              图形化界面调试接口
             </p>
           </div>
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="glass-card p-7 space-y-6">
-            {/* Login Type Toggle */}
+          {/* Form Card */}
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-2xl border p-6 space-y-6"
+            style={{
+              background: 'var(--bg-card)',
+              borderColor: 'var(--border-subtle)'
+            }}
+          >
+            {/* Login Type Tabs */}
             <Tabs
               value={loginType}
               onValueChange={(v) => setLoginType(v as LoginType)}
               className="w-full"
             >
               <TabsList
-                className="w-full grid grid-cols-2 h-11 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg p-1"
+                className="w-full grid grid-cols-2 h-10 rounded-lg p-1"
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
                 variant="default"
               >
                 <TabsTrigger
                   value="javstash"
-                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all gap-1.5"
                 >
+                  <KeyRound className="w-3.5 h-3.5" />
                   API Key
                 </TabsTrigger>
                 <TabsTrigger
                   value="admin"
-                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all gap-1.5"
                 >
+                  <Shield className="w-3.5 h-3.5" />
                   管理员
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
-            {/* Input Field */}
-            <div className="space-y-2">
-              <label className="text-xs tracking-[0.15em] uppercase font-medium" style={{ color: 'var(--text-muted)' }}>
+            {/* Input */}
+            <div className="space-y-2.5">
+              <label
+                className="text-[10px] tracking-[0.2em] uppercase font-medium block"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 {loginType === 'admin' ? '管理员密码' : 'JavStash API Key'}
               </label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 px-4 text-sm font-mono bg-[var(--bg-secondary)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus-visible:border-[var(--accent-gold)] focus-visible:ring-[var(--accent-gold)]/15 transition-all"
+                className="h-11 px-4 text-sm font-mono rounded-lg transition-all"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-primary)'
+                }}
                 placeholder={loginType === 'admin' ? '输入密码...' : '粘贴 API Key...'}
               />
             </div>
 
-            {/* Submit Button */}
-            <Magnet magnetStrength={2} padding={30}>
-              <Button
-                type="submit"
-                disabled={loading || !password}
-                className="w-full h-12 text-sm font-semibold tracking-[0.12em] uppercase rounded-lg bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-dark)] text-[var(--bg-primary)] hover:shadow-[0_8px_30px_rgba(212,175,55,0.25)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-              >
-                {loading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    验证中
-                  </span>
-                ) : '进入调试'}
-              </Button>
-            </Magnet>
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={loading || !password}
+              className="w-full h-11 text-sm font-semibold tracking-[0.1em] uppercase rounded-lg transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
+                color: 'var(--bg-primary)'
+              }}
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  验证中
+                </span>
+              ) : '进入调试'}
+            </Button>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
-              <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20">
+              <div
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg"
+                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+              >
                 <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                 <p className="text-sm text-red-300">{error}</p>
               </div>
@@ -359,25 +387,25 @@ export default function HomePage() {
           </form>
 
           {/* Footer Links */}
-          <footer className="mt-10 flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <footer className="mt-8 flex items-center justify-center gap-5 text-xs" style={{ color: 'var(--text-muted)' }}>
             <a
               href="https://discord.gg/javstash"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 transition-all duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
+              className="group inline-flex items-center gap-1.5 transition-colors duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
             >
-              <span>获取 API Key</span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              获取 API Key
+              <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
             </a>
-            <div className="w-px h-3.5" style={{ background: 'var(--border-light)' }} />
+            <span style={{ color: 'var(--border-light)' }}>·</span>
             <a
               href="https://github.com/stashapp/stash"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 transition-all duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
+              className="group inline-flex items-center gap-1.5 transition-colors duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
             >
-              <span>Stash</span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              Stash
+              <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
             </a>
           </footer>
         </div>
