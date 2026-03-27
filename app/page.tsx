@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Copy, Check } from 'lucide-react';
+import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
 
 type LoginType = 'admin' | 'javstash';
 
 /**
- * 首页 - 端点展示为主，登录为辅
+ * JavStash Proxy - Unified Dark Theme Landing
  */
 export default function HomePage() {
   const router = useRouter();
@@ -16,30 +16,54 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const endpointUrl = 'https://javstash.vercel.app/api/graphql';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const page = Math.round(scrollY / windowHeight);
+      setCurrentPage(Math.min(page, 1));
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToPage = (page: number) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+
+    window.scrollTo({
+      top: page * window.innerHeight,
+      behavior: 'smooth'
+    });
+
+    setTimeout(() => setIsTransitioning(false), 800);
+  };
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(endpointUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
-      // 静默失败
+      // silent fail
     }
   };
 
   const getErrorMessage = (errorCode: string): string => {
-    switch (errorCode) {
-      case 'invalid_credentials':
-        return '密码错误';
-      case 'javstash_invalid':
-        return 'API Key 无效';
-      case 'network_error':
-        return '网络错误，请重试';
-      default:
-        return '登录失败';
-    }
+    const messages: Record<string, string> = {
+      invalid_credentials: '密码错误',
+      javstash_invalid: 'API Key 无效',
+      network_error: '网络错误',
+    };
+    return messages[errorCode] || '登录失败';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,233 +86,283 @@ export default function HomePage() {
         setError(getErrorMessage(data.error));
       }
     } catch {
-      setError('网络错误，请重试');
+      setError('网络错误');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative" style={{ background: 'var(--bg-primary)' }}>
-      {/* 背景纹理 */}
-      <div className="absolute inset-0 opacity-[0.015]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-      }} />
+    <div ref={containerRef} className="relative animated-bg">
+      {/* Cinematic Background */}
+      <div className="fixed inset-0 -z-10">
 
-      {/* 顶部渐变光晕 */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[400px] opacity-[0.03]" style={{
-        background: 'radial-gradient(ellipse, var(--accent-gold) 0%, transparent 70%)',
-      }} />
+        {/* Gold atmospheric overlay - matching accent-gold */}
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            background: `
+              radial-gradient(ellipse 100% 60% at 50% 0%, rgba(212, 175, 55, 0.4) 0%, transparent 60%),
+              radial-gradient(ellipse 80% 50% at 100% 100%, rgba(184, 150, 47, 0.25) 0%, transparent 50%)
+            `
+          }}
+        />
+        {/* Film grain overlay */}
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+          }}
+        />
+      </div>
 
-      {/* 主内容区 */}
-      <div className="flex-1 flex flex-col justify-center px-8 lg:px-20 relative z-10">
-        <div className="max-w-4xl">
-          {/* 品牌标识 */}
-          <div className="flex items-end gap-6 mb-16 animate-fade-in">
-            <img
-              src="/logo.svg"
-              alt="JavStash"
-              className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+      {/* Page Navigation - Gold accent */}
+      <nav className="fixed right-6 lg:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-6">
+        {[0, 1].map((page) => (
+          <button
+            key={page}
+            onClick={() => scrollToPage(page)}
+            className="group relative cursor-pointer"
+            aria-label={`第${page + 1}页`}
+          >
+            <span
+              className={`block w-1.5 transition-all duration-500 ${currentPage === page
+                ? 'h-12'
+                : 'h-6 bg-white/20 group-hover:bg-white/40'
+                }`}
+              style={{
+                borderRadius: '1px',
+                background: currentPage === page ? 'var(--accent-gold)' : undefined
+              }}
             />
-            <div className="flex flex-col gap-1 pb-2">
-              <span className="font-display text-3xl lg:text-4xl font-medium tracking-wide" style={{ color: 'var(--text-primary)' }}>
-                JavStash
-              </span>
-              <span className="text-xs tracking-[0.25em] uppercase" style={{ color: 'var(--text-muted)' }}>
-                中文翻译代理
-              </span>
-            </div>
-          </div>
+          </button>
+        ))}
+      </nav>
 
-          {/* 端点地址 - 视觉中心 */}
-          <div className="mb-12 animate-fade-in stagger-1">
-            <div className="text-xs tracking-[0.25em] uppercase mb-6" style={{ color: 'var(--text-muted)' }}>
-              GraphQL Endpoint
-            </div>
+      {/* ═══════════════════════════════════════════════════════════════
+          PAGE 01 - THE REVEAL
+      ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 0 ? 'opacity-100' : 'opacity-60'
+          }`}
+      >
+        <div className="w-full max-w-6xl">
+          {/* Asymmetric Layout */}
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+            {/* Left Column - Brand */}
+            <div className="lg:col-span-5 space-y-8">
+              {/* Logo Mark */}
+              <div className="relative inline-block">
+                <img
+                  src="/logo2.png"
+                  alt=""
+                  className="w-38 h-43"
+                />
+                <div className="absolute -bottom-2 -right-2 w-6 h-6 border-t border-r" style={{ borderColor: 'var(--border-gold)' }} />
+              </div>
 
-            {/* URL 展示卡片 */}
-            <div
-              className="group relative inline-flex items-center gap-6 cursor-pointer transition-all duration-300"
-              onClick={handleCopy}
-            >
-              {/* 装饰性背景 */}
-              <div className="absolute -inset-6 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.03), rgba(212, 175, 55, 0.01))',
-                border: '1px solid rgba(212, 175, 55, 0.1)',
-              }} />
+              {/* Title Stack */}
+              <div className="space-y-4">
+                <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text">
+                  JavStash
+                </h1>
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-medium tracking-wider uppercase" style={{ color: 'var(--accent-gold)' }}>
+                    中文翻译代理
+                  </span>
+                  <span className="w-12 h-px" style={{ background: 'linear-gradient(to right, var(--accent-gold), transparent)' }} />
+                </div>
+              </div>
 
-              {/* URL 文字 */}
-              <code className="relative text-2xl sm:text-3xl lg:text-4xl font-light tracking-tight" style={{
-                fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace",
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.02em',
-              }}>
-                {endpointUrl}
-              </code>
+              {/* Mission Statement */}
+              <p className="text-lg leading-relaxed max-w-md" style={{ color: 'var(--text-secondary)' }}>
+                为 Stash 提供 JavStash 数据源的中文翻译代理服务，自动将日文元数据转换为中文。
+              </p>
 
-              {/* 复制按钮 */}
+              {/* CTA */}
               <button
-                type="button"
-                className="relative p-3 rounded-xl transition-all duration-300 opacity-40 group-hover:opacity-100"
-                style={{
-                  background: copied ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)',
-                  color: copied ? '#22c55e' : 'var(--text-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-                title={copied ? '已复制' : '点击复制'}
+                onClick={() => scrollToPage(1)}
+                className="group inline-flex items-center gap-3 transition-colors duration-300 cursor-pointer"
+                style={{ color: 'var(--text-muted)' }}
               >
-                {copied ? (
-                  <Check className="w-5 h-5" />
-                ) : (
-                  <Copy className="w-5 h-5" />
-                )}
+                <span className="text-sm tracking-[0.2em] uppercase group-hover:text-[var(--text-primary)]">调试工具</span>
+                <ArrowDownRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" style={{ color: 'var(--accent-gold)' }} />
               </button>
             </div>
 
-            {/* 复制提示 */}
-            <div className="mt-4 h-5 text-sm transition-opacity duration-300" style={{
-              color: copied ? '#22c55e' : 'var(--text-muted)',
-              opacity: copied ? 1 : 0,
-            }}>
-              已复制到剪贴板
-            </div>
-          </div>
+            {/* Right Column - Endpoint Display */}
+            <div className="lg:col-span-7 relative">
+              {/* Decorative Frame */}
+              <div className="absolute -inset-6 border rounded-sm pointer-events-none" style={{ borderColor: 'var(--border-subtle)' }} />
+              <div className="absolute -top-3 -left-3 w-6 h-6 border-t border-l" style={{ borderColor: 'var(--border-gold)' }} />
+              <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b border-r" style={{ borderColor: 'var(--border-gold)' }} />
 
-          {/* 使用说明 */}
-          <div className="mb-12 animate-fade-in stagger-2">
-            <div className="text-xs tracking-[0.25em] uppercase mb-5" style={{ color: 'var(--text-muted)' }}>
-              Authentication
-            </div>
-            <p className="text-base mb-5" style={{ color: 'var(--text-secondary)' }}>
-              请求需在 Header 中携带 API Key
-            </p>
-            {/* 代码示例 */}
-            <div
-              className="inline-block p-5 rounded-xl text-sm"
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace",
-              }}
-            >
-              <div style={{ color: 'var(--text-muted)' }}>fetch(<span style={{ color: 'var(--accent-gold)' }}>"{endpointUrl}"</span>, {'{'})</div>
-              <div className="pl-4" style={{ color: 'var(--text-muted)' }}>
-                headers: {'{\n'}
-                <span className="pl-4" style={{ color: 'var(--text-secondary)' }}>"Content-Type"</span>: <span style={{ color: 'var(--accent-gold)' }}>"application/json"</span>,{'\n'}
-                <span className="pl-4" style={{ color: 'var(--text-secondary)' }}>"ApiKey"</span>: <span style={{ color: 'var(--accent-gold)' }}>"your-api-key"</span>{'\n'}
-                {'  }'}
+              {/* Endpoint Card */}
+              <div
+                onClick={handleCopy}
+                className="group relative cursor-pointer glass-card p-8 lg:p-12 hover:shadow-[var(--shadow-gold)]"
+              >
+                {/* Label */}
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-[11px] tracking-[0.3em] uppercase font-medium" style={{ color: 'var(--accent-gold)' }}>
+                    GraphQL Endpoint
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: copied ? '#22c55e' : 'var(--accent-gold-dark)' }} />
+                    <span className={`text-[11px] tracking-[0.2em] uppercase ${copied ? 'text-emerald-400' : ''
+                      }`} style={{ color: copied ? undefined : 'var(--text-muted)' }}>
+                      {copied ? '已复制' : '点击复制'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* URL */}
+                <code className="block text-xl sm:text-2xl lg:text-3xl font-light tracking-wide leading-relaxed font-mono break-all" style={{ color: 'var(--text-primary)' }}>
+                  {endpointUrl}
+                </code>
+
+                {/* Copy Icon */}
+                <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {copied ? (
+                    <Check className="w-6 h-6 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
+                  )}
+                </div>
               </div>
-              <div style={{ color: 'var(--text-muted)' }}>{'}'})</div>
+
+              {/* Usage Note */}
+              <div className="mt-8 flex items-start gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <span className="w-8 h-px mt-3 shrink-0" style={{ background: 'var(--border-light)' }} />
+                <p>
+                  在 Stash 设置中将原 JavStash 端点地址替换为上方地址即可使用。
+                  API Key 保持不变。
+                </p>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* 说明文字 */}
-          <div className="max-w-lg animate-fade-in stagger-3">
-            <p className="text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
-              本站为{' '}
-              <a
-                href="https://javstash.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:underline transition-colors"
-                style={{ color: 'var(--accent-gold)' }}
-              >
-                JavStash
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              {' '}的中转代理，自动将日文元数据翻译为中文。
+      {/* ═══════════════════════════════════════════════════════════════
+          PAGE 02 - THE SANCTUARY
+      ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-60'
+          }`}
+      >
+        <div className="w-full max-w-lg">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 mb-6">
+              <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
+              <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: 'var(--text-muted)' }}>可选功能</span>
+              <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
+            </div>
+            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-4 gradient-text">
+              在线调试
+            </h2>
+            <p className="leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
+              图形化界面调试接口。非必要功能
             </p>
+          </div>
 
-            {/* API Key 获取 */}
-            <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
-              <span>获取 API Key 方式：</span>
-              <a
-                href="https://discord.gg/javstash"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center  hover:underline font-medium transition-colors"
-                style={{ color: 'var(--accent-gold)' }}
+          {/* Login Form */}
+          <div className="relative">
+            {/* Decorative corner */}
+            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l" style={{ borderColor: 'var(--border-gold)' }} />
+
+            <form
+              onSubmit={handleSubmit}
+              className="glass-card p-8 space-y-6"
+            >
+              {/* Login Type Toggle */}
+              <div className="flex border" style={{ borderColor: 'var(--border-subtle)' }}>
+                {[
+                  { key: 'javstash' as const, label: 'API Key' },
+                  { key: 'admin' as const, label: '管理员' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setLoginType(key)}
+                    className={`flex-1 py-3 text-sm font-medium transition-all duration-300 cursor-pointer ${loginType === key
+                      ? 'text-[var(--text-primary)]'
+                      : ''
+                      }`}
+                    style={{
+                      background: loginType === key ? 'var(--bg-tertiary)' : 'transparent',
+                      color: loginType === key ? 'var(--text-primary)' : 'var(--text-muted)'
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input */}
+              <div className="relative">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-5 py-4 text-sm font-mono focus:outline-none transition-colors"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                  }}
+                  placeholder={loginType === 'admin' ? '密码' : 'API Key'}
+                />
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading || !password}
+                className="w-full py-4 text-sm font-medium tracking-wider uppercase transition-all duration-300 cursor-pointer btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Discord
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
+                    验证中
+                  </span>
+                ) : '进入调试'}
+              </button>
 
-      {/* 登录入口 - 右上角 */}
-      <div className="absolute top-8 right-8 z-20">
-        <div
-          className="p-4 rounded-xl"
-          style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          {/* 提示文字 */}
-          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-            登录后可图形化调试接口
-          </p>
-
-          {/* 登录方式选择 */}
-          <div className="flex mb-3 rounded-md p-0.5" style={{ background: 'var(--bg-tertiary)' }}>
-            <button
-              type="button"
-              onClick={() => setLoginType('javstash')}
-              className="flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all"
-              style={{
-                background: loginType === 'javstash' ? 'var(--bg-secondary)' : 'transparent',
-                color: loginType === 'javstash' ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}
-            >
-              JavStash
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginType('admin')}
-              className="flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all"
-              style={{
-                background: loginType === 'admin' ? 'var(--bg-secondary)' : 'transparent',
-                color: loginType === 'admin' ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}
-            >
-              管理员
-            </button>
+              {/* Error */}
+              {error && (
+                <p className="text-sm text-center py-2 border-t" style={{ color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+                  {error}
+                </p>
+              )}
+            </form>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field text-sm py-2 flex-1"
-              placeholder={loginType === 'admin' ? '密码' : 'API Key'}
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors shrink-0"
-              style={{
-                background: 'var(--accent-gold)',
-                color: 'var(--bg-primary)',
-                opacity: loading ? 0.6 : 1,
-              }}
+          {/* Footer Links */}
+          <footer className="mt-12 flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+            <a
+              href="https://discord.gg/javstash"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              style={{ color: 'var(--text-muted)' }}
             >
-              {loading ? '...' : '登录'}
-            </button>
-          </form>
-
-          {error && (
-            <p className="text-xs mt-2 text-center" style={{ color: '#ef4444' }}>{error}</p>
-          )}
+              获取 API Key
+              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </a>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>/</span>
+            <a
+              href="https://github.com/stashapp/stash"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-1.5 transition-colors cursor-pointer hover:text-[var(--text-secondary)]"
+            >
+              Stash
+              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </a>
+          </footer>
         </div>
-      </div>
-
-      {/* 底部装饰线 */}
-      <div className="h-px w-full relative z-10" style={{
-        background: 'linear-gradient(90deg, transparent, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent)',
-      }} />
+      </section>
     </div>
   );
 }

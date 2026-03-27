@@ -6,3 +6,5 @@ dist/
 .next
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+.env*.local
+ui-ux-pro-max

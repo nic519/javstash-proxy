@@ -10,7 +10,12 @@
       "Bash(pkill:*)",
       "Bash(source .env)",
       "Bash(identify /Users/nicholas/Downloads/il_1588xN.5743211421_gaep.avif)",
-      "Bash(ffmpeg:*)"
+      "Bash(ffmpeg:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:reactbits.dev)",
+      "WebSearch",
+      "Bash(claude mcp:*)",
+      "Bash(node:*)"
     ]
   }
 }
