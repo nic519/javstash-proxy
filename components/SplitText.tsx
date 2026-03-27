@@ -18,7 +18,9 @@ interface SplitTextProps {
   onLetterAnimationComplete?: () => void;
 }
 
-const easeMap: Record<string, number[]> = {
+type CubicBezier = [number, number, number, number];
+
+const easeMap: Record<string, CubicBezier> = {
   'linear': [0, 0, 1, 1],
   'easeOut': [0, 0, 0.58, 1],
   'easeInOut': [0.42, 0, 0.58, 1],
