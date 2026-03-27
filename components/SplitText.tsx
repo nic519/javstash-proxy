@@ -1,7 +1,12 @@
 'use client';
 
-import { motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText as GSAPSplitText } from 'gsap/SplitText';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger, GSAPSplitText, useGSAP);
 
 interface SplitTextProps {
   text?: string;
@@ -9,114 +14,172 @@ interface SplitTextProps {
   delay?: number;
   duration?: number;
   ease?: string;
-  splitType?: 'chars' | 'words';
+  splitType?: 'chars' | 'words' | 'lines' | 'chars,words' | 'chars,words,lines';
   from?: Record<string, number>;
   to?: Record<string, number>;
   threshold?: number;
   rootMargin?: string;
   textAlign?: 'left' | 'center' | 'right';
+  tag?: 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'div';
   onLetterAnimationComplete?: () => void;
 }
-
-type CubicBezier = [number, number, number, number];
-
-const easeMap: Record<string, CubicBezier> = {
-  'linear': [0, 0, 1, 1],
-  'easeOut': [0, 0, 0.58, 1],
-  'easeInOut': [0.42, 0, 0.58, 1],
-  'power1.out': [0.33, 1, 0.68, 1],
-  'power2.out': [0.25, 1, 0.5, 1],
-  'power3.out': [0.16, 1, 0.3, 1],
-  'power4.out': [0.075, 0.82, 0.165, 1],
-  'back.out': [0.34, 1.56, 0.64, 1],
-  'elastic.out': [0.68, -0.55, 0.265, 1.55],
-};
 
 const SplitText = ({
   text = '',
   className = '',
   delay = 50,
-  duration = 1,
+  duration = 1.25,
   ease = 'power3.out',
   splitType = 'chars',
   from = { opacity: 0, y: 40 },
   to = { opacity: 1, y: 0 },
   threshold = 0.1,
-  rootMargin = '0px',
-  textAlign = 'left',
+  rootMargin = '-100px',
+  textAlign = 'center',
+  tag = 'p',
   onLetterAnimationComplete,
 }: SplitTextProps) => {
-  const elements = splitType === 'words' ? text.split(' ') : text.split('');
-  const [inView, setInView] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const animationCompletedRef = useRef(false);
+  const onCompleteRef = useRef(onLetterAnimationComplete);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Keep callback ref updated
+  useEffect(() => {
+    onCompleteRef.current = onLetterAnimationComplete;
+  }, [onLetterAnimationComplete]);
 
   useEffect(() => {
-    if (!ref.current) return;
-
-    // Check if element is already in view on mount
-    const rect = ref.current.getBoundingClientRect();
-    const isInView = rect.top < window.innerHeight && rect.bottom > 0;
-
-    if (isInView) {
-      // Small delay to ensure initial state is rendered first
-      const timer = setTimeout(() => setInView(true), 50);
-      return () => clearTimeout(timer);
+    if (typeof document !== 'undefined') {
+      if (document.fonts.status === 'loaded') {
+        setFontsLoaded(true);
+      } else {
+        document.fonts.ready.then(() => {
+          setFontsLoaded(true);
+        });
+      }
     }
+  }, []);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
+  useGSAP(
+    () => {
+      if (!ref.current || !text || !fontsLoaded) return;
+      // Prevent re-animation if already completed
+      if (animationCompletedRef.current) return;
+      const el = ref.current;
+
+      if ((el as any)._rbsplitInstance) {
+        try {
+          (el as any)._rbsplitInstance.revert();
+        } catch (_) {
+          /* noop */
         }
-      },
-      { threshold, rootMargin }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
+        (el as any)._rbsplitInstance = null;
+      }
 
-  const easeValues = easeMap[ease] || easeMap['power3.out'];
+      const startPct = (1 - threshold) * 100;
+      const marginMatch = /^(-?\d+(?:\.\d+)?)(px|em|rem|%)?$/.exec(rootMargin);
+      const marginValue = marginMatch ? parseFloat(marginMatch[1]) : 0;
+      const marginUnit = marginMatch ? marginMatch[2] || 'px' : 'px';
+      const sign =
+        marginValue === 0
+          ? ''
+          : marginValue < 0
+            ? `-=${Math.abs(marginValue)}${marginUnit}`
+            : `+=${marginValue}${marginUnit}`;
+      const start = `top ${startPct}%${sign}`;
 
-  // Check if className includes gradient-text
-  const hasGradient = className.includes('gradient-text');
+      let targets: any[];
+      const assignTargets = (self: any) => {
+        if (splitType.includes('chars') && self.chars.length) targets = self.chars;
+        if (!targets && splitType.includes('words') && self.words.length) targets = self.words;
+        if (!targets && splitType.includes('lines') && self.lines.length) targets = self.lines;
+        if (!targets) targets = self.chars || self.words || self.lines;
+      };
+
+      const splitInstance = new GSAPSplitText(el, {
+        type: splitType,
+        smartWrap: true,
+        autoSplit: splitType === 'lines',
+        linesClass: 'split-line',
+        wordsClass: 'split-word',
+        charsClass: 'split-char',
+        reduceWhiteSpace: false,
+        onSplit: (self: any) => {
+          assignTargets(self);
+          const tween = gsap.fromTo(
+            targets,
+            { ...from },
+            {
+              ...to,
+              duration,
+              ease,
+              stagger: delay / 1000,
+              scrollTrigger: {
+                trigger: el,
+                start,
+                once: true,
+                fastScrollEnd: true,
+                anticipatePin: 0.4,
+              },
+              onComplete: () => {
+                animationCompletedRef.current = true;
+                onCompleteRef.current?.();
+              },
+              willChange: 'transform, opacity',
+              force3D: true,
+            }
+          );
+          return tween;
+        },
+      });
+
+      (el as any)._rbsplitInstance = splitInstance;
+
+      return () => {
+        ScrollTrigger.getAll().forEach((st) => {
+          if (st.trigger === el) st.kill();
+        });
+        try {
+          splitInstance.revert();
+        } catch (_) {
+          /* noop */
+        }
+        (el as any)._rbsplitInstance = null;
+      };
+    },
+    {
+      dependencies: [
+        text,
+        delay,
+        duration,
+        ease,
+        splitType,
+        JSON.stringify(from),
+        JSON.stringify(to),
+        threshold,
+        rootMargin,
+        fontsLoaded,
+      ],
+      scope: ref,
+    }
+  );
+
+  const style: React.CSSProperties = {
+    textAlign,
+    overflow: 'hidden',
+    display: 'inline-block',
+    whiteSpace: 'normal',
+    wordWrap: 'break-word',
+    willChange: 'transform, opacity',
+  };
+  const classes = `split-parent ${className}`;
+  const Tag = tag || 'p';
 
   return (
-    <div
-      ref={ref}
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        textAlign,
-        justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
-      }}
-    >
-      {elements.map((segment, index) => (
-        <motion.span
-          className={`${className} inline-block will-change-[transform,opacity]`}
-          key={index}
-          initial={from}
-          animate={inView ? to : from}
-          transition={{
-            duration,
-            delay: (index * delay) / 1000,
-            ease: easeValues,
-          }}
-          onAnimationComplete={
-            index === elements.length - 1 ? onLetterAnimationComplete : undefined
-          }
-          style={hasGradient ? {
-            background: 'linear-gradient(135deg, var(--accent-gold-light), var(--accent-gold), var(--accent-gold-dark))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          } : undefined}
-        >
-          {segment === ' ' ? '\u00A0' : segment}
-          {splitType === 'words' && index < elements.length - 1 && '\u00A0'}
-        </motion.span>
-      ))}
-    </div>
+    <Tag ref={ref as React.RefObject<HTMLDivElement>} style={style} className={classes}>
+      {text}
+    </Tag>
   );
 };
 
