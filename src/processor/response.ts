@@ -202,8 +202,9 @@ export async function processResponse(
   const cached = await cache.getTranslations(codes);
   const cachedMap = new Map(cached.map((t) => [t.code, t]));
 
-  // Separate scenes that need translation vs can be restored from cache
+  // separate scenes that need translation vs need raw response only
   const toTranslate: Array<{ scene: SceneNode; rawJson: string }> = [];
+  const toUpdateRaw: Array<{ scene: SceneNode; rawJson: string }> = [];
   const toRestore: Translation[] = [];
 
   for (const { scene, rawJson } of scenesWithRaw) {
@@ -217,21 +218,31 @@ export async function processResponse(
       // Not in cache at all, need to translate and cache
       toTranslate.push({ scene, rawJson });
     } else {
-      // Has translation but no raw response, update with raw response
-      toTranslate.push({ scene, rawJson });
+      // Has translation but no raw response, just update raw response
+      toUpdateRaw.push({ scene, rawJson });
     }
   }
 
   // Translate new items
   if (toTranslate.length > 0) {
     const translations = await translator.translateBatch(toTranslate.map((t) => t.scene));
-    // Add raw response to translations
     const translationsWithRaw = translations.map((t, i) => ({
       ...t,
       rawResponse: toTranslate[i].rawJson,
     }));
     await cache.saveBatch(translationsWithRaw);
     translationsWithRaw.forEach((t) => cachedMap.set(t.code, t));
+  }
+
+  // Update raw response only (no translation needed)
+  if (toUpdateRaw.length > 0) {
+    const updates = toUpdateRaw.map(({ scene, rawJson }) => ({
+      code: scene.code!,
+      rawResponse: rawJson,
+    }));
+    await cache.saveBatch(updates);
+    // Add to cached map for replacement
+    updates.forEach((t) => cachedMap.set(t.code, cachedMap.get(t.code)!));
   }
 
   // Restore from cache (replace with translated content)
