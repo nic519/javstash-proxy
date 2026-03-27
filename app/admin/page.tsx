@@ -18,12 +18,14 @@ import {
   type ListResult,
   type SortBy,
 } from './_components';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * 缓存管理页面
  * 提供翻译缓存的查看、搜索、编辑和删除功能
  */
 export default function AdminPage() {
+  usePageTitle('缓存管理');
   // 翻译列表数据
   const [items, setItems] = useState<Translation[]>([]);
   // 数据总量（用于分页计算）

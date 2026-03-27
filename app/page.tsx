@@ -4,8 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
 import SplitText from '@/components/SplitText';
+import SpotlightCard from '@/components/SpotlightCard';
+import Magnet from '@/components/Magnet';
+import GradientText from '@/components/GradientText';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type LoginType = 'admin' | 'javstash';
+
+// Gold color palette for GradientText
+const GOLD_COLORS = ['#e8c547', '#d4af37', '#b8962f', '#d4af37', '#e8c547'];
 
 /**
  * JavStash Proxy - Unified Dark Theme Landing
@@ -97,8 +106,7 @@ export default function HomePage() {
     <div ref={containerRef} className="relative animated-bg">
       {/* Cinematic Background */}
       <div className="fixed inset-0 -z-10">
-
-        {/* Gold atmospheric overlay - matching accent-gold */}
+        {/* Gold atmospheric overlay */}
         <div
           className="absolute inset-0 opacity-[0.06]"
           style={{
@@ -152,14 +160,16 @@ export default function HomePage() {
             {/* Left Column - Brand */}
             <div className="lg:col-span-5 space-y-8">
               {/* Logo Mark */}
-              <div className="relative inline-block">
-                <img
-                  src="/logo2.png"
-                  alt=""
-                  className="w-38 h-43"
-                />
-                <div className="absolute -bottom-2 -right-2 w-6 h-6 border-t border-r" style={{ borderColor: 'var(--border-gold)' }} />
-              </div>
+              <Magnet magnetStrength={3} padding={60}>
+                <div className="relative inline-block">
+                  <img
+                    src="/logo2.png"
+                    alt=""
+                    className="w-38 h-43"
+                  />
+                  <div className="absolute -bottom-2 -right-2 w-6 h-6 border-t border-r" style={{ borderColor: 'var(--border-gold)' }} />
+                </div>
+              </Magnet>
 
               {/* Title Stack */}
               <div className="space-y-4">
@@ -187,14 +197,16 @@ export default function HomePage() {
               </p>
 
               {/* CTA */}
-              <button
-                onClick={() => scrollToPage(1)}
-                className="group inline-flex items-center gap-3 transition-colors duration-300 cursor-pointer"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <span className="text-sm tracking-[0.2em] uppercase group-hover:text-[var(--text-primary)]">调试工具</span>
-                <ArrowDownRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" style={{ color: 'var(--accent-gold)' }} />
-              </button>
+              <Magnet magnetStrength={2.5} padding={50}>
+                <button
+                  onClick={() => scrollToPage(1)}
+                  className="group inline-flex items-center gap-3 transition-colors duration-300 cursor-pointer"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <span className="text-sm tracking-[0.2em] uppercase group-hover:text-[var(--text-primary)]">调试工具</span>
+                  <ArrowDownRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" style={{ color: 'var(--accent-gold)' }} />
+                </button>
+              </Magnet>
             </div>
 
             {/* Right Column - Endpoint Display */}
@@ -204,38 +216,42 @@ export default function HomePage() {
               <div className="absolute -top-3 -left-3 w-6 h-6 border-t border-l" style={{ borderColor: 'var(--border-gold)' }} />
               <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b border-r" style={{ borderColor: 'var(--border-gold)' }} />
 
-              {/* Endpoint Card */}
-              <div
-                onClick={handleCopy}
-                className="group relative cursor-pointer glass-card p-8 lg:p-12 hover:shadow-[var(--shadow-gold)]"
-              >
-                {/* Label */}
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-[11px] tracking-[0.3em] uppercase font-medium" style={{ color: 'var(--accent-gold)' }}>
-                    GraphQL Endpoint
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: copied ? '#22c55e' : 'var(--accent-gold-dark)' }} />
-                    <span className={`text-[11px] tracking-[0.2em] uppercase ${copied ? 'text-emerald-400' : ''
-                      }`} style={{ color: copied ? undefined : 'var(--text-muted)' }}>
-                      {copied ? '已复制' : '点击复制'}
+              {/* Endpoint Card with Spotlight */}
+              <div onClick={handleCopy} className="cursor-pointer group">
+                <SpotlightCard
+                  spotlightColor="rgba(212, 175, 55, 0.15)"
+                  className="!rounded-lg !border-[var(--border-subtle)] !bg-[var(--bg-card)] !p-8 lg:!p-12 hover:!shadow-[var(--shadow-gold)]"
+                >
+                  {/* Label */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-[11px] tracking-[0.3em] uppercase font-medium" style={{ color: 'var(--accent-gold)' }}>
+                      GraphQL Endpoint
                     </span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: copied ? '#22c55e' : 'var(--accent-gold-dark)' }} />
+                      <span
+                        className={`text-[11px] tracking-[0.2em] uppercase ${copied ? 'text-emerald-400' : ''}`}
+                        style={{ color: copied ? undefined : 'var(--text-muted)' }}
+                      >
+                        {copied ? '已复制' : '点击复制'}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* URL */}
-                <code className="block text-xl sm:text-2xl lg:text-3xl font-light tracking-wide leading-relaxed font-mono break-all" style={{ color: 'var(--text-primary)' }}>
-                  {endpointUrl}
-                </code>
+                  {/* URL */}
+                  <code className="block text-xl sm:text-2xl lg:text-3xl font-light tracking-wide leading-relaxed font-mono break-all" style={{ color: 'var(--text-primary)' }}>
+                    {endpointUrl}
+                  </code>
 
-                {/* Copy Icon */}
-                <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {copied ? (
-                    <Check className="w-6 h-6 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
-                  )}
-                </div>
+                  {/* Copy Icon */}
+                  <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    {copied ? (
+                      <Check className="w-6 h-6 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
+                    )}
+                  </div>
+                </SpotlightCard>
               </div>
 
               {/* Usage Note */}
@@ -258,115 +274,120 @@ export default function HomePage() {
         className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-60'
           }`}
       >
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-md">
           {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-3 mb-6">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-3 mb-5">
               <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
               <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: 'var(--text-muted)' }}>可选功能</span>
               <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-4 gradient-text">
+            <GradientText
+              colors={GOLD_COLORS}
+              animationSpeed={6}
+              className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-3"
+            >
               在线调试
-            </h2>
-            <p className="leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-              图形化界面调试接口。非必要功能
+            </GradientText>
+            <p className="leading-relaxed text-sm" style={{ color: 'var(--text-secondary)' }}>
+              图形化界面调试接口，非必要功能
             </p>
           </div>
 
-          {/* Login Form */}
-          <div className="relative">
-            {/* Decorative corner */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l" style={{ borderColor: 'var(--border-gold)' }} />
-
-            <form
-              onSubmit={handleSubmit}
-              className="glass-card p-8 space-y-6"
-            >
+          {/* Login Form with Spotlight */}
+          <SpotlightCard
+            spotlightColor="rgba(212, 175, 55, 0.08)"
+            className="!rounded-2xl !border-[var(--border-subtle)] !bg-[var(--bg-card)] backdrop-blur-xl"
+          >
+            <form onSubmit={handleSubmit} className="p-7 space-y-6">
               {/* Login Type Toggle */}
-              <div className="flex border" style={{ borderColor: 'var(--border-subtle)' }}>
-                {[
-                  { key: 'javstash' as const, label: 'API Key' },
-                  { key: 'admin' as const, label: '管理员' },
-                ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setLoginType(key)}
-                    className={`flex-1 py-3 text-sm font-medium transition-all duration-300 cursor-pointer ${loginType === key
-                      ? 'text-[var(--text-primary)]'
-                      : ''
-                      }`}
-                    style={{
-                      background: loginType === key ? 'var(--bg-tertiary)' : 'transparent',
-                      color: loginType === key ? 'var(--text-primary)' : 'var(--text-muted)'
-                    }}
+              <Tabs
+                value={loginType}
+                onValueChange={(v) => setLoginType(v as LoginType)}
+                className="w-full"
+              >
+                <TabsList
+                  className="w-full grid grid-cols-2 h-11 bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] rounded-lg p-1"
+                  variant="default"
+                >
+                  <TabsTrigger
+                    value="javstash"
+                    className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
                   >
-                    {label}
-                  </button>
-                ))}
-              </div>
+                    API Key
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="admin"
+                    className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
+                  >
+                    管理员
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-              {/* Input */}
-              <div className="relative">
-                <input
+              {/* Input Field */}
+              <div className="space-y-2">
+                <label className="text-xs tracking-[0.15em] uppercase font-medium" style={{ color: 'var(--text-muted)' }}>
+                  {loginType === 'admin' ? '管理员密码' : 'JavStash API Key'}
+                </label>
+                <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-4 text-sm font-mono focus:outline-none transition-colors"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-primary)',
-                  }}
-                  placeholder={loginType === 'admin' ? '密码' : 'API Key'}
+                  className="h-12 px-4 text-sm font-mono bg-[var(--bg-secondary)]/60 border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus-visible:border-[var(--accent-gold)] focus-visible:ring-[var(--accent-gold)]/15 transition-all"
+                  placeholder={loginType === 'admin' ? '输入密码...' : '粘贴 API Key...'}
                 />
               </div>
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading || !password}
-                className="w-full py-4 text-sm font-medium tracking-wider uppercase transition-all duration-300 cursor-pointer btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
-                    验证中
-                  </span>
-                ) : '进入调试'}
-              </button>
+              {/* Submit Button */}
+              <Magnet magnetStrength={2} padding={30}>
+                <Button
+                  type="submit"
+                  disabled={loading || !password}
+                  className="w-full h-12 text-sm font-semibold tracking-[0.12em] uppercase rounded-lg bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-dark)] text-[var(--bg-primary)] hover:shadow-[0_8px_30px_rgba(212,175,55,0.25)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      验证中
+                    </span>
+                  ) : '进入调试'}
+                </Button>
+              </Magnet>
 
-              {/* Error */}
+              {/* Error Message */}
               {error && (
-                <p className="text-sm text-center py-2 border-t" style={{ color: '#fca5a5', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
-                  {error}
-                </p>
+                <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                  <p className="text-sm text-red-300">{error}</p>
+                </div>
               )}
             </form>
-          </div>
+          </SpotlightCard>
 
           {/* Footer Links */}
-          <footer className="mt-12 flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <footer className="mt-10 flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
             <a
               href="https://discord.gg/javstash"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              style={{ color: 'var(--text-muted)' }}
+              className="group inline-flex items-center gap-2 transition-all duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
             >
-              获取 API Key
-              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span>获取 API Key</span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </a>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.5 }}>/</span>
+            <div className="w-px h-3.5" style={{ background: 'var(--border-light)' }} />
             <a
               href="https://github.com/stashapp/stash"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-1.5 transition-colors cursor-pointer hover:text-[var(--text-secondary)]"
+              className="group inline-flex items-center gap-2 transition-all duration-300 cursor-pointer hover:text-[var(--accent-gold)]"
             >
-              Stash
-              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span>Stash</span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </a>
           </footer>
         </div>

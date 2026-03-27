@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Pencil, Trash2, X, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 
 /**
@@ -231,34 +231,53 @@ function IconButton({
  * 左侧展示封面大图，右侧展示文字信息
  */
 function DetailView({ item, form, onClose }: { item: DetailModalProps['item']; form: EditForm; onClose: () => void }) {
+  const [imageLoading, setImageLoading] = useState(true);
+
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
-      {/* 封面大图 */}
-      {form.coverUrl && (
-        <div className="flex-shrink-0">
-          <div
-            className="relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
-            style={{
-              boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 0 30px -5px rgba(212,175,55,0.15)',
-            }}
-            onClick={onClose}
-          >
-            <Image
-              src={form.coverUrl}
-              alt={item.code}
-              width={400}
-              height={600}
-              className="max-h-[70vh] w-auto object-cover"
-              unoptimized
-            />
-            {/* 底部渐变 */}
-            <div
-              className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
-              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)' }}
-            />
-          </div>
+      {/* 封面大图区域 - 固定尺寸占位 */}
+      <div className="flex-shrink-0">
+        <div
+          className="relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
+          style={{
+            width: 540,
+            height: 360,
+            maxHeight: '70vh',
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 0 30px -5px rgba(212,175,55,0.15)',
+            background: 'var(--bg-tertiary)',
+          }}
+          onClick={onClose}
+        >
+          {form.coverUrl ? (
+            <>
+              {/* 加载占位符 */}
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+                  <ImageIcon className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />
+                </div>
+              )}
+              <Image
+                src={form.coverUrl}
+                alt={item.code}
+                width={600}
+                height={400}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                unoptimized
+                onLoad={() => setImageLoading(false)}
+              />
+              {/* 底部渐变 */}
+              <div
+                className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)' }}
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ImageIcon className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />
+            </div>
+          )}
         </div>
-      )}
+      </div>
       {/* 文字信息区域 */}
       <div className="flex-1 space-y-6 min-w-0 py-2">
         <Field label="中文简介">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search, Loader2, AlertCircle, User, Frown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * 场景数据结构
@@ -41,6 +42,7 @@ interface Scene {
  * 提供场景搜索和结果展示功能
  */
 export default function BrowsePage() {
+  usePageTitle('搜索');
   // 搜索关键词
   const [keyword, setKeyword] = useState('');
   // 加载状态
