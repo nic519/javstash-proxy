@@ -8,7 +8,10 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 // 页面元数据配置
 export const metadata: Metadata = {
-  title: 'JavStash Proxy',
+  title: {
+    default: 'JavStash',
+    template: '%s - JavStash',
+  },
   description: 'GraphQL proxy with translation',
 };
 

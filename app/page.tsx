@@ -6,7 +6,6 @@ import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
 import SplitText from '@/components/SplitText';
 import SpotlightCard from '@/components/SpotlightCard';
 import Magnet from '@/components/Magnet';
-import GradientText from '@/components/GradientText';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -268,7 +267,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          PAGE 02 - THE SANCTUARY
+          PAGE 02 - DEBUG TOOL
       ═══════════════════════════════════════════════════════════════ */}
       <section
         className={`min-h-screen snap-start snap-always flex items-center justify-center px-6 lg:px-16 transition-opacity duration-700 ${currentPage === 1 ? 'opacity-100' : 'opacity-60'
@@ -282,91 +281,82 @@ export default function HomePage() {
               <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: 'var(--text-muted)' }}>可选功能</span>
               <span className="w-8 h-px" style={{ background: 'var(--border-light)' }} />
             </div>
-            <GradientText
-              colors={GOLD_COLORS}
-              animationSpeed={6}
-              className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-3"
-            >
+            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-[-0.02em] mb-3 gradient-text">
               在线调试
-            </GradientText>
+            </h2>
             <p className="leading-relaxed text-sm" style={{ color: 'var(--text-secondary)' }}>
               图形化界面调试接口，非必要功能
             </p>
           </div>
 
-          {/* Login Form with Spotlight */}
-          <SpotlightCard
-            spotlightColor="rgba(212, 175, 55, 0.08)"
-            className="!rounded-2xl !border-[var(--border-subtle)] !bg-[var(--bg-card)] backdrop-blur-xl"
-          >
-            <form onSubmit={handleSubmit} className="p-7 space-y-6">
-              {/* Login Type Toggle */}
-              <Tabs
-                value={loginType}
-                onValueChange={(v) => setLoginType(v as LoginType)}
-                className="w-full"
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="glass-card p-7 space-y-6">
+            {/* Login Type Toggle */}
+            <Tabs
+              value={loginType}
+              onValueChange={(v) => setLoginType(v as LoginType)}
+              className="w-full"
+            >
+              <TabsList
+                className="w-full grid grid-cols-2 h-11 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg p-1"
+                variant="default"
               >
-                <TabsList
-                  className="w-full grid grid-cols-2 h-11 bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] rounded-lg p-1"
-                  variant="default"
+                <TabsTrigger
+                  value="javstash"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
                 >
-                  <TabsTrigger
-                    value="javstash"
-                    className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
-                  >
-                    API Key
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="admin"
-                    className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
-                  >
-                    管理员
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                  API Key
+                </TabsTrigger>
+                <TabsTrigger
+                  value="admin"
+                  className="h-full rounded-md data-[active]:bg-[var(--bg-tertiary)] data-[active]:text-[var(--text-primary)] data-[active]:shadow-sm text-[var(--text-muted)] text-sm font-medium transition-all"
+                >
+                  管理员
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-              {/* Input Field */}
-              <div className="space-y-2">
-                <label className="text-xs tracking-[0.15em] uppercase font-medium" style={{ color: 'var(--text-muted)' }}>
-                  {loginType === 'admin' ? '管理员密码' : 'JavStash API Key'}
-                </label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 px-4 text-sm font-mono bg-[var(--bg-secondary)]/60 border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus-visible:border-[var(--accent-gold)] focus-visible:ring-[var(--accent-gold)]/15 transition-all"
-                  placeholder={loginType === 'admin' ? '输入密码...' : '粘贴 API Key...'}
-                />
+            {/* Input Field */}
+            <div className="space-y-2">
+              <label className="text-xs tracking-[0.15em] uppercase font-medium" style={{ color: 'var(--text-muted)' }}>
+                {loginType === 'admin' ? '管理员密码' : 'JavStash API Key'}
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 px-4 text-sm font-mono bg-[var(--bg-secondary)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus-visible:border-[var(--accent-gold)] focus-visible:ring-[var(--accent-gold)]/15 transition-all"
+                placeholder={loginType === 'admin' ? '输入密码...' : '粘贴 API Key...'}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <Magnet magnetStrength={2} padding={30}>
+              <Button
+                type="submit"
+                disabled={loading || !password}
+                className="w-full h-12 text-sm font-semibold tracking-[0.12em] uppercase rounded-lg bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-dark)] text-[var(--bg-primary)] hover:shadow-[0_8px_30px_rgba(212,175,55,0.25)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    验证中
+                  </span>
+                ) : '进入调试'}
+              </Button>
+            </Magnet>
+
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                <p className="text-sm text-red-300">{error}</p>
               </div>
-
-              {/* Submit Button */}
-              <Magnet magnetStrength={2} padding={30}>
-                <Button
-                  type="submit"
-                  disabled={loading || !password}
-                  className="w-full h-12 text-sm font-semibold tracking-[0.12em] uppercase rounded-lg bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-dark)] text-[var(--bg-primary)] hover:shadow-[0_8px_30px_rgba(212,175,55,0.25)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                >
-                  {loading ? (
-                    <span className="inline-flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      验证中
-                    </span>
-                  ) : '进入调试'}
-                </Button>
-              </Magnet>
-
-              {/* Error Message */}
-              {error && (
-                <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  <p className="text-sm text-red-300">{error}</p>
-                </div>
-              )}
-            </form>
-          </SpotlightCard>
+            )}
+          </form>
 
           {/* Footer Links */}
           <footer className="mt-10 flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>

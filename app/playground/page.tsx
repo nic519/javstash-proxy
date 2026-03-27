@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Loader2, Play, Terminal } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
-import { usePageTitle } from '@/hooks/usePageTitle';
 
 // 默认的查询变量示例
 const defaultVariables = `{
@@ -16,7 +15,6 @@ const defaultVariables = `{
  * 提供交互式的 GraphQL 查询编辑和执行功能
  */
 export default function PlaygroundPage() {
-  usePageTitle('Playground');
   // GraphQL 查询语句
   const [query, setQuery] = useState(SEARCH_SCENE_QUERY);
   // 查询变量（JSON 格式）
