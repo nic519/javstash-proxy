@@ -16,7 +16,7 @@ describe('DeepLXTranslator', () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({
         code: 200,
-        data: '中文标题\n===@¥@¥===\n中文简介',
+        data: '中文标题\n🔷🔸🔷\n中文简介',
       }))
     );
 
@@ -31,19 +31,35 @@ describe('DeepLXTranslator', () => {
     expect(result[0].summaryZh).toBe('中文简介');
   });
 
-  it('should return original text when translation fails', async () => {
+  it('should throw error when translation fails', async () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ code: 500 }), { status: 500 })
     );
 
     const translator = new DeepLXTranslator('http://deeplx.local');
-    const result = await translator.translateBatch([
+    await expect(translator.translateBatch([
       { code: 'SSIS-001', title: 'Original Title', details: 'Original Details' },
-    ]);
+    ])).rejects.toThrow('翻译接口出错');
+  });
 
-    expect(result).toHaveLength(1);
-    expect(result[0].titleZh).toBe('Original Title');
-    expect(result[0].summaryZh).toBe('Original Details');
+  it('should throw error when API returns non-200 code', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: 429, message: 'Rate limited' }))
+    );
+
+    const translator = new DeepLXTranslator('http://deeplx.local');
+    await expect(translator.translateBatch([
+      { code: 'SSIS-001', title: 'Title', details: 'Details' },
+    ])).rejects.toThrow('翻译接口出错: Rate limited');
+  });
+
+  it('should throw error on network failure', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('Network error'));
+
+    const translator = new DeepLXTranslator('http://deeplx.local');
+    await expect(translator.translateBatch([
+      { code: 'SSIS-001', title: 'Title', details: 'Details' },
+    ])).rejects.toThrow('翻译接口出错: Network error');
   });
 
   it('should handle empty batch', async () => {

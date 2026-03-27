@@ -37,16 +37,6 @@ export class DeepLXTranslator {
     const combined = validTexts.join(SEPARATOR);
     const translated = await this.translateText(combined);
 
-    if (!translated) {
-      // Translation failed, return original
-      return scenes.map((s) => ({
-        code: s.code ?? '',
-        titleZh: s.title ?? '',
-        summaryZh: s.details ?? '',
-        coverUrl: s.coverUrl,
-      }));
-    }
-
     const parts = translated.split('🔷🔸🔷').map((p) => p.trim());
 
     // Restore to original positions
