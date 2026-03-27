@@ -10,7 +10,20 @@ export interface Translation {
   summaryZh: string;
   /** 封面图片地址 */
   coverUrl?: string;
+  /** 更新时间 */
+  updatedAt?: string;
 }
+
+/**
+ * 排序方式
+ */
+export type SortBy = 'updated' | 'code';
+
+/**
+ * 可选的每页数量选项
+ */
+export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+export type PageSize = typeof PAGE_SIZE_OPTIONS[number];
 
 /**
  * 列表查询结果
@@ -56,6 +69,10 @@ export interface PaginationProps {
   totalPages: number;
   /** 页码变更回调 */
   onPageChange: (page: number) => void;
+  /** 每页数量 */
+  pageSize?: number;
+  /** 每页数量变更回调 */
+  onPageSizeChange?: (size: number) => void;
 }
 
 /**

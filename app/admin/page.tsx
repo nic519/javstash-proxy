@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { ArrowUpDown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import {
   SearchBar,
@@ -9,6 +10,8 @@ import {
   DetailModal,
   type Translation,
   type ListResult,
+  type SortBy,
+  PAGE_SIZE_OPTIONS,
 } from './_components';
 
 /**
@@ -23,7 +26,9 @@ export default function AdminPage() {
   // 当前页码
   const [page, setPage] = useState(1);
   // 每页条数
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
+  // 排序方式
+  const [sortBy, setSortBy] = useState<SortBy>('updated');
   // 实际执行的搜索关键词
   const [search, setSearch] = useState('');
   // 搜索输入框的值（未提交时）
@@ -40,12 +45,16 @@ export default function AdminPage() {
 
   /**
    * 获取翻译列表数据
-   * 根据页码和搜索关键词请求后端 API
+   * 根据页码、搜索关键词和排序方式请求后端 API
    */
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+        sortBy,
+      });
       if (search) params.set('search', search);
 
       const res = await fetch(`/api/admin/translations?${params}`);
@@ -59,7 +68,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy]);
 
   // 页码或搜索关键词变化时重新获取数据
   useEffect(() => {
@@ -116,7 +125,29 @@ export default function AdminPage() {
               {total.toLocaleString()} 条
             </p>
           </div>
-          <SearchBar value={searchInput} onChange={setSearchInput} onSearch={handleSearch} />
+          <div className="flex items-center gap-3">
+            {/* 排序选择 */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as SortBy);
+                  setPage(1);
+                }}
+                className="text-sm px-2 py-1.5 rounded-lg focus:outline-none"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                <option value="updated">按修改时间</option>
+                <option value="code">按番号首字母</option>
+              </select>
+            </div>
+            <SearchBar value={searchInput} onChange={setSearchInput} onSearch={handleSearch} />
+          </div>
         </div>
 
         {/* 操作提示消息 */}
@@ -142,7 +173,12 @@ export default function AdminPage() {
           <Pagination
             page={page}
             totalPages={totalPages}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
           />
         </div>
 

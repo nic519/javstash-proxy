@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // 页面元数据配置
 export const metadata: Metadata = {
@@ -17,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh">
+    <html lang="zh" className={cn("font-sans", geist.variable)}>
       <body className="antialiased" style={{ background: 'var(--bg-primary)' }}>
         {children}
       </body>

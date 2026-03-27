@@ -35,15 +35,17 @@ export class TursoCache {
   async saveBatch(translations: Translation[]): Promise<void> {
     if (translations.length === 0) return;
 
+    const now = new Date().toISOString();
     const statements = translations.map((t) => ({
-      sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url, raw_response)
-            VALUES (?, ?, ?, ?, ?)
+      sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url, raw_response, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(code) DO UPDATE SET
               title_zh = excluded.title_zh,
               summary_zh = excluded.summary_zh,
               cover_url = excluded.cover_url,
-              raw_response = excluded.raw_response`,
-      args: [t.code, t.titleZh, t.summaryZh, t.coverUrl ?? null, t.rawResponse ?? null],
+              raw_response = excluded.raw_response,
+              updated_at = excluded.updated_at`,
+      args: [t.code, t.titleZh, t.summaryZh, t.coverUrl ?? null, t.rawResponse ?? null, now],
     }));
 
     await this.client.batch(statements, 'write');
@@ -72,12 +74,13 @@ export class TursoCache {
   }
 
   /**
-   * List translations with pagination and search
+   * List translations with pagination, search and sorting
    */
   async listTranslations(options: {
     page: number;
     pageSize: number;
     search?: string;
+    sortBy?: 'updated' | 'code';
   }): Promise<{ items: Translation[]; total: number }> {
     const offset = (options.page - 1) * options.pageSize;
     const searchCondition = options.search
@@ -86,6 +89,12 @@ export class TursoCache {
     const searchArgs = options.search
       ? [`%${options.search}%`, `%${options.search}%`, `%${options.search}%`]
       : [];
+
+    // Determine sort order
+    const sortBy = options.sortBy || 'updated';
+    const orderBy = sortBy === 'code'
+      ? 'ORDER BY code ASC'
+      : 'ORDER BY updated_at DESC';
 
     // Get total count
     const countResult = await this.client.execute({
@@ -96,8 +105,8 @@ export class TursoCache {
 
     // Get items
     const result = await this.client.execute({
-      sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response FROM translations ${searchCondition}
-            ORDER BY code LIMIT ? OFFSET ?`,
+      sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response, updated_at FROM translations ${searchCondition}
+            ${orderBy} LIMIT ? OFFSET ?`,
       args: [...searchArgs, options.pageSize, offset],
     });
 
@@ -108,6 +117,7 @@ export class TursoCache {
         summaryZh: (row.summary_zh as string) ?? '',
         coverUrl: (row.cover_url as string) ?? undefined,
         rawResponse: (row.raw_response as string) ?? undefined,
+        updatedAt: (row.updated_at as string) ?? undefined,
       })),
       total,
     };

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
+import SplitText from '@/components/SplitText';
 
 type LoginType = 'admin' | 'javstash';
 
@@ -162,9 +163,16 @@ export default function HomePage() {
 
               {/* Title Stack */}
               <div className="space-y-4">
-                <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text">
-                  JavStash
-                </h1>
+                <SplitText
+                  text="JavStash"
+                  delay={80}
+                  duration={1}
+                  ease="power3.out"
+                  splitType="chars"
+                  from={{ opacity: 0, y: 40 }}
+                  to={{ opacity: 1, y: 0 }}
+                  className="font-display text-5xl sm:text-6xl lg:text-7xl font-light tracking-[-0.03em] leading-[0.9] gradient-text"
+                />
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-medium tracking-wider uppercase" style={{ color: 'var(--accent-gold)' }}>
                     中文翻译代理

@@ -55,7 +55,7 @@ export interface Translation {
   titleZh: string;
   summaryZh: string;
   coverUrl?: string;
-  updatedAt: Date;
+  updatedAt?: string;
 }
 
 export interface TranslatedScene {
