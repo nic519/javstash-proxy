@@ -11,9 +11,9 @@ import {
 } from '@/components/ui/select';
 import {
   SearchBar,
-  TranslationTable,
   Pagination,
   DetailModal,
+  ItemCard,
   type Translation,
   type ListResult,
   type SortBy,
@@ -166,11 +166,44 @@ export default function AdminPage() {
 
         {/* 数据表格 */}
         <div className="glass-card animate-fade-in stagger-1 overflow-hidden">
-          <TranslationTable
-            items={items}
-            loading={loading}
-            onSelect={setSelected}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div
+                className="w-8 h-8 border-2 rounded-full animate-spin"
+                style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
+              />
+            </div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+              暂无数据
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                    代码
+                  </th>
+                  <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                    中文标题
+                  </th>
+                  <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
+                    中文简介
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <ItemCard
+                    key={item.code}
+                    item={item}
+                    variant="table"
+                    onClick={setSelected}
+                  />
+                ))}
+              </tbody>
+            </table>
+          )}
           <Pagination
             page={page}
             totalPages={totalPages}

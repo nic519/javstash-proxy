@@ -10,7 +10,7 @@ import type { SceneData } from '@/src/graphql/queries';
  * 详情弹窗组件
  * 支持查看和编辑两种模式，可预览封面图片
  */
-export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalProps) {
+export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: DetailModalProps) {
   // 编辑模式状态
   const [editing, setEditing] = useState(false);
   // 保存中状态
@@ -34,7 +34,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
     const parseSceneData = (jsonStr: string): SceneData | null => {
       try {
         const parsed = JSON.parse(jsonStr);
-        // 如果是数组格式，视为无效数据，返回 null 触发重新请求
+        // 如果是数组格式,视为无效数据,返回 null 触发重新请求
         if (Array.isArray(parsed)) {
           return null;
         }
@@ -49,7 +49,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
     if (parsedData) {
       setRawData(parsedData);
     } else {
-      // 没有 rawResponse 或格式无效，从 API 获取
+      // 没有 rawResponse 或格式无效,从 API 获取
       setRawDataLoading(true);
       fetch(`/api/admin/scenes/${encodeURIComponent(item.code)}/raw`)
         .then((res) => res.json())
@@ -79,6 +79,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
    * 调用 API 更新翻译缓存
    */
   const handleSave = async () => {
+    if (!onUpdate) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/translations/${encodeURIComponent(item.code)}`, {
@@ -101,6 +102,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
    * 需要用户确认后调用 API 删除
    */
   const handleDelete = async () => {
+    if (!onDelete) return;
     if (!confirm(`确定要删除 ${item.code} 吗？`)) return;
     setDeleting(true);
     try {
@@ -117,7 +119,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
 
   return (
     <div className="fixed inset-0 z-50 animate-fade-in">
-      {/* 背景遮罩：点击关闭 */}
+      {/* 背景遮罩:点击关闭 */}
       <div
         className="absolute inset-0 backdrop-blur-sm"
         style={{ background: 'rgba(0,0,0,0.1)' }}
@@ -139,7 +141,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 顶部栏：标题和操作按钮 */}
+          {/* 顶部栏:标题和操作按钮 */}
           <div
             className="flex items-center justify-between px-6 py-4 cursor-default"
             style={{
@@ -163,24 +165,29 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
               )}
             </div>
             <div className="flex items-center gap-2">
-              <IconButton
-                onClick={() => setEditing(!editing)}
-                color="var(--accent-gold)"
-                hoverColor="rgba(212,175,55,0.15)"
-                title="编辑"
-              >
-                <Pencil className="w-5 h-5" />
-              </IconButton>
-              <IconButton
-                onClick={handleDelete}
-                disabled={deleting}
-                color="#ef4444"
-                hoverColor="rgba(239,68,68,0.15)"
-                title="删除"
-              >
-                {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-              </IconButton>
-              <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
+              {/* 只在非只读模式下显示编辑和删除按钮 */}
+              {!readOnly && (
+                <>
+                  <IconButton
+                    onClick={() => setEditing(!editing)}
+                    color="var(--accent-gold)"
+                    hoverColor="rgba(212,175,55,0.15)"
+                    title="编辑"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    color="#ef4444"
+                    hoverColor="rgba(239,68,68,0.15)"
+                    title="删除"
+                  >
+                    {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                  </IconButton>
+                  <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
+                </>
+              )}
               <IconButton
                 onClick={onClose}
                 color="var(--text-muted)"
@@ -197,7 +204,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete }: DetailModalPr
             className="flex-1 overflow-y-auto p-6 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
-            {editing ? (
+            {editing && !readOnly ? (
               <EditFormView
                 form={form}
                 onChange={setForm}
@@ -290,7 +297,7 @@ function formatDate(dateStr?: string): string | null {
 }
 
 /**
- * 格式化时长（分钟）
+ * 格式化时长(分钟)
  */
 function formatDuration(minutes?: number): string | null {
   if (!minutes) return null;
@@ -299,7 +306,7 @@ function formatDuration(minutes?: number): string | null {
 
 /**
  * 详情视图
- * 左侧展示封面大图，右侧展示文字信息
+ * 左侧展示封面大图,右侧展示文字信息
  */
 function DetailView({
   item,
@@ -408,11 +415,6 @@ function DetailView({
                   <span>{rawData.studio.name}</span>
                 </Field>
               )}
-              {/* {typeof rawData.duration === 'number' && rawData.duration && (
-                <Field label="时长">
-                  <span>{formatDuration(rawData.duration)}</span>
-                </Field>
-              )} */}
               {typeof rawData.director === 'string' && rawData.director && (
                 <Field label="导演">
                   <span>{rawData.director}</span>
@@ -465,31 +467,6 @@ function DetailView({
             )}
           </>
         ) : null}
-
-        {/* <Field label="封面 URL">
-          {form.coverUrl ? (
-            <a
-              href={form.coverUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm break-all hover:underline transition-colors"
-              style={{ color: 'var(--accent-gold)' }}
-            >
-              {form.coverUrl}
-            </a>
-          ) : (
-            <span style={{ color: 'var(--text-muted)' }}>-</span>
-          )}
-        </Field> */}
-        {/* DEBUG: 显示原始数据结构 */}
-        {/* <details className="mb-4">
-          <summary style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
-            调试: 查看原始数据结构
-          </summary>
-          <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '200px', color: 'var(--text-muted)' }}>
-            {JSON.stringify(rawData, null, 2)}
-          </pre>
-        </details> */}
       </div>
     </div>
   );
@@ -576,7 +553,7 @@ function Field({
 }) {
   return (
     <div className={`group ${className || ''}`}>
-      <label
+ <label
         className="block text-xs font-medium tracking-wide uppercase mb-2"
         style={{ color: 'var(--text-muted)' }}
       >
@@ -665,7 +642,3 @@ function TextAreaField({
     </div>
   );
 }
-
-/* ==================== 图标组件 ==================== */
-// 图标已使用 lucide-react 库
-

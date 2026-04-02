@@ -1,20 +1,9 @@
-/**
- * 翻译缓存条目
- */
-export interface Translation {
-  /** 唯一标识码 */
-  code: string;
-  /** 中文标题 */
-  titleZh: string;
-  /** 中文简介 */
-  summaryZh: string;
-  /** 封面图片地址 */
-  coverUrl?: string;
-  /** 原始响应数据 */
-  rawResponse?: string;
-  /** 更新时间 */
-  updatedAt?: string;
-}
+// Import shared types for use in this file
+import type { Translation as TranslationType, EditForm as EditFormType } from '@/components/shared/types';
+
+// Re-export shared types
+export type Translation = TranslationType;
+export type EditForm = EditFormType;
 
 /**
  * 排序方式
@@ -50,18 +39,6 @@ export interface SearchBarProps {
 }
 
 /**
- * 翻译表格组件属性
- */
-export interface TranslationTableProps {
-  /** 数据列表 */
-  items: Translation[];
-  /** 是否加载中 */
-  loading: boolean;
-  /** 选中条目回调 */
-  onSelect: (item: Translation) => void;
-}
-
-/**
  * 分页组件属性
  */
 export interface PaginationProps {
@@ -75,30 +52,4 @@ export interface PaginationProps {
   pageSize?: number;
   /** 每页数量变更回调 */
   onPageSizeChange?: (size: number) => void;
-}
-
-/**
- * 详情弹窗组件属性
- */
-export interface DetailModalProps {
-  /** 当前选中的条目 */
-  item: Translation;
-  /** 关闭弹窗回调 */
-  onClose: () => void;
-  /** 更新条目回调 */
-  onUpdate: (item: Translation) => void;
-  /** 删除条目回调 */
-  onDelete: (code: string) => void;
-}
-
-/**
- * 编辑表单数据
- */
-export interface EditForm {
-  /** 中文标题 */
-  titleZh: string;
-  /** 中文简介 */
-  summaryZh: string;
-  /** 封面地址 */
-  coverUrl: string;
 }

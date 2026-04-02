@@ -1,39 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Loader2, AlertCircle, User, Frown } from 'lucide-react';
+import { Search, Loader2, AlertCircle, Frown } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
-import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
+import { SEARCH_SCENE_QUERY, type SceneData } from '@/src/graphql/queries';
+import { ItemCard, DetailModal, type Translation } from '@/components/shared';
 
 /**
- * 场景数据结构
- * 定义 GraphQL 查询返回的场景信息类型
+ * 将 GraphQL Scene 数据转换为 Translation 类型
  */
-interface Scene {
-  /** 场景唯一 ID */
-  id: string;
-  /** 番号代码 */
-  code: string;
-  /** 标题 */
-  title: string;
-  /** 详细介绍 */
-  details?: string;
-  /** 发布日期 */
-  date?: string;
-  /** 时长（分钟） */
-  duration?: number;
-  /** 导演 */
-  director?: string;
-  /** 封面图片列表 */
-  images?: { url: string }[];
-  /** 相关链接列表 */
-  urls?: { url: string }[];
-  /** 演员列表 */
-  performers?: { performer: { name: string; gender?: string } }[];
-  /** 标签列表 */
-  tags?: { name: string }[];
-  /** 制作商 */
-  studio?: { name: string };
+function sceneToTranslation(scene: SceneData): Translation {
+  return {
+    code: scene.code,
+    titleZh: scene.title || '',
+    summaryZh: scene.details || '',
+    coverUrl: scene.images?.[0]?.url,
+    rawResponse: JSON.stringify(scene),
+    updatedAt: scene.updated,
+  };
 }
 
 /**
@@ -46,9 +30,11 @@ export default function BrowsePage() {
   // 加载状态
   const [loading, setLoading] = useState(false);
   // 搜索结果列表
-  const [results, setResults] = useState<Scene[]>([]);
+  const [results, setResults] = useState<SceneData[]>([]);
   // 错误信息
   const [error, setError] = useState('');
+  // 当前选中的条目（用于详情弹窗）
+  const [selected, setSelected] = useState<Translation | null>(null);
 
   /**
    * 处理搜索表单提交
@@ -85,6 +71,14 @@ export default function BrowsePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * 处理点击卡片
+   * 将 SceneData 转换为 Translation 并设置选中状态
+   */
+  const handleItemClick = (item: Translation) => {
+    setSelected(item);
   };
 
   return (
@@ -148,88 +142,21 @@ export default function BrowsePage() {
 
         {/* Results */}
         <div className="space-y-4">
-          {results.map((scene, index) => (
-            <div
-              key={scene.id}
-              className="glass-card group animate-fade-in flex gap-5 p-5"
-              style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s`, opacity: 0 }}
-            >
-              {/* Image */}
-              {scene.images?.[0]?.url && (
-                <div className="image-hover w-[400px] h-[240px] rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={scene.images[0].url}
-                    alt={scene.code}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                {/* Code Badge & Date */}
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="tag">{scene.code}</span>
-                  {scene.date && (
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {scene.date}
-                    </span>
-                  )}
-                </div>
-
-                {/* Title */}
-                <h3 className="font-semibold text-lg mb-2 line-clamp-1 transition-colors duration-200 group-hover:text-[var(--accent-gold)]">
-                  {scene.title}
-                </h3>
-
-                {/* Description */}
-                {scene.details && (
-                  <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                    {scene.details}
-                  </p>
-                )}
-
-                {/* Performers */}
-                {scene.performers && scene.performers.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm mb-2">
-                    <User className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                      {scene.performers.map((p) => p.performer?.name).filter(Boolean).join(', ')}
-                    </span>
-                  </div>
-                )}
-
-                {/* Tags */}
-                {scene.tags && scene.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {scene.tags.slice(0, 4).map((tag, i) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2 py-1 rounded-md"
-                        style={{
-                          background: 'var(--bg-tertiary)',
-                          color: 'var(--text-muted)',
-                        }}
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                    {scene.tags.length > 4 && (
-                      <span
-                        className="text-xs px-2 py-1 rounded-md"
-                        style={{
-                          background: 'var(--bg-tertiary)',
-                          color: 'var(--text-muted)',
-                        }}
-                      >
-                        +{scene.tags.length - 4}
-                      </span>
-                    )}
-                  </div>
-                )}
+          {results.map((scene, index) => {
+            const item = sceneToTranslation(scene);
+            return (
+              <div
+                key={scene.id}
+                style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
+              >
+                <ItemCard
+                  item={item}
+                  variant="card"
+                  onClick={handleItemClick}
+                />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty State */}
@@ -265,6 +192,15 @@ export default function BrowsePage() {
           </div>
         )}
       </main>
+
+      {/* Detail Modal - 只读模式 */}
+      {selected && (
+        <DetailModal
+          item={selected}
+          onClose={() => setSelected(null)}
+          readOnly
+        />
+      )}
     </div>
   );
 }

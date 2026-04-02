@@ -8,3 +8,4 @@ dist/
 tsconfig.tsbuildinfo
 .env*.local
 ui-ux-pro-max
+/docs/superpowers/specs
