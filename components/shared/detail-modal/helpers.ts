@@ -1,4 +1,5 @@
 import type { SceneData } from '@/src/graphql/queries';
+import type { Translation } from '../types';
 
 export const TAG_COLOR_PALETTE = [
   { background: 'rgba(239, 68, 68, 0.18)', color: '#fecaca', border: 'rgba(248, 113, 113, 0.28)' },
@@ -30,6 +31,13 @@ export function parseSceneData(jsonStr: string): SceneData | null {
   } catch {
     return null;
   }
+}
+
+export function mergeHydratedTranslation(item: Translation, rawResponse: string): Translation {
+  return {
+    ...item,
+    rawResponse,
+  };
 }
 
 export function formatDate(dateStr?: string): string | null {

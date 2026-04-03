@@ -42,6 +42,8 @@ export interface DetailModalProps {
   item: Translation;
   /** 关闭弹窗回调 */
   onClose: () => void;
+  /** 原始数据补全回调 */
+  onHydrate?: (item: Translation) => void;
   /** 更新条目回调（可选，Admin 模式） */
   onUpdate?: (item: Translation) => void;
   /** 删除条目回调（可选，Admin 模式） */

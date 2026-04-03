@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import type { SceneData } from '@/src/graphql/queries';
 import type { DetailModalProps, EditForm } from '../types';
-import { parseSceneData } from './helpers';
+import { mergeHydratedTranslation, parseSceneData } from './helpers';
 
 export function useDetailModal({
   item,
+  onHydrate,
   onUpdate,
   onDelete,
-}: Pick<DetailModalProps, 'item' | 'onUpdate' | 'onDelete'>) {
+}: Pick<DetailModalProps, 'item' | 'onHydrate' | 'onUpdate' | 'onDelete'>) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -50,7 +51,14 @@ export function useDetailModal({
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        setRawData(data.rawResponse ? parseSceneData(data.rawResponse) : null);
+        const nextRawResponse = typeof data.rawResponse === 'string' ? data.rawResponse : '';
+        const nextRawData = nextRawResponse ? parseSceneData(nextRawResponse) : null;
+
+        setRawData(nextRawData);
+
+        if (nextRawResponse && nextRawResponse !== item.rawResponse) {
+          onHydrate?.(mergeHydratedTranslation(item, nextRawResponse));
+        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -66,7 +74,7 @@ export function useDetailModal({
     return () => {
       cancelled = true;
     };
-  }, [item.code, item.rawResponse]);
+  }, [item, item.code, item.rawResponse, onHydrate]);
 
   const handleCopyCode = async () => {
     await navigator.clipboard.writeText(item.code);

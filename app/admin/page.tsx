@@ -205,6 +205,11 @@ export default function AdminPage() {
     showMessage('保存成功');
   };
 
+  const handleHydrate = (hydrated: Translation) => {
+    setItems((prev) => prev.map((item) => (item.code === hydrated.code ? hydrated : item)));
+    setSelected((prev) => (prev?.code === hydrated.code ? hydrated : prev));
+  };
+
   /**
    * 处理条目删除
    * 从列表中移除已删除的条目
@@ -364,6 +369,7 @@ export default function AdminPage() {
           <DetailModal
             item={selected}
             onClose={handleDetailClose}
+            onHydrate={handleHydrate}
             onUpdate={selectedReadOnly ? undefined : handleUpdate}
             onDelete={selectedReadOnly ? undefined : handleDelete}
             readOnly={selectedReadOnly}

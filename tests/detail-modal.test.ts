@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { SceneData } from '../src/graphql/queries';
-import { getPerformerNames, getTagColor } from '../components/shared/detail-modal/helpers';
+import {
+  getPerformerNames,
+  getTagColor,
+  mergeHydratedTranslation,
+} from '../components/shared/detail-modal/helpers';
 
 describe('getPerformerNames', () => {
   it('returns only non-empty performer names in order', () => {
@@ -44,5 +48,34 @@ describe('getTagColor', () => {
     );
 
     expect(paletteEntries.size).toBeGreaterThan(1);
+  });
+});
+
+describe('mergeHydratedTranslation', () => {
+  it('preserves existing editable fields while attaching fetched rawResponse data', () => {
+    const item = {
+      code: 'REAL-358',
+      titleZh: '已有标题',
+      summaryZh: '已有简介',
+      coverUrl: 'https://cdn.example.com/existing-cover.jpg',
+    };
+
+    expect(
+      mergeHydratedTranslation(
+        item,
+        JSON.stringify({
+          id: 'scene-3',
+          code: 'REAL-358',
+          title: 'Upstream title',
+        })
+      )
+    ).toEqual({
+      ...item,
+      rawResponse: JSON.stringify({
+        id: 'scene-3',
+        code: 'REAL-358',
+        title: 'Upstream title',
+      }),
+    });
   });
 });
