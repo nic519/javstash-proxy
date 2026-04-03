@@ -90,7 +90,7 @@ export default function HomePage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push(loginType === 'admin' ? '/admin' : '/browse');
+        router.push('/admin');
       } else {
         setError(getErrorMessage(data.error));
       }

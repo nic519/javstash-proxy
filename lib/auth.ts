@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers';
+import { type SessionType } from './session-permissions';
 
 const SESSION_COOKIE = 'admin_session';
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export type SessionType = 'admin' | 'javstash';
 export type JavStashValidationResult = 'valid' | 'invalid' | 'network_error';
 
 export function validatePassword(password: string): boolean {

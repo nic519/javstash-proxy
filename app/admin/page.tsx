@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
+import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
 import type { SceneData } from '@/src/graphql/queries';
 import {
   AdminPageHeader,
@@ -73,6 +74,8 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<Translation | null>(null);
   // 当前详情是否只读（远端结果）
   const [selectedReadOnly, setSelectedReadOnly] = useState(false);
+  // 当前会话类型
+  const [sessionType, setSessionType] = useState<SessionType | null>(null);
   // 操作提示消息
   const [message, setMessage] = useState('');
   // 本地查询请求版本
@@ -83,6 +86,7 @@ export default function AdminPage() {
   // 计算总页数
   const totalPages = Math.ceil(total / pageSize);
   const backgroundInteractionDisabled = shouldDisableAdminBackgroundInteractions(remoteOpen);
+  const canManage = canManageAdminData(sessionType);
 
   /**
    * 获取翻译列表数据
@@ -178,6 +182,17 @@ export default function AdminPage() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch('/api/session')
+      .then((res) => res.json())
+      .then((data) => {
+        setSessionType(data.type ?? null);
+      })
+      .catch(() => {
+        setSessionType(null);
+      });
+  }, []);
+
   /**
    * 显示操作提示消息
    * 3 秒后自动消失
@@ -261,7 +276,7 @@ export default function AdminPage() {
     if (backgroundInteractionDisabled) {
       return;
     }
-    setSelectedReadOnly(false);
+    setSelectedReadOnly(!canManage);
     setSelected(item);
   };
 
@@ -286,9 +301,9 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex animated-bg">
+    <div className="h-screen overflow-hidden flex animated-bg">
       <Sidebar />
-      <main className="flex-1 p-6 relative z-10">
+      <main className="flex-1 min-w-0 h-screen overflow-y-auto p-6 relative z-10">
         <AdminPageHeader
           total={total}
           sortBy={sortBy}
@@ -406,9 +421,9 @@ export default function AdminPage() {
           <DetailModal
             item={selected}
             onClose={handleDetailClose}
-            onUpdate={selectedReadOnly ? undefined : handleUpdate}
-            onDelete={selectedReadOnly ? undefined : handleDelete}
-            readOnly={selectedReadOnly}
+            onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
+            onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
+            readOnly={selectedReadOnly || !canManage}
           />
         )}
       </main>

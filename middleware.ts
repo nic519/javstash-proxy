@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { canAccessAdmin, canManageAdminData } from '@/lib/session-permissions';
 
 const SESSION_COOKIE = 'admin_session';
 
@@ -45,19 +46,18 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { authenticated, type } = checkAuth(request);
 
-  // /admin 路由只允许 admin 类型会话
+  // /admin 路由允许任何已登录用户访问，普通用户只读
   if (pathname.startsWith('/admin')) {
     if (!authenticated) {
       return NextResponse.redirect(new URL('/', request.url));
     }
-    if (type !== 'admin') {
-      // javstash 用户重定向到 browse 页面
-      return NextResponse.redirect(new URL('/browse', request.url));
+    if (!canAccessAdmin(type)) {
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
   // 其他受保护的前端路由
-  const otherProtectedRoutes = ['/playground', '/browse'];
+  const otherProtectedRoutes = ['/playground'];
   const isProtectedRoute = otherProtectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -71,6 +71,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (
+    pathname.startsWith('/api/admin') &&
+    request.method !== 'GET' &&
+    !canManageAdminData(type)
+  ) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   // 已登录用户访问首页时重定向到管理页
   if (pathname === '/' && authenticated) {
     return NextResponse.redirect(new URL('/admin', request.url));
@@ -80,5 +88,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/playground/:path*', '/browse/:path*', '/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/playground/:path*', '/admin/:path*', '/api/admin/:path*'],
 };

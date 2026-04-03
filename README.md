@@ -97,9 +97,8 @@ fetch("https://javstash.vercel.app/api/graphql", {
 | 路径 | 说明 |
 |------|------|
 | `/` | 首页，展示端点地址和使用说明 |
-| `/browse` | 浏览页面（需 JavStash API Key 登录） |
 | `/playground` | GraphQL 调试工具（需登录） |
-| `/admin` | 管理后台，管理翻译缓存（需管理员密码登录） |
+| `/admin` | 统一数据页面，普通用户只读，管理员可管理翻译缓存 |
 
 ## 工作原理
 
@@ -121,8 +120,7 @@ fetch("https://javstash.vercel.app/api/graphql", {
 │   │   ├── graphql/       # GraphQL 入口
 │   │   ├── auth/          # 认证接口
 │   │   └── admin/         # 管理接口
-│   ├── admin/             # 管理后台页面
-│   ├── browse/            # 浏览页面
+│   ├── admin/             # 统一数据页面（普通用户只读，管理员可编辑）
 │   └── playground/        # GraphQL Playground
 ├── src/                   # 核心业务逻辑
 │   ├── handler.ts         # 请求处理器

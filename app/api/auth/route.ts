@@ -4,8 +4,8 @@ import {
   validateJavStashKey,
   createSession,
   destroySession,
-  type SessionType,
 } from '@/lib/auth';
+import { type SessionType } from '@/lib/session-permissions';
 
 interface LoginRequest {
   password: string;

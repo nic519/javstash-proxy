@@ -31,4 +31,22 @@ describe('AdminPageHeader', () => {
     expect(markup).toContain('lucide-clock-3');
     expect(markup).toContain('lucide-list-filter');
   });
+
+  it('renders the sort trigger with the large select size so it can match the other controls', () => {
+    const markup = renderToStaticMarkup(
+      createElement(AdminPageHeader, {
+        total: 128,
+        sortBy: 'updated',
+        viewMode: 'table',
+        searchInput: '',
+        backgroundInteractionDisabled: false,
+        onSortChange: () => {},
+        onViewModeChange: () => {},
+        onSearchInputChange: () => {},
+        onSearch: () => {},
+      })
+    );
+
+    expect(markup).toContain('data-size="lg"');
+  });
 });

@@ -62,6 +62,7 @@ export function AdminPageHeader({
           onValueChange={(value) => onSortChange(value as SortBy)}
         >
           <SelectTrigger
+            size="lg"
             className={`h-12 min-w-[12.5rem] rounded-2xl border px-4 py-0 shadow-none focus-visible:ring-0 [&_svg.lucide-chevron-down]:mr-0.5 [&_svg.lucide-chevron-down]:size-4 [&_svg.lucide-chevron-down]:text-white/55 ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
             style={{
               background: 'var(--bg-tertiary)',
