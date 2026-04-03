@@ -12,10 +12,7 @@ export function ItemCard({ item, variant, onClick }: ItemCardProps) {
   if (variant === 'table') {
     return <TableRow item={item} onClick={onClick} />;
   }
-  if (variant === 'grid') {
-    return <GridCard item={item} onClick={onClick} />;
-  }
-  return <CardView item={item} onClick={onClick} />;
+  return <GridCard item={item} onClick={onClick} />;
 }
 
 /**
@@ -68,57 +65,6 @@ function TableRow({ item, onClick }: { item: Translation; onClick: (item: Transl
   );
 }
 
-/**
- * 卡片样式
- * 显示封面、code、titleZh、summaryZh 等
- */
-function CardView({ item, onClick }: { item: Translation; onClick: (item: Translation) => void }) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onClick(item)}
-      onKeyDown={(event) => handleActivationKeyDown(event, () => onClick(item))}
-      className="glass-card group animate-fade-in flex gap-5 p-5 cursor-pointer"
-    >
-      {/* 封面图片 */}
-      {item.coverUrl && (
-        <div className="image-hover w-[400px] h-[240px] rounded-lg overflow-hidden flex-shrink-0">
-          <img
-            src={item.coverUrl}
-            alt={item.code}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
-
-      {/* 内容区域 */}
-      <div className="flex-1 min-w-0">
-        {/* Code Badge & Date */}
-        <div className="flex items-center gap-3 mb-2">
-          <span className="tag">{item.code}</span>
-          {item.updatedAt && (
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {formatDate(item.updatedAt)}
-            </span>
-          )}
-        </div>
-
-        {/* 标题 */}
-        <h3 className="font-semibold text-lg mb-2 line-clamp-1 transition-colors duration-200 group-hover:text-[var(--accent-gold)]">
-          {item.titleZh || '无标题'}
-        </h3>
-
-        {/* 简介 */}
-        {item.summaryZh && (
-          <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-            {item.summaryZh}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /**
  * 网格卡片样式
