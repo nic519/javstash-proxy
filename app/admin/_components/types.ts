@@ -37,6 +37,11 @@ export interface AdminListPreferences {
   viewMode: AdminViewMode;
 }
 
+export interface AdminSearchOverlayState {
+  open: boolean;
+  keyword: string;
+}
+
 interface AdminListSearchParamsLike {
   get(name: string): string | null;
   has(name: string): boolean;
@@ -202,6 +207,38 @@ export function createAdminListSearchParams(state: AdminListState): URLSearchPar
     sortBy: normalizeAdminSortBy(state.sortBy),
     viewMode: normalizeAdminViewMode(state.viewMode),
   });
+}
+
+export function readAdminSearchOverlayState(
+  searchParams: Pick<URLSearchParams, 'get'>
+): AdminSearchOverlayState {
+  const open = searchParams.get('overlay') === 'search';
+  const keyword = open ? searchParams.get('q')?.trim() || '' : '';
+
+  return { open, keyword };
+}
+
+export function applyAdminSearchOverlayState(
+  searchParams: URLSearchParams,
+  overlay: AdminSearchOverlayState
+): URLSearchParams {
+  const nextParams = new URLSearchParams(searchParams.toString());
+
+  if (!overlay.open) {
+    nextParams.delete('overlay');
+    nextParams.delete('q');
+    return nextParams;
+  }
+
+  nextParams.set('overlay', 'search');
+
+  if (overlay.keyword) {
+    nextParams.set('q', overlay.keyword.trim());
+  } else {
+    nextParams.delete('q');
+  }
+
+  return nextParams;
 }
 
 export function shouldDisableAdminBackgroundInteractions(remoteOpen: boolean): boolean {

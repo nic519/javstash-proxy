@@ -16,9 +16,11 @@ import {
   type PageSize,
   type AdminViewMode,
   AdminRemoteSearchModal,
+  applyAdminSearchOverlayState,
   createAdminListSearchParams,
   fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
+  readAdminSearchOverlayState,
   readAdminListState,
   shouldApplyAdminSearchResponse,
   shouldDisableAdminBackgroundInteractions,
@@ -34,6 +36,7 @@ export default function AdminPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const overlayState = readAdminSearchOverlayState(searchParams);
   const readCurrentListState = () =>
     readAdminListState({
       searchParams,
@@ -61,9 +64,9 @@ export default function AdminPage() {
   // 数据加载状态
   const [loading, setLoading] = useState(true);
   // 远端搜索弹窗是否打开
-  const [remoteOpen, setRemoteOpen] = useState(false);
+  const [remoteOpen, setRemoteOpen] = useState(() => overlayState.open);
   // 远端搜索关键词
-  const [remoteKeyword, setRemoteKeyword] = useState('');
+  const [remoteKeyword, setRemoteKeyword] = useState(() => overlayState.keyword);
   // 远端搜索结果
   const [remoteResults, setRemoteResults] = useState<SceneData[]>([]);
   // 本地搜索结果（在搜索弹框里显示）
@@ -84,6 +87,8 @@ export default function AdminPage() {
   const [message, setMessage] = useState('');
   // 本地查询请求版本
   const localRequestVersionRef = useRef(0);
+  // 搜索执行版本
+  const searchRequestVersionRef = useRef(0);
   // 消息清除定时器
   const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -149,20 +154,36 @@ export default function AdminPage() {
 
   useEffect(() => {
     const nextState = readCurrentListState();
+    const nextOverlayState = readAdminSearchOverlayState(searchParams);
 
     setPage((current) => (current === nextState.page ? current : nextState.page));
     setPageSize((current) => (current === nextState.pageSize ? current : nextState.pageSize));
     setSortBy((current) => (current === nextState.sortBy ? current : nextState.sortBy));
     setViewMode((current) => (current === nextState.viewMode ? current : nextState.viewMode));
+    setRemoteOpen((current) => (current === nextOverlayState.open ? current : nextOverlayState.open));
+    setRemoteKeyword((current) =>
+      current === nextOverlayState.keyword ? current : nextOverlayState.keyword
+    );
+    if (nextOverlayState.open) {
+      setSearchInput((current) =>
+        current === nextOverlayState.keyword ? current : nextOverlayState.keyword
+      );
+    }
   }, [searchParams]);
 
   useEffect(() => {
-    const nextParams = createAdminListSearchParams({
-      page,
-      pageSize,
-      sortBy,
-      viewMode,
-    });
+    const nextParams = applyAdminSearchOverlayState(
+      createAdminListSearchParams({
+        page,
+        pageSize,
+        sortBy,
+        viewMode,
+      }),
+      {
+        open: overlayState.open,
+        keyword: overlayState.keyword,
+      }
+    );
     const nextQuery = nextParams.toString();
     const currentQuery = searchParams.toString();
 
@@ -175,7 +196,7 @@ export default function AdminPage() {
       sortBy,
       viewMode,
     });
-  }, [page, pageSize, sortBy, viewMode, pathname, router, searchParams]);
+  }, [page, pageSize, sortBy, viewMode, pathname, router, searchParams, overlayState.open, overlayState.keyword]);
 
   useEffect(() => {
     if (totalPages > 0 && page > totalPages) {
@@ -217,11 +238,89 @@ export default function AdminPage() {
     }, 3000);
   };
 
+  useEffect(() => {
+    const keyword = remoteKeyword.trim();
+
+    if (!remoteOpen) {
+      setLocalSearchResults([]);
+      setRemoteResults([]);
+      setRemoteError('');
+      setRemoteLoading(false);
+      setSearchSource(null);
+      return;
+    }
+
+    if (!keyword) {
+      setLocalSearchResults([]);
+      setRemoteResults([]);
+      setRemoteError('');
+      setRemoteLoading(false);
+      setSearchSource(null);
+      return;
+    }
+
+    const requestId = searchRequestVersionRef.current + 1;
+    searchRequestVersionRef.current = requestId;
+    setRemoteLoading(true);
+    setRemoteError('');
+    setRemoteResults([]);
+    setLocalSearchResults([]);
+    setSearchSource(null);
+
+    void (async () => {
+      try {
+        const localResults = await fetchAdminLocalSearchResults(keyword);
+        if (!shouldApplyAdminSearchResponse({
+          requestId,
+          activeRequestId: searchRequestVersionRef.current,
+        })) {
+          return;
+        }
+
+        const fallbackState = prepareRemoteSearchFallbackState(keyword, localResults);
+
+        if (!fallbackState.open) {
+          setSearchSource('local');
+          setLocalSearchResults(localResults);
+          setRemoteLoading(false);
+          return;
+        }
+
+        setSearchSource('remote');
+        const remoteResult = await fetchAdminRemoteSearchResults(fallbackState.keyword);
+        if (!shouldApplyAdminSearchResponse({
+          requestId,
+          activeRequestId: searchRequestVersionRef.current,
+        })) {
+          return;
+        }
+        setRemoteResults(remoteResult.results);
+        setRemoteError(remoteResult.error);
+      } catch {
+        if (!shouldApplyAdminSearchResponse({
+          requestId,
+          activeRequestId: searchRequestVersionRef.current,
+        })) {
+          return;
+        }
+        setSearchSource('remote');
+        setRemoteError('请求失败，请重试');
+      } finally {
+        if (shouldApplyAdminSearchResponse({
+          requestId,
+          activeRequestId: searchRequestVersionRef.current,
+        })) {
+          setRemoteLoading(false);
+        }
+      }
+    })();
+  }, [remoteOpen, remoteKeyword]);
+
   /**
    * 执行搜索
    * 重置页码并更新搜索关键词
    */
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (backgroundInteractionDisabled) {
       return;
     }
@@ -229,36 +328,20 @@ export default function AdminPage() {
     if (!keyword) {
       return;
     }
-
-    setRemoteOpen(true);
-    setRemoteKeyword(keyword);
-    setRemoteLoading(true);
-    setRemoteError('');
-    setRemoteResults([]);
-    setLocalSearchResults([]);
-    setSearchSource(null);
-
-    try {
-      const localResults = await fetchAdminLocalSearchResults(keyword);
-      const fallbackState = prepareRemoteSearchFallbackState(keyword, localResults);
-
-      if (!fallbackState.open) {
-        setSearchSource('local');
-        setLocalSearchResults(localResults);
-        setRemoteLoading(false);
-        return;
+    const nextParams = applyAdminSearchOverlayState(
+      createAdminListSearchParams({
+        page,
+        pageSize,
+        sortBy,
+        viewMode,
+      }),
+      {
+        open: true,
+        keyword,
       }
+    );
 
-      setSearchSource('remote');
-      const remoteResult = await fetchAdminRemoteSearchResults(fallbackState.keyword);
-      setRemoteResults(remoteResult.results);
-      setRemoteError(remoteResult.error);
-    } catch {
-      setSearchSource('remote');
-      setRemoteError('请求失败，请重试');
-    } finally {
-      setRemoteLoading(false);
-    }
+    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
   };
 
   /**
@@ -300,13 +383,20 @@ export default function AdminPage() {
   };
 
   const handleRemoteClose = () => {
-    setRemoteOpen(false);
-    setRemoteKeyword('');
-    setLocalSearchResults([]);
-    setRemoteResults([]);
-    setRemoteError('');
-    setRemoteLoading(false);
-    setSearchSource(null);
+    const nextParams = applyAdminSearchOverlayState(
+      createAdminListSearchParams({
+        page,
+        pageSize,
+        sortBy,
+        viewMode,
+      }),
+      {
+        open: false,
+        keyword: '',
+      }
+    );
+
+    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
   };
 
   return (

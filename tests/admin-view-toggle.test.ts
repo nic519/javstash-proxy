@@ -6,9 +6,11 @@ import {
   ADMIN_PAGE_SIZE_STORAGE_KEY,
   ADMIN_SORT_BY_STORAGE_KEY,
   ADMIN_VIEW_MODE_STORAGE_KEY,
+  applyAdminSearchOverlayState,
   createAdminListSearchParams,
   prepareRemoteSearchFallbackState,
   readAdminListState,
+  readAdminSearchOverlayState,
   readAdminViewMode,
   shouldDisableAdminBackgroundInteractions,
   writeAdminListPreferences,
@@ -176,6 +178,41 @@ describe('admin list state persistence helpers', () => {
     });
 
     expect(params.toString()).toBe('page=3&pageSize=50&sortBy=code&viewMode=grid');
+  });
+});
+
+describe('admin search overlay URL helpers', () => {
+  it('reads a search overlay state from URL params', () => {
+    expect(readAdminSearchOverlayState(new URLSearchParams('overlay=search&q= ABP-123 '))).toEqual({
+      open: true,
+      keyword: 'ABP-123',
+    });
+
+    expect(readAdminSearchOverlayState(new URLSearchParams('overlay=other&q=ABP-123'))).toEqual({
+      open: false,
+      keyword: '',
+    });
+  });
+
+  it('adds and removes overlay params without disturbing list params', () => {
+    const base = new URLSearchParams('page=3&pageSize=50&sortBy=code&viewMode=grid');
+
+    expect(
+      applyAdminSearchOverlayState(base, {
+        open: true,
+        keyword: 'SSIS-001',
+      }).toString()
+    ).toBe('page=3&pageSize=50&sortBy=code&viewMode=grid&overlay=search&q=SSIS-001');
+
+    expect(
+      applyAdminSearchOverlayState(
+        new URLSearchParams('page=3&pageSize=50&sortBy=code&viewMode=grid&overlay=search&q=SSIS-001'),
+        {
+          open: false,
+          keyword: '',
+        }
+      ).toString()
+    ).toBe('page=3&pageSize=50&sortBy=code&viewMode=grid');
   });
 });
 
