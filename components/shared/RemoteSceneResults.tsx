@@ -31,6 +31,7 @@ interface RemoteSceneResultsProps {
   error: string;
   keyword: string;
   source?: 'local' | 'remote' | null;
+  displayMode?: 'cards' | 'overlay-list';
   onItemClick: (item: Translation) => void;
 }
 
@@ -45,10 +46,12 @@ export function RemoteSceneResults({
   error,
   keyword,
   source = 'remote',
+  displayMode = 'cards',
   onItemClick,
 }: RemoteSceneResultsProps) {
   const normalizedKeyword = keyword.trim();
   const showingLocalResults = source === 'local';
+  const usingOverlayList = displayMode === 'overlay-list';
   const localScenes = localResults.map((item) => ({
     item,
     scene: item.rawResponse ? parseSceneData(item.rawResponse) : null,
@@ -74,14 +77,22 @@ export function RemoteSceneResults({
       )}
 
       {showResults ? (
-        <div className="space-y-4">
+        <div
+          className={usingOverlayList ? 'overflow-hidden rounded-2xl divide-y' : 'space-y-4'}
+          data-result-display={displayMode}
+        >
           {showingLocalResults
             ? localScenes.map(({ item, scene }, index) => (
                 <div
                   key={item.code}
                   style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
                 >
-                  <RemoteSceneCard item={item} scene={scene} onClick={onItemClick} />
+                  <RemoteSceneCard
+                    item={item}
+                    scene={scene}
+                    onClick={onItemClick}
+                    displayMode={displayMode}
+                  />
                 </div>
               ))
             : results.map((scene, index) => {
@@ -91,7 +102,12 @@ export function RemoteSceneResults({
                     key={scene.id}
                     style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
                   >
-                    <RemoteSceneCard item={item} scene={scene} onClick={onItemClick} />
+                    <RemoteSceneCard
+                      item={item}
+                      scene={scene}
+                      onClick={onItemClick}
+                      displayMode={displayMode}
+                    />
                   </div>
                 );
               })}
@@ -137,15 +153,18 @@ export function RemoteSceneResults({
 function RemoteSceneCard({
   item,
   scene,
+  displayMode = 'cards',
   onClick,
 }: {
   item: Translation;
   scene: SceneData | null;
+  displayMode?: 'cards' | 'overlay-list';
   onClick: (item: Translation) => void;
 }) {
   const releaseDate = formatDate(scene?.date || item.updatedAt) || '-';
   const studioName = getStudioName(scene) || '-';
   const performerNames = getPerformerNames(scene);
+  const usingOverlayList = displayMode === 'overlay-list';
   const tagNames = Array.isArray(scene?.tags)
     ? scene.tags.map((tag) => tag.name?.trim()).filter((tag): tag is string => Boolean(tag)).slice(0, 8)
     : [];
@@ -156,12 +175,21 @@ function RemoteSceneCard({
       tabIndex={0}
       onClick={() => onClick(item)}
       onKeyDown={(event) => handleActivationKeyDown(event, () => onClick(item))}
-      className="glass-card group animate-fade-in cursor-pointer overflow-hidden rounded-[28px] border p-5 transition-colors"
-      style={{
-        borderColor: 'rgba(212, 175, 55, 0.12)',
-        background:
-          'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))',
-      }}
+      className={
+        usingOverlayList
+          ? 'group animate-fade-in cursor-pointer px-1 py-5 transition-colors first:pt-1 last:pb-1'
+          : 'glass-card group animate-fade-in cursor-pointer overflow-hidden rounded-[28px] border p-5 transition-colors'
+      }
+      data-result-item-style={usingOverlayList ? 'overlay-list-item' : 'card'}
+      style={
+        usingOverlayList
+          ? undefined
+          : {
+              borderColor: 'rgba(212, 175, 55, 0.12)',
+              background:
+                'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))',
+            }
+      }
     >
       <div className="flex flex-col gap-5 lg:flex-row">
         <div className="lg:w-[340px] lg:flex-shrink-0">

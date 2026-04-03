@@ -241,15 +241,18 @@ export function AdminSearchResultsOverlay({
     <div className="fixed inset-0 z-40 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="absolute inset-x-6 top-8 bottom-8 rounded-2xl overflow-hidden"
+        className="absolute inset-x-6 top-8 bottom-8 flex flex-col rounded-2xl overflow-hidden"
         style={{
           background: 'rgba(15, 15, 20, 0.92)',
           border: '1px solid rgba(212,175,55,0.12)',
         }}
       >
-        <div
-          className="flex items-center justify-between px-6 py-4 border-b"
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex w-full items-center justify-between gap-4 border-b px-6 py-4 text-left transition-colors hover:bg-white/[0.03] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:ring-inset"
           style={{ borderColor: 'var(--border-subtle)' }}
+          aria-label="关闭搜索结果弹层"
         >
           <div>
             <h2 className="text-lg font-medium" style={{ color: 'var(--accent-gold)' }}>
@@ -261,17 +264,15 @@ export function AdminSearchResultsOverlay({
                 : `本地未命中“${keyword}”，以下为远端结果`}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg"
+          <span
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
             style={{ color: 'var(--text-muted)' }}
-            aria-label="关闭远端搜索结果"
+            aria-hidden="true"
           >
             <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="h-[calc(100%-73px)] overflow-y-auto p-6">
+          </span>
+        </button>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">
           {loading && results.length === 0 ? (
             <div className="flex min-h-64 items-center justify-center">
               <div
@@ -293,6 +294,7 @@ export function AdminSearchResultsOverlay({
               error={error}
               keyword={keyword}
               source={source}
+              displayMode="overlay-list"
               onItemClick={source === 'local' ? onLocalSelect : onRemoteSelect}
             />
           )}

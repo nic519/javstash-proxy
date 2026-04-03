@@ -262,6 +262,8 @@ describe('AdminSearchResultsOverlay', () => {
     expect(markup).toContain('Javstash 搜索结果');
     expect(markup).toContain('本地未命中');
     expect(markup).toContain('Remote title');
+    expect(markup).toContain('aria-label="关闭搜索结果弹层"');
+    expect(markup).toContain('data-result-display="overlay-list"');
     expect(markup).not.toContain('<table');
   });
 
@@ -298,8 +300,41 @@ describe('AdminSearchResultsOverlay', () => {
     expect(markup).toContain('本地导演');
     expect(markup).toContain('本地演员');
     expect(markup).toContain('本地标签');
+    expect(markup).toContain('data-result-display="overlay-list"');
     expect(markup).not.toContain('本地未命中');
     expect(markup).not.toContain('<table');
+  });
+
+  it('uses divider-based overlay list styling instead of bordered result cards', () => {
+    const markup = renderToStaticMarkup(
+      createElement(AdminSearchResultsOverlay, {
+        open: true,
+        keyword: 'ABP',
+        source: 'remote',
+        localResults: [],
+        results: [
+          ...results,
+          {
+            id: 'scene-2',
+            code: 'ABP-124',
+            title: 'Remote title 2',
+            details: 'Remote summary 2',
+            images: [{ url: 'https://example.com/cover-2.jpg' }],
+          },
+        ],
+        loading: false,
+        error: '',
+        onClose: () => {},
+        onLocalSelect: () => {},
+        onRemoteSelect: () => {},
+      })
+    );
+
+    expect(markup).toContain('data-result-display="overlay-list"');
+    expect(markup).toContain('divide-y');
+    expect(markup).toContain('data-result-item-style="overlay-list-item"');
+    expect(markup).not.toContain('data-result-item-style="card"');
+    expect(markup).not.toContain('background:rgba(255,255,255,0.02)');
   });
 
   it('returns no markup when the modal is closed', () => {
