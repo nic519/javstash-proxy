@@ -29,6 +29,7 @@ import {
  * 提供翻译缓存的查看、搜索、编辑和删除功能
  */
 export default function AdminPage() {
+  const listScrollContainerId = 'admin-list-scroll-container';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -307,7 +308,7 @@ export default function AdminPage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden animated-bg">
-      <Navigation />
+      <Navigation scrollContainerId={listScrollContainerId} />
       <main className="flex-1 min-h-0 overflow-hidden p-6 relative z-10">
         <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <div className="flex min-h-0 flex-col lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
@@ -365,7 +366,7 @@ export default function AdminPage() {
                 borderRadius: '28px',
               }}
             >
-              <div className="min-h-0 flex-1 overflow-auto">
+              <div id={listScrollContainerId} className="min-h-0 flex-1 overflow-auto">
                 {loading ? (
                   <div className="flex items-center justify-center py-16">
                     <div

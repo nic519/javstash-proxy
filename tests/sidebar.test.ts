@@ -35,4 +35,15 @@ describe('Sidebar', () => {
     expect(markup).toContain('class="absolute right-0 top-0 flex h-dvh w-72 max-w-[82vw] flex-col transition-transform duration-300 ease-out translate-x-full"');
     expect(markup).toContain('aria-hidden="true"');
   });
+
+  it('renders a collapsible desktop shell when a scroll container is provided', () => {
+    const markup = renderToStaticMarkup(
+      createElement(Navigation, {
+        scrollContainerId: 'admin-list-scroll-container',
+      })
+    );
+
+    expect(markup).toContain('data-scroll-target="admin-list-scroll-container"');
+    expect(markup).toContain('max-h-28 opacity-100 translate-y-0');
+  });
 });

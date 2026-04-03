@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Code, Database, Layers, LogOut, Menu, X } from 'lucide-react';
+import { getNextDesktopNavVisibility } from './navigation-scroll';
 
 interface NavItem {
   href: string;
@@ -22,14 +23,25 @@ const iconMap: Record<string, React.ReactNode> = {
   logout: <LogOut className="h-4 w-4" />,
 };
 
-export function Navigation() {
+interface NavigationProps {
+  scrollContainerId?: string;
+}
+
+export function Navigation({ scrollContainerId }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopVisible, setDesktopVisible] = useState(true);
+  const lastScrollTopRef = useRef(0);
+  const desktopVisibleRef = useRef(true);
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    desktopVisibleRef.current = desktopVisible;
+  }, [desktopVisible]);
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -43,6 +55,41 @@ export function Navigation() {
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    setDesktopVisible(true);
+    desktopVisibleRef.current = true;
+    lastScrollTopRef.current = 0;
+
+    if (!scrollContainerId) {
+      return;
+    }
+
+    const scrollContainer = document.getElementById(scrollContainerId);
+
+    if (!scrollContainer) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const currentScrollTop = scrollContainer.scrollTop;
+      const nextVisible = getNextDesktopNavVisibility({
+        currentScrollTop,
+        lastScrollTop: lastScrollTopRef.current,
+        isVisible: desktopVisibleRef.current,
+      });
+
+      lastScrollTopRef.current = currentScrollTop;
+      setDesktopVisible((current) => (current === nextVisible ? current : nextVisible));
+    };
+
+    handleScroll();
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrollContainerId]);
 
   const handleLogout = async () => {
     await fetch('/api/auth', { method: 'DELETE' });
@@ -148,45 +195,92 @@ export function Navigation() {
         </aside>
       </div>
 
-      <header
-        className="hidden lg:flex sticky top-0 z-40 items-center justify-between px-6 py-4"
-        style={{
-          background: 'rgba(10, 10, 14, 0.72)',
-          backdropFilter: 'blur(18px)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}
-      >
-        <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-2xl"
-              style={{
-                background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
-                boxShadow: 'var(--shadow-gold)',
-              }}
-            >
-              <Layers className="h-5 w-5" style={{ color: 'var(--bg-primary)' }} />
-            </div>
-            <div>
-              <h1 className="font-display text-xl font-semibold tracking-wide gradient-text">JavStash</h1>
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Navigation</span>
-            </div>
-          </Link>
-
-          <nav className="flex items-center gap-2">
-            {renderNavItems({ mobile: false })}
-          </nav>
-        </div>
-
-        <button
-          onClick={handleLogout}
-          className="inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-red-500/10"
-          style={{ color: '#ef4444' }}
+      {scrollContainerId ? (
+        <div
+          data-scroll-target={scrollContainerId}
+          className={`hidden lg:block shrink-0 overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${desktopVisible ? 'max-h-28 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-3'}`}
         >
-          {iconMap.logout}
-          <span>退出登录</span>
-        </button>
-      </header>
+          <header
+            className="flex items-center justify-between px-6 py-4"
+            style={{
+              background: 'rgba(10, 10, 14, 0.72)',
+              backdropFilter: 'blur(18px)',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+            }}
+          >
+            <div className="flex items-center gap-10">
+              <Link href="/" className="flex items-center gap-3">
+                <div
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
+                    boxShadow: 'var(--shadow-gold)',
+                  }}
+                >
+                  <Layers className="h-5 w-5" style={{ color: 'var(--bg-primary)' }} />
+                </div>
+                <div>
+                  <h1 className="font-display text-xl font-semibold tracking-wide gradient-text">JavStash</h1>
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Navigation</span>
+                </div>
+              </Link>
+
+              <nav className="flex items-center gap-2">
+                {renderNavItems({ mobile: false })}
+              </nav>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-red-500/10"
+              style={{ color: '#ef4444' }}
+            >
+              {iconMap.logout}
+              <span>退出登录</span>
+            </button>
+          </header>
+        </div>
+      ) : (
+        <header
+          className="hidden lg:flex sticky top-0 z-40 items-center justify-between px-6 py-4"
+          style={{
+            background: 'rgba(10, 10, 14, 0.72)',
+            backdropFilter: 'blur(18px)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
+                  boxShadow: 'var(--shadow-gold)',
+                }}
+              >
+                <Layers className="h-5 w-5" style={{ color: 'var(--bg-primary)' }} />
+              </div>
+              <div>
+                <h1 className="font-display text-xl font-semibold tracking-wide gradient-text">JavStash</h1>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Navigation</span>
+              </div>
+            </Link>
+
+            <nav className="flex items-center gap-2">
+              {renderNavItems({ mobile: false })}
+            </nav>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-red-500/10"
+            style={{ color: '#ef4444' }}
+          >
+            {iconMap.logout}
+            <span>退出登录</span>
+          </button>
+        </header>
+      )}
     </>
   );
 }
