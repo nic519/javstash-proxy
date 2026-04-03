@@ -27,6 +27,7 @@ import { PAGE_SIZE_OPTIONS } from './types';
 export function Pagination({
   page,
   totalPages,
+  totalItems,
   onPageChange,
   pageSize,
   onPageSizeChange,
@@ -66,7 +67,7 @@ export function Pagination({
 
   return (
     <div
-      className="mx-3 mb-3 mt-2 flex items-center justify-between rounded-2xl px-3 py-2 backdrop-blur-sm"
+      className="sticky bottom-0 z-20 mx-3 mb-3 mt-2 flex shrink-0 items-center justify-between rounded-2xl px-3 py-2 backdrop-blur-sm"
       style={{
         background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.84), rgba(15, 15, 18, 0.72))',
         border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -92,9 +93,16 @@ export function Pagination({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            共 {totalPages} 页
-          </span>
+          <div className="flex flex-col leading-tight">
+            {typeof totalItems === 'number' ? (
+              <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                总计 {totalItems.toLocaleString()} 条
+              </span>
+            ) : null}
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              共 {totalPages} 页
+            </span>
+          </div>
         </div>
       )}
 

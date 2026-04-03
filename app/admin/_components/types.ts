@@ -79,6 +79,8 @@ export interface PaginationProps {
   page: number;
   /** 总页数 */
   totalPages: number;
+  /** 总条数 */
+  totalItems?: number;
   /** 页码变更回调 */
   onPageChange: (page: number) => void;
   /** 每页数量 */

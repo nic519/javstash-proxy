@@ -17,9 +17,9 @@ const SORT_OPTIONS: Array<{
   label: string;
   icon: typeof Clock3;
 }> = [
-  { value: 'updated', label: '修改时间', icon: Clock3 },
-  { value: 'code', label: '首字母', icon: ArrowUpAZ },
-];
+    { value: 'updated', label: '修改时间', icon: Clock3 },
+    { value: 'code', label: '首字母', icon: ArrowUpAZ },
+  ];
 
 export function AdminPageControls({
   sortBy,
@@ -44,14 +44,6 @@ export function AdminPageControls({
         boxShadow: '0 20px 48px rgba(0, 0, 0, 0.14)',
       }}
     >
-      <div className="border-b px-5 py-5" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <p className="text-xs font-medium uppercase tracking-[0.2em]" style={{ color: 'var(--accent-gold)' }}>
-          Controls
-        </p>
-        <p className="mt-2 text-sm leading-6" style={{ color: 'var(--text-muted)' }}>
-          搜索、排序、切换视图和随机浏览都在这里。
-        </p>
-      </div>
 
       <div className="space-y-4 p-5">
         <div
