@@ -61,19 +61,6 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
         className="flex h-full items-center pl-1"
         style={{ borderLeft: '1px solid var(--border-subtle)' }}
       >
-        <button
-          type="button"
-          aria-label="从剪切板复制"
-          title="从剪切板复制"
-          disabled={disabled}
-          onClick={() => {
-            void handlePasteFromClipboard();
-          }}
-          className={actionButtonClassName}
-          style={actionButtonStyle}
-        >
-          <ClipboardPaste className="w-4 h-4" />
-        </button>
         {hasValue ? (
           <button
             type="button"
@@ -86,7 +73,21 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
           >
             <X className="w-4 h-4" />
           </button>
-        ) : null}
+        ) : (
+          <button
+            type="button"
+            aria-label="从剪切板复制"
+            title="从剪切板复制"
+            disabled={disabled}
+            onClick={() => {
+              void handlePasteFromClipboard();
+            }}
+            className={actionButtonClassName}
+            style={actionButtonStyle}
+          >
+            <ClipboardPaste className="w-4 h-4" />
+          </button>
+        )}
         <button
           type="button"
           aria-label="搜索"
