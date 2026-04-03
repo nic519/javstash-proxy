@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy, Users } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy, Users, CalendarDays, Hash, Clapperboard, Tags } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 import type { SceneData } from '@/src/graphql/queries';
 
@@ -334,7 +334,12 @@ function DetailView({
   rawDataLoading: boolean;
 }) {
   const [imageLoading, setImageLoading] = useState(true);
-  const performerNames = getPerformerNames(rawData).slice(0, 6);
+  const performerNames = getPerformerNames(rawData);
+  const releaseDate = rawData ? formatDate(rawData.date) : null;
+  const studioName =
+    rawData?.studio && typeof rawData.studio === 'object' && 'name' in rawData.studio && typeof rawData.studio.name === 'string'
+      ? rawData.studio.name
+      : null;
 
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
@@ -383,33 +388,62 @@ function DetailView({
       </div>
       {/* 文字信息区域 */}
       <div className="flex-1 space-y-6 min-w-0 self-start">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <button
-            onClick={onCopyCode}
-            className="flex items-center gap-2 group cursor-pointer"
-            title="点击复制"
-          >
-            <span
-              className="font-mono text-sm whitespace-nowrap"
-              style={{ color: 'var(--accent-gold)' }}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <button
+              onClick={onCopyCode}
+              className="flex items-center gap-2 group cursor-pointer"
+              title="点击复制"
             >
-              {item.code}
-            </span>
-            {copied ? (
-              <Check className="w-4 h-4 text-green-500" />
-            ) : (
-              <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+              <Hash
+                className="w-4 h-4 flex-shrink-0"
+                style={{ color: 'var(--text-muted)' }}
+                aria-hidden="true"
+              />
+              <span
+                className="font-mono text-sm whitespace-nowrap"
+                style={{ color: 'var(--accent-gold)' }}
+              >
+                {item.code}
+              </span>
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+              )}
+            </button>
+
+            {releaseDate && (
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <CalendarDays
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-hidden="true"
+                />
+                <span className="text-sm whitespace-nowrap">{releaseDate}</span>
+              </div>
             )}
-          </button>
+
+            {studioName && (
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <Clapperboard
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-hidden="true"
+                />
+                <span className="text-sm whitespace-nowrap">{studioName}</span>
+              </div>
+            )}
+          </div>
 
           {performerNames.length > 0 && (
-            <div className="flex flex-1 min-w-[240px] items-start justify-end gap-3">
+            <div className="flex items-start gap-3">
               <Users
                 className="w-4 h-4 mt-1 flex-shrink-0"
                 style={{ color: 'var(--text-muted)' }}
                 aria-hidden="true"
               />
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="flex flex-wrap gap-2">
                 {performerNames.map((name) => (
                   <span
                     key={name}
@@ -439,26 +473,25 @@ function DetailView({
 
             {/* 基本信息 - 2列布局 */}
             <div className="grid grid-cols-3 gap-4">
-              {typeof rawData.date === 'string' && rawData.date && (
-                <Field label="发行日期">
-                  <span>{formatDate(rawData.date)}</span>
-                </Field>
-              )}
-              {rawData.studio && typeof rawData.studio === 'object' && 'name' in rawData.studio && typeof rawData.studio.name === 'string' && (
-                <Field label="制作商">
-                  <span>{rawData.studio.name}</span>
-                </Field>
-              )}
               {typeof rawData.director === 'string' && rawData.director && (
-                <Field label="导演">
+                <div
+                  className="text-sm"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <span style={{ color: 'var(--text-muted)' }}>导演：</span>
                   <span>{rawData.director}</span>
-                </Field>
+                </div>
               )}
             </div>
 
             {/* 标签 - 跨列显示 */}
             {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
-              <Field label="标签" className="col-span-2">
+              <div className="flex items-start gap-3">
+                <Tags
+                  className="w-4 h-4 mt-1 flex-shrink-0"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-hidden="true"
+                />
                 <div className="flex flex-wrap gap-2">
                   {rawData.tags.slice(0, 8).map((tag: { name?: string }, idx: number) => (
                     tag.name && (
@@ -475,7 +508,7 @@ function DetailView({
                     )
                   ))}
                 </div>
-              </Field>
+              </div>
             )}
           </>
         ) : null}

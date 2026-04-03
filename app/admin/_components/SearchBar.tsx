@@ -11,6 +11,11 @@ import type { SearchBarProps } from './types';
 export function SearchBar({ value, onChange, onSearch, disabled = false }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasValue = value.trim().length > 0;
+  const actionButtonClassName =
+    'my-1 flex h-9 w-9 items-center justify-center rounded-md transition-colors focus:outline-none';
+  const actionButtonStyle = {
+    color: 'var(--text-primary)',
+  } as const;
 
   const handlePasteFromClipboard = async () => {
     if (disabled || typeof navigator === 'undefined' || !navigator.clipboard?.readText) {
@@ -32,7 +37,14 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
   };
 
   return (
-    <div className="flex gap-2">
+    <div
+      className={`flex items-center overflow-hidden rounded-xl border ${disabled ? 'opacity-60' : ''}`}
+      style={{
+        background: 'var(--bg-tertiary)',
+        borderColor: 'var(--border-subtle)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+      }}
+    >
       {/* 搜索输入框，支持回车触发搜索 */}
       <input
         ref={inputRef}
@@ -42,43 +54,57 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => !disabled && e.key === 'Enter' && onSearch()}
         placeholder="搜索..."
-        className="w-48 px-3 py-1.5 text-sm rounded-lg border-none outline-none"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+        className="h-9 w-56 min-w-0 border-none bg-transparent px-3 text-sm outline-none"
+        style={{ color: 'var(--text-primary)' }}
       />
-      <button
-        type="button"
-        aria-label="从剪切板复制"
-        title="从剪切板复制"
-        disabled={disabled}
-        onClick={() => {
-          void handlePasteFromClipboard();
-        }}
-        className="p-1.5 rounded-lg transition-colors"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+      <div
+        className="flex self-stretch items-center pl-1"
+        style={{ borderLeft: '1px solid var(--border-subtle)' }}
       >
-        <ClipboardPaste className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        aria-label="清空输入框"
-        title="清空输入框"
-        disabled={disabled || !hasValue}
-        onClick={handleClear}
-        className="p-1.5 rounded-lg transition-colors"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-      >
-        <X className="w-4 h-4" />
-      </button>
-      {/* 搜索按钮 */}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onSearch}
-        className="p-1.5 rounded-lg transition-colors"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-      >
-        <Search className="w-4 h-4" />
-      </button>
+        <button
+          type="button"
+          aria-label="从剪切板复制"
+          title="从剪切板复制"
+          disabled={disabled}
+          onClick={() => {
+            void handlePasteFromClipboard();
+          }}
+          className={actionButtonClassName}
+          style={actionButtonStyle}
+        >
+          <ClipboardPaste className="w-4 h-4" />
+        </button>
+        {hasValue ? (
+          <button
+            type="button"
+            aria-label="清空输入框"
+            title="清空输入框"
+            disabled={disabled}
+            onClick={handleClear}
+            className={actionButtonClassName}
+            style={actionButtonStyle}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        ) : null}
+        <button
+          type="button"
+          aria-label="搜索"
+          title="搜索"
+          disabled={disabled}
+          onClick={onSearch}
+          className="flex min-w-12 items-center justify-center self-stretch rounded-none px-3 transition-colors focus:outline-none"
+          style={{
+            borderLeft: '1px solid rgba(212, 175, 55, 0.1)',
+            background:
+              'linear-gradient(180deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.1) 100%)',
+            color: 'var(--accent-gold)',
+            boxShadow: 'inset 1px 0 0 rgba(255, 255, 255, 0.02)',
+          }}
+        >
+          <Search className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
