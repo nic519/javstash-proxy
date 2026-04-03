@@ -49,7 +49,7 @@ describe('AdminPage layout', () => {
 
     expect(markup).toContain('class="h-screen overflow-hidden flex animated-bg"');
     expect(markup).toContain('class="flex-1 min-w-0 h-screen overflow-hidden p-6 relative z-10"');
-    expect(markup).toContain('glass-card animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden');
+    expect(markup).toContain('admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden');
     expect(markup).toContain('class="min-h-0 flex-1 overflow-auto"');
   });
 });

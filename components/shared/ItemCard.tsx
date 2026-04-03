@@ -77,7 +77,11 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
     <button
       type="button"
       onClick={() => onClick(item)}
-      className="glass-card group overflow-hidden rounded-2xl p-0 text-left cursor-pointer"
+      className="group overflow-hidden rounded-[26px] p-0 text-left cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018))',
+        boxShadow: '0 18px 40px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255,255,255,0.03)',
+      }}
     >
       <div
         className="relative aspect-[2.8/4] w-full overflow-hidden flex items-center justify-center"

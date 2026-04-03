@@ -66,8 +66,12 @@ export function Pagination({
 
   return (
     <div
-      className="flex items-center justify-between px-3 py-2"
-      style={{ borderTop: '1px solid var(--border-subtle)' }}
+      className="mx-3 mb-3 mt-2 flex items-center justify-between rounded-2xl px-3 py-2 backdrop-blur-sm"
+      style={{
+        background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.84), rgba(15, 15, 18, 0.72))',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.18)',
+      }}
     >
       {/* 左侧: 每页数量 */}
       {pageSize && onPageSizeChange && (

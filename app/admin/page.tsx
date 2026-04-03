@@ -351,8 +351,15 @@ export default function AdminPage() {
 
           {/* 数据表格 */}
           <div
-            className={`glass-card animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+            className={`admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
             aria-hidden={backgroundInteractionDisabled}
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.008) 18%, rgba(255,255,255,0.005) 100%)',
+              boxShadow:
+                '0 24px 60px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.035)',
+              borderRadius: '28px',
+            }}
           >
             <div className="min-h-0 flex-1 overflow-auto">
               {loading ? (
@@ -368,8 +375,14 @@ export default function AdminPage() {
                 </div>
               ) : viewMode === 'table' ? (
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)' }}>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <thead
+                    className="sticky top-0 z-10"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.94), rgba(15, 15, 18, 0.78))',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                       <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
                         代码
                       </th>
@@ -393,7 +406,7 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               ) : (
-                <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3 xl:grid-cols-5">
                   {items.map((item) => (
                     <ItemCard
                       key={item.code}
