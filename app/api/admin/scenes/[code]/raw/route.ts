@@ -3,6 +3,7 @@ import { loadConfig } from '@/src/config';
 import { forwardToJavStash } from '@/src/upstream/javstash';
 import { TursoCache } from '@/src/cache/turso';
 import { SCENE_FRAGMENT, type SceneData } from '@/src/graphql/queries';
+import { extractCoverUrlFromScene, isBadCoverUrl } from '@/src/cover-url';
 
 /**
  * 获取单个场景的原始数据
@@ -54,9 +55,15 @@ export async function GET(
       // 找到完全匹配 code 的场景，或者取第一个
       const scene = scenes.find((s) => s.code?.toUpperCase() === code.toUpperCase()) || scenes[0];
       const rawResponse = JSON.stringify(scene);
+      const nextCoverUrl = extractCoverUrlFromScene(scene);
 
       // 保存到缓存
-      await cache.updateTranslation(code, { rawResponse });
+      await cache.updateTranslation(code, {
+        rawResponse,
+        coverUrl: cached?.coverUrl && isBadCoverUrl(cached.coverUrl) && nextCoverUrl
+          ? nextCoverUrl
+          : undefined,
+      });
 
       return NextResponse.json({ rawResponse });
     }

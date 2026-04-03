@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start -p 3456",
     "typecheck": "tsc --noEmit",
+    "fix:cover-urls": "node scripts/fix-cover-urls.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

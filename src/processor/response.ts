@@ -1,6 +1,7 @@
 import type { SceneNode, Translation, GraphQLRequest } from '../types';
 import type { TursoCache } from '../cache/turso';
 import type { DeepLXTranslator } from '../translator/deeplx';
+import { extractCoverUrlFromRawResponse, isBadCoverUrl } from '../cover-url';
 
 /**
  * Extract scene codes from GraphQL request variables
@@ -237,11 +238,22 @@ export async function processResponse(
   // Update raw response only (no translation needed)
   if (toUpdateRaw.length > 0) {
     for (const { scene, rawJson } of toUpdateRaw) {
-      await cache.updateTranslation(scene.code!, { rawResponse: rawJson });
-      // Update cached map for replacement
       const cachedItem = cachedMap.get(scene.code!);
+      const nextCoverUrl = extractCoverUrlFromRawResponse(rawJson);
+
+      await cache.updateTranslation(scene.code!, {
+        rawResponse: rawJson,
+        coverUrl: cachedItem?.coverUrl && isBadCoverUrl(cachedItem.coverUrl) && nextCoverUrl
+          ? nextCoverUrl
+          : undefined,
+      });
+
+      // Update cached map for replacement
       if (cachedItem) {
         cachedItem.rawResponse = rawJson;
+        if (cachedItem.coverUrl && isBadCoverUrl(cachedItem.coverUrl) && nextCoverUrl) {
+          cachedItem.coverUrl = nextCoverUrl;
+        }
       }
     }
   }
