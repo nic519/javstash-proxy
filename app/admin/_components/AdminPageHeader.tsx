@@ -19,12 +19,12 @@ const SORT_OPTIONS: Array<{
 }> = [
     {
       value: 'updated',
-      label: '按修改时间',
+      label: '修改时间',
       icon: Clock3,
     },
     {
       value: 'code',
-      label: '按番号首字母',
+      label: '首字母',
       icon: ArrowUpAZ,
     },
   ];
@@ -56,53 +56,69 @@ export function AdminPageHeader({
           disabled={backgroundInteractionDisabled}
         />
 
-        <div
-          className={`flex h-10 items-center gap-2 rounded-xl border px-3 ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
-          style={{
-            background: 'var(--bg-tertiary)',
-            borderColor: 'var(--border-subtle)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
-          }}
+        <Select
+          disabled={backgroundInteractionDisabled}
+          value={sortBy}
+          onValueChange={(value) => onSortChange(value as SortBy)}
         >
-          <ListFilter className="h-4 w-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
-
-          <Select
-            disabled={backgroundInteractionDisabled}
-            value={sortBy}
-            onValueChange={(value) => onSortChange(value as SortBy)}
+          <SelectTrigger
+            className={`h-12 min-w-[12.5rem] rounded-2xl border px-4 py-0 shadow-none focus-visible:ring-0 [&_svg.lucide-chevron-down]:mr-0.5 [&_svg.lucide-chevron-down]:size-4 [&_svg.lucide-chevron-down]:text-white/55 ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+            style={{
+              background: 'var(--bg-tertiary)',
+              borderColor: 'var(--border-subtle)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+            }}
           >
-            <SelectTrigger
-              className="h-10 min-w-44 rounded-lg border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              <SelectValue>
-                {(() => {
-                  const activeOption = SORT_OPTIONS.find((option) => option.value === sortBy);
-                  const ActiveIcon = activeOption?.icon ?? ArrowUpDown;
-
-                  return (
-                    <span className="flex items-center gap-2">
-                      <ActiveIcon className="h-4 w-4" />
-                      <span>{activeOption?.label ?? '选择排序'}</span>
-                    </span>
-                  );
-                })()}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => {
-                const OptionIcon = option.icon;
+            <SelectValue>
+              {(() => {
+                const activeOption = SORT_OPTIONS.find((option) => option.value === sortBy);
+                const ActiveIcon = activeOption?.icon ?? ArrowUpDown;
 
                 return (
-                  <SelectItem key={option.value} value={option.value}>
-                    <OptionIcon className="h-4 w-4" />
-                    <span>{option.label}</span>
-                  </SelectItem>
+                  <span className="flex w-full items-center gap-3.5">
+                    <span className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                      <ListFilter className="h-4 w-4" />
+                      <span className="font-medium">排序</span>
+                    </span>
+                    <span
+                      className="h-6 w-px shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}
+                    />
+                    <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                      <ActiveIcon className="h-4 w-4" />
+                      <span className="truncate">{activeOption?.label ?? '选择排序'}</span>
+                    </span>
+                  </span>
                 );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+              })()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent
+            className="rounded-2xl border p-1.5"
+            style={{
+              background: 'rgba(24, 24, 26, 0.96)',
+              borderColor: 'rgba(255,255,255,0.08)',
+              boxShadow: '0 18px 50px rgba(0, 0, 0, 0.32)',
+              backdropFilter: 'blur(18px)',
+            }}
+          >
+            {SORT_OPTIONS.map((option) => {
+              const OptionIcon = option.icon;
+
+              return (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="min-h-11 rounded-xl px-3 text-[15px]"
+                >
+                  <OptionIcon className="h-4 w-4" />
+                  <span className="font-medium">{option.label}</span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
 
         <SearchBar
           value={searchInput}

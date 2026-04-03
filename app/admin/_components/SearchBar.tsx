@@ -12,7 +12,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasValue = value.trim().length > 0;
   const actionButtonClassName =
-    'flex h-10 w-10 items-center justify-center rounded-lg transition-colors focus:outline-none';
+    'flex h-12 w-12 items-center justify-center rounded-xl transition-colors focus:outline-none';
   const actionButtonStyle = {
     color: 'var(--text-primary)',
   } as const;
@@ -38,7 +38,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
 
   return (
     <div
-      className={`flex h-10 items-center overflow-hidden rounded-xl border ${disabled ? 'opacity-60' : ''}`}
+      className={`flex h-12 items-center overflow-hidden rounded-2xl border ${disabled ? 'opacity-60' : ''}`}
       style={{
         background: 'var(--bg-tertiary)',
         borderColor: 'var(--border-subtle)',
@@ -54,7 +54,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => !disabled && e.key === 'Enter' && onSearch()}
         placeholder="搜索..."
-        className="h-10 w-56 min-w-0 border-none bg-transparent px-3 text-sm outline-none"
+        className="h-12 w-36 min-w-0 border-none bg-transparent px-4 text-sm outline-none"
         style={{ color: 'var(--text-primary)' }}
       />
       <div

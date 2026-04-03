@@ -142,38 +142,51 @@ export function DetailView({
           <>
             <div className="grid grid-cols-3 gap-4">
               {typeof rawData.director === 'string' && rawData.director && (
-                <div className="flex items-center gap-2 text-sm whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                <div className="flex items-center gap-2.5 text-sm whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
                   <Clapperboard
                     className="w-4 h-4 flex-shrink-0"
                     style={{ color: 'var(--text-muted)' }}
                     aria-hidden="true"
                   />
-                  <span className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>导演</span>
-                  <span className="whitespace-nowrap">{rawData.director}</span>
+                  <span
+                    className="whitespace-nowrap text-sm tracking-[0.08em]"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    导演
+                  </span>
+                  <span className="whitespace-nowrap text-[15px] leading-6">{rawData.director}</span>
                 </div>
               )}
             </div>
 
             {performerNames.length > 0 && (
-              <div className="flex items-start gap-2">
+              <div className="flex items-center gap-2.5">
                 <Users
-                  className="w-4 h-4 mt-1 flex-shrink-0"
+                  className="w-4 h-4 flex-shrink-0"
                   style={{ color: 'var(--text-muted)' }}
                   aria-hidden="true"
                 />
-                <span className="whitespace-nowrap text-sm" style={{ color: 'var(--text-muted)' }}>演员</span>
-                <div className="flex flex-wrap gap-2">
-                  {performerNames.map((name) => (
-                    <span
-                      key={name}
-                      className="inline-block px-2 py-1 text-xs rounded"
-                      style={{
-                        background: 'var(--bg-tertiary)',
-                        color: 'var(--accent-gold)',
-                      }}
-                    >
-                      {name}
-                    </span>
+                <span
+                  className="whitespace-nowrap text-sm leading-6 tracking-[0.08em]"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  演员
+                </span>
+                <div
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6"
+                  style={{ color: 'var(--accent-gold)' }}
+                >
+                  {performerNames.map((name, index) => (
+                    <div key={name} className="flex items-center gap-3">
+                      {index > 0 && (
+                        <span
+                          className="h-3 w-px rounded-full"
+                          style={{ background: 'rgba(212,175,55,0.22)' }}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span className="whitespace-nowrap">{name}</span>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -2,10 +2,7 @@
 
 import { Pencil, Trash2, X, Loader2 } from 'lucide-react';
 import type { DetailModalProps } from './types';
-import { DetailView } from './detail-modal/DetailView';
-import { EditFormView } from './detail-modal/EditFormView';
-import { IconButton } from './detail-modal/IconButton';
-import { useDetailModal } from './detail-modal/useDetailModal';
+import { DetailView, EditFormView, IconButton, useDetailModal } from './detail-modal';
 
 /**
  * 详情弹窗组件
@@ -53,7 +50,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
         >
           {/* 顶部栏:标题和操作按钮 */}
           <div
-            className="flex items-center justify-between px-6 py-4 cursor-default"
+            className="flex items-center justify-between px-6 pt-4 cursor-default"
             style={{
               background: 'linear-gradient(180deg, rgba(25, 25, 35, 0.8) 0%, transparent 100%)',
               borderBottom: '1px solid var(--border-color)',
@@ -164,4 +161,4 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
     </div>
   );
 }
-export { getPerformerNames } from './detail-modal/helpers';
+export { getPerformerNames } from './detail-modal';

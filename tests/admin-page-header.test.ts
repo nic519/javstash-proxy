@@ -21,14 +21,13 @@ describe('AdminPageHeader', () => {
 
     expect(markup).toContain('缓存管理');
     expect(markup).toContain('128 条');
-    expect(markup).toContain('排序方式');
-    expect(markup).toContain('按修改时间');
+    expect(markup).toContain('排序');
+    expect(markup).toContain('修改时间');
     expect(markup).toContain('搜索...');
     expect(markup).toContain('列表');
     expect(markup).toContain('网格');
     expect(markup).toContain('role="combobox"');
     expect(markup).toContain('value="updated"');
-    expect(markup).toContain('lucide-arrow-up-down');
     expect(markup).toContain('lucide-clock-3');
     expect(markup).toContain('lucide-list-filter');
   });
