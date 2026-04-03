@@ -164,7 +164,14 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
                 </h2>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div
+              className="inline-flex items-center overflow-hidden rounded-2xl"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
               {/* 只在非只读模式下显示编辑和删除按钮 */}
               {!readOnly && (
                 <>
@@ -176,6 +183,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
                   >
                     <Pencil className="w-5 h-5" />
                   </IconButton>
+                  <div className="w-px h-6" style={{ background: 'rgba(255,255,255,0.08)' }} />
                   <IconButton
                     onClick={handleDelete}
                     disabled={deleting}
@@ -185,7 +193,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
                   >
                     {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
                   </IconButton>
-                  <div className="w-px h-5 mx-1" style={{ background: 'var(--border-color)' }} />
+                  <div className="w-px h-6" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 </>
               )}
               <IconButton
@@ -272,7 +280,7 @@ function IconButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="p-2 rounded-xl transition-all duration-200 disabled:opacity-40 hover:scale-105 active:scale-95"
+      className="flex h-10 w-10 items-center justify-center transition-all duration-200 disabled:opacity-40 hover:scale-[1.03] active:scale-[0.97]"
       style={{ color, backgroundColor: 'transparent' }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
