@@ -308,67 +308,67 @@ export default function AdminPage() {
   return (
     <div className="h-screen overflow-hidden flex animated-bg">
       <Sidebar />
-      <main className="flex-1 min-w-0 h-screen overflow-y-auto p-6 relative z-10">
-        <AdminPageHeader
-          total={total}
-          sortBy={sortBy}
-          randomMode={randomMode}
-          viewMode={viewMode}
-          searchInput={searchInput}
-          backgroundInteractionDisabled={backgroundInteractionDisabled}
-          onSortChange={(value) => {
-            setSortBy(value);
-            setPage(1);
-          }}
-          onRandomModeChange={(value) => {
-            setRandomMode(value);
-            setPage(1);
-            if (value) {
-              setRandomVersion((current) => current + 1);
-            }
-          }}
-          onRandomRefresh={() => {
-            setRandomVersion((current) => current + 1);
-          }}
-          onViewModeChange={setViewMode}
-          onSearchInputChange={setSearchInput}
-          onSearch={handleSearch}
-        />
-
-        {/* 操作提示消息 */}
-        {message && (
-          <div
-            className="mb-3 px-3 py-1.5 rounded-lg text-sm animate-fade-in"
-            style={{
-              background: message.includes('失败') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-              color: message.includes('失败') ? '#fca5a5' : '#86efac',
+      <main className="flex-1 min-w-0 h-screen overflow-hidden p-6 relative z-10">
+        <div className="flex h-full min-h-0 flex-col gap-3">
+          <AdminPageHeader
+            total={total}
+            sortBy={sortBy}
+            randomMode={randomMode}
+            viewMode={viewMode}
+            searchInput={searchInput}
+            backgroundInteractionDisabled={backgroundInteractionDisabled}
+            onSortChange={(value) => {
+              setSortBy(value);
+              setPage(1);
             }}
-          >
-            {message}
-          </div>
-        )}
+            onRandomModeChange={(value) => {
+              setRandomMode(value);
+              setPage(1);
+              if (value) {
+                setRandomVersion((current) => current + 1);
+              }
+            }}
+            onRandomRefresh={() => {
+              setRandomVersion((current) => current + 1);
+            }}
+            onViewModeChange={setViewMode}
+            onSearchInputChange={setSearchInput}
+            onSearch={handleSearch}
+          />
 
-        {/* 数据表格 */}
-        <div
-          className={`glass-card animate-fade-in stagger-1 overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
-          aria-hidden={backgroundInteractionDisabled}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div
-                className="w-8 h-8 border-2 rounded-full animate-spin"
-                style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
-              />
+          {/* 操作提示消息 */}
+          {message && (
+            <div
+              className="px-3 py-1.5 rounded-lg text-sm animate-fade-in"
+              style={{
+                background: message.includes('失败') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                color: message.includes('失败') ? '#fca5a5' : '#86efac',
+              }}
+            >
+              {message}
             </div>
-          ) : items.length === 0 ? (
-            <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
-              暂无数据
-            </div>
-          ) : (
-            <>
-              {viewMode === 'table' ? (
+          )}
+
+          {/* 数据表格 */}
+          <div
+            className={`glass-card animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+            aria-hidden={backgroundInteractionDisabled}
+          >
+            <div className="min-h-0 flex-1 overflow-auto">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div
+                    className="w-8 h-8 border-2 rounded-full animate-spin"
+                    style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
+                  />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                  暂无数据
+                </div>
+              ) : viewMode === 'table' ? (
                 <table className="w-full text-sm">
-                  <thead>
+                  <thead className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)' }}>
                     <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
                         代码
@@ -404,41 +404,42 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
-            </>
-          )}
-          {!randomMode ? (
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              disabled={backgroundInteractionDisabled}
-              onPageChange={setPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size as PageSize);
-                setPage(1);
-              }}
-            />
-          ) : null}
-        </div>
+            </div>
 
-        <AdminSearchResultsOverlay
-          open={remoteOpen}
-          keyword={remoteKeyword}
-          onClose={handleRemoteClose}
-          onLocalSelect={handleLocalSelect}
-          onRemoteSelect={handleRemoteSelect}
-        />
+            {!randomMode ? (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                disabled={backgroundInteractionDisabled}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size as PageSize);
+                  setPage(1);
+                }}
+              />
+            ) : null}
+          </div>
 
-        {/* 详情弹窗 */}
-        {selected && (
-          <DetailModal
-            item={selected}
-            onClose={handleDetailClose}
-            onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
-            onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
-            readOnly={selectedReadOnly || !canManage}
+          <AdminSearchResultsOverlay
+            open={remoteOpen}
+            keyword={remoteKeyword}
+            onClose={handleRemoteClose}
+            onLocalSelect={handleLocalSelect}
+            onRemoteSelect={handleRemoteSelect}
           />
-        )}
+
+          {/* 详情弹窗 */}
+          {selected && (
+            <DetailModal
+              item={selected}
+              onClose={handleDetailClose}
+              onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
+              onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
+              readOnly={selectedReadOnly || !canManage}
+            />
+          )}
+        </div>
       </main>
     </div>
   );
