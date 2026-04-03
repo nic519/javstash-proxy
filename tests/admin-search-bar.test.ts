@@ -14,6 +14,7 @@ describe('SearchBar', () => {
     );
 
     expect(markup).toContain('overflow-hidden');
+    expect(markup).toContain('w-full');
     expect(markup).toContain('aria-label="搜索"');
     expect(markup).toContain('aria-label="清空输入框"');
     expect(markup).toContain('title="清空输入框"');
@@ -22,7 +23,7 @@ describe('SearchBar', () => {
     expect(markup.match(/lucide-search/g)).toHaveLength(1);
   });
 
-  it('switches between clipboard and clear actions based on whether the input has a value', () => {
+  it('shows clear only when the input has a value', () => {
     const emptyMarkup = renderToStaticMarkup(
       createElement(SearchBar, {
         value: '',
@@ -39,11 +40,11 @@ describe('SearchBar', () => {
       })
     );
 
-    expect(emptyMarkup).toContain('aria-label="从剪切板复制"');
-    expect(emptyMarkup).toContain('title="从剪切板复制"');
     expect(emptyMarkup).not.toContain('aria-label="清空输入框"');
+    expect(emptyMarkup).not.toContain('title="清空输入框"');
+    expect(emptyMarkup).toContain('aria-label="搜索"');
     expect(filledMarkup).toContain('aria-label="清空输入框"');
     expect(filledMarkup).toContain('title="清空输入框"');
-    expect(filledMarkup).not.toContain('aria-label="从剪切板复制"');
+    expect(filledMarkup).toContain('aria-label="搜索"');
   });
 });

@@ -308,10 +308,38 @@ export default function AdminPage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden animated-bg">
-      <Navigation scrollContainerId={listScrollContainerId} />
+      <Navigation
+        mobilePanelContent={
+          <AdminPageControls
+            sortBy={sortBy}
+            randomMode={randomMode}
+            viewMode={viewMode}
+            searchInput={searchInput}
+            backgroundInteractionDisabled={backgroundInteractionDisabled}
+            onSortChange={(value) => {
+              setSortBy(value);
+              setPage(1);
+            }}
+            onRandomModeChange={(value) => {
+              setRandomMode(value);
+              setPage(1);
+              if (value) {
+                setRandomVersion((current) => current + 1);
+              }
+            }}
+            onRandomRefresh={() => {
+              setRandomVersion((current) => current + 1);
+            }}
+            onViewModeChange={setViewMode}
+            onSearchInputChange={setSearchInput}
+            onSearch={handleSearch}
+          />
+        }
+        scrollContainerId={listScrollContainerId}
+      />
       <main className="flex-1 min-h-0 overflow-hidden p-6 relative z-10">
         <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <div className="flex min-h-0 flex-col lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
+          <div className="hidden min-h-0 flex-col lg:flex lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
             <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
               <AdminPageControls
                 sortBy={sortBy}

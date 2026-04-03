@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowUpAZ, ArrowUpDown, ChevronDown, Clock3, Dices, ListFilter, Shuffle, SlidersHorizontal } from 'lucide-react';
+import { ArrowUpAZ, ArrowUpDown, Clock3, Dices, ListFilter, Shuffle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -35,62 +34,17 @@ export function AdminPageControls({
   onSearchInputChange,
   onSearch,
 }: AdminPageControlsProps) {
-  const [mobileExpanded, setMobileExpanded] = useState(false);
-
   return (
-    <div className="animate-fade-in">
-      <button
-        type="button"
-        aria-controls="admin-page-controls-panel"
-        aria-expanded={mobileExpanded}
-        onClick={() => setMobileExpanded((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-[1.25rem] border px-3.5 py-3 text-left transition-colors lg:hidden"
-        style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01))',
-          borderColor: 'rgba(255,255,255,0.05)',
-          boxShadow: '0 16px 38px rgba(0, 0, 0, 0.14)',
-        }}
-      >
-        <span className="flex items-center gap-3">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-xl border"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              borderColor: 'rgba(255,255,255,0.06)',
-            }}
-          >
-            <SlidersHorizontal className="h-4 w-4" style={{ color: 'var(--accent-gold)' }} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-              筛选
-            </span>
-            <span className="block text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
-              View / Sort / Search
-            </span>
-          </span>
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${mobileExpanded ? 'rotate-180' : ''}`}
-          style={{ color: 'var(--text-muted)' }}
-        />
-      </button>
-
-      <aside
-        id="admin-page-controls-panel"
-        className={`overflow-hidden transition-all duration-300 ease-out ${
-          mobileExpanded
-            ? 'mt-3 max-h-[40rem] opacity-100'
-            : 'max-h-0 opacity-0 pointer-events-none lg:pointer-events-auto'
-        } lg:mt-0 lg:block lg:max-h-none lg:opacity-100`}
-        style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01))',
-          border: '1px solid rgba(255,255,255,0.05)',
-          borderRadius: '28px',
-          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.14)',
-        }}
-      >
-        <div className="space-y-4 p-5">
+    <aside
+      className="animate-fade-in"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01))',
+        border: '1px solid rgba(255,255,255,0.05)',
+        borderRadius: '28px',
+        boxShadow: '0 20px 48px rgba(0, 0, 0, 0.14)',
+      }}
+    >
+      <div className="space-y-4 p-5">
           <div
             className={`rounded-3xl border transition-colors ${randomMode ? 'p-4' : 'p-3.5'} ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
             style={{
@@ -248,7 +202,6 @@ export function AdminPageControls({
             />
           </div>
         </div>
-      </aside>
-    </div>
+    </aside>
   );
 }

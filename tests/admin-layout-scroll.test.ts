@@ -52,7 +52,7 @@ describe('AdminPage layout', () => {
     expect(markup).toContain('class="flex-1 min-h-0 overflow-hidden p-6 relative z-10"');
     expect(markup).toContain('class="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]"');
     expect(markup).toContain('data-scroll-target="admin-list-scroll-container"');
-    expect(markup).toContain('class="flex min-h-0 flex-col lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]"');
+    expect(markup).toContain('class="hidden min-h-0 flex-col lg:flex lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]"');
     expect(markup).toContain('admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden');
     expect(markup).toContain('id="admin-list-scroll-container"');
     expect(markup).toContain('class="min-h-0 flex-1 overflow-auto"');

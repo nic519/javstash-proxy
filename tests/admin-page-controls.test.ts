@@ -24,7 +24,7 @@ describe('AdminPageControls', () => {
     expect(markup).not.toContain('title="换一组随机结果"');
   });
 
-  it('keeps the controls collapsed behind a mobile toggle by default', () => {
+  it('renders a plain control card without a separate mobile toggle shell', () => {
     const markup = renderToStaticMarkup(
       createElement(AdminPageControls, {
         sortBy: 'updated',
@@ -40,12 +40,9 @@ describe('AdminPageControls', () => {
       })
     );
 
-    expect(markup).toContain('aria-controls="admin-page-controls-panel"');
-    expect(markup).toContain('aria-expanded="false"');
-    expect(markup).toContain('lg:hidden');
-    expect(markup).toContain('筛选');
-    expect(markup).toContain('overflow-hidden transition-all duration-300 ease-out');
-    expect(markup).toContain('max-h-0 opacity-0 pointer-events-none lg:pointer-events-auto');
+    expect(markup).toContain('class="animate-fade-in"');
+    expect(markup).not.toContain('aria-controls="admin-page-controls-panel"');
+    expect(markup).not.toContain('筛选');
   });
 
   it('expands the random mode card only when the mode is enabled', () => {

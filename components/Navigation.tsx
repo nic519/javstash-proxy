@@ -24,10 +24,11 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 interface NavigationProps {
+  mobilePanelContent?: React.ReactNode;
   scrollContainerId?: string;
 }
 
-export function Navigation({ scrollContainerId }: NavigationProps) {
+export function Navigation({ mobilePanelContent, scrollContainerId }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -265,7 +266,7 @@ export function Navigation({ scrollContainerId }: NavigationProps) {
     <>
       <button
         type="button"
-        aria-label={mobileOpen ? '关闭导航菜单' : '打开导航菜单'}
+        aria-label={mobileOpen ? '关闭工具面板' : '打开工具面板'}
         aria-expanded={mobileOpen}
         onClick={() => setMobileOpen((current) => !current)}
         className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition-all duration-300 lg:hidden"
@@ -285,29 +286,76 @@ export function Navigation({ scrollContainerId }: NavigationProps) {
       >
         <button
           type="button"
-          aria-label="关闭导航遮罩"
+          aria-label="关闭工具面板遮罩"
           onClick={() => setMobileOpen(false)}
           className={`absolute inset-0 transition-opacity duration-300 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
           style={{ background: 'rgba(8, 8, 10, 0.72)', backdropFilter: 'blur(6px)' }}
         />
 
         <aside
-          className={`absolute right-0 top-0 flex h-dvh w-72 max-w-[82vw] flex-col transition-transform duration-300 ease-out ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`absolute inset-x-0 bottom-0 flex max-h-[min(78dvh,40rem)] flex-col overflow-hidden rounded-t-[2rem] border transition-transform duration-300 ease-out ${mobileOpen ? 'translate-y-0' : 'translate-y-full'}`}
           style={{
             background: 'rgba(15, 15, 18, 0.96)',
             backdropFilter: 'blur(20px)',
-            borderLeft: '1px solid rgba(255,255,255,0.06)',
+            borderColor: 'rgba(255,255,255,0.06)',
+            boxShadow: '0 -20px 48px rgba(0, 0, 0, 0.32)',
           }}
         >
-          <div className="border-b px-6 py-5" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            <div onClick={() => setMobileOpen(false)}>
-              {brandBlock}
+          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            <div className="min-w-0">
+              <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                工具
+              </div>
+              <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+                Admin Command Panel
+              </div>
             </div>
+            <button
+              type="button"
+              aria-label="关闭工具面板"
+              onClick={() => setMobileOpen(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border"
+              style={{
+                borderColor: 'rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-5">
-            {renderNavItems({ mobile: true })}
-          </nav>
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            {mobilePanelContent ? (
+              <section className="mb-5">
+                <div className="mb-3 px-1">
+                  <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    页面操作
+                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+                    Search / Sort / View
+                  </div>
+                </div>
+                <div onClick={(event) => event.stopPropagation()}>
+                  {mobilePanelContent}
+                </div>
+              </section>
+            ) : null}
+
+            <section>
+              <div className="mb-3 px-1">
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  导航
+                </div>
+                <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+                  Global Navigation
+                </div>
+              </div>
+              <nav className="space-y-2">
+                {renderNavItems({ mobile: true })}
+              </nav>
+            </section>
+          </div>
 
           <div className="border-t p-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
             <button
