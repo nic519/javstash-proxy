@@ -21,6 +21,7 @@ import {
   type AdminViewMode,
   ViewToggle,
   AdminRemoteSearchModal,
+  fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
   readAdminViewMode,
   shouldApplyAdminSearchResponse,
@@ -48,8 +49,6 @@ export default function AdminPage() {
   const [viewMode, setViewMode] = useState<AdminViewMode>(() =>
     readAdminViewMode(typeof window === 'undefined' ? null : window.localStorage)
   );
-  // 实际执行的搜索关键词
-  const [search, setSearch] = useState('');
   // 搜索输入框的值（未提交时）
   const [searchInput, setSearchInput] = useState('');
   // 数据加载状态
@@ -60,10 +59,14 @@ export default function AdminPage() {
   const [remoteKeyword, setRemoteKeyword] = useState('');
   // 远端搜索结果
   const [remoteResults, setRemoteResults] = useState<SceneData[]>([]);
+  // 本地搜索结果（在搜索弹框里显示）
+  const [localSearchResults, setLocalSearchResults] = useState<Translation[]>([]);
   // 远端搜索加载状态
   const [remoteLoading, setRemoteLoading] = useState(false);
   // 远端搜索错误信息
   const [remoteError, setRemoteError] = useState('');
+  // 搜索结果来源
+  const [searchSource, setSearchSource] = useState<'local' | 'remote' | null>(null);
   // 当前选中的条目（用于详情弹窗）
   const [selected, setSelected] = useState<Translation | null>(null);
   // 当前详情是否只读（远端结果）
@@ -93,8 +96,6 @@ export default function AdminPage() {
         pageSize: String(pageSize),
         sortBy,
       });
-      if (search) params.set('search', search);
-
       const res = await fetch(`/api/admin/translations?${params}`);
       if (!shouldApplyAdminSearchResponse({
         requestId,
@@ -107,14 +108,6 @@ export default function AdminPage() {
         const data: ListResult = await res.json();
         setItems(data.items);
         setTotal(data.total);
-        const fallbackState = prepareRemoteSearchFallbackState(search, data.items);
-        if (!fallbackState.open) {
-          setRemoteResults([]);
-          setRemoteError('');
-          setRemoteLoading(false);
-        }
-        setRemoteOpen(fallbackState.open);
-        setRemoteKeyword(fallbackState.keyword);
       }
     } catch {
       if (!shouldApplyAdminSearchResponse({
@@ -132,7 +125,7 @@ export default function AdminPage() {
         setLoading(false);
       }
     }
-  }, [page, pageSize, search, sortBy]);
+  }, [page, pageSize, sortBy]);
 
   // 页码或搜索关键词变化时重新获取数据
   useEffect(() => {
@@ -150,43 +143,6 @@ export default function AdminPage() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!remoteOpen || !remoteKeyword) {
-      setRemoteLoading(false);
-      setRemoteError('');
-      if (!remoteOpen) {
-        setRemoteResults([]);
-      }
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    setRemoteLoading(true);
-    setRemoteError('');
-    setRemoteResults([]);
-
-    fetchAdminRemoteSearchResults(remoteKeyword)
-      .then(({ results, error }) => {
-        if (cancelled) {
-          return;
-        }
-        setRemoteResults(results);
-        setRemoteError(error);
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setRemoteLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [remoteOpen, remoteKeyword]);
 
   /**
    * 显示操作提示消息
@@ -207,12 +163,44 @@ export default function AdminPage() {
    * 执行搜索
    * 重置页码并更新搜索关键词
    */
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (backgroundInteractionDisabled) {
       return;
     }
-    setPage(1);
-    setSearch(searchInput);
+    const keyword = searchInput.trim();
+    if (!keyword) {
+      return;
+    }
+
+    setRemoteOpen(true);
+    setRemoteKeyword(keyword);
+    setRemoteLoading(true);
+    setRemoteError('');
+    setRemoteResults([]);
+    setLocalSearchResults([]);
+    setSearchSource(null);
+
+    try {
+      const localResults = await fetchAdminLocalSearchResults(keyword);
+      const fallbackState = prepareRemoteSearchFallbackState(keyword, localResults);
+
+      if (!fallbackState.open) {
+        setSearchSource('local');
+        setLocalSearchResults(localResults);
+        setRemoteLoading(false);
+        return;
+      }
+
+      setSearchSource('remote');
+      const remoteResult = await fetchAdminRemoteSearchResults(fallbackState.keyword);
+      setRemoteResults(remoteResult.results);
+      setRemoteError(remoteResult.error);
+    } catch {
+      setSearchSource('remote');
+      setRemoteError('请求失败，请重试');
+    } finally {
+      setRemoteLoading(false);
+    }
   };
 
   /**
@@ -256,9 +244,11 @@ export default function AdminPage() {
   const handleRemoteClose = () => {
     setRemoteOpen(false);
     setRemoteKeyword('');
+    setLocalSearchResults([]);
     setRemoteResults([]);
     setRemoteError('');
     setRemoteLoading(false);
+    setSearchSource(null);
   };
 
   return (
@@ -392,11 +382,14 @@ export default function AdminPage() {
         <AdminRemoteSearchModal
           open={remoteOpen}
           keyword={remoteKeyword}
+          source={searchSource}
+          localResults={localSearchResults}
           results={remoteResults}
           loading={remoteLoading}
           error={remoteError}
           onClose={handleRemoteClose}
-          onSelect={handleRemoteSelect}
+          onLocalSelect={handleLocalSelect}
+          onRemoteSelect={handleRemoteSelect}
         />
 
         {/* 详情弹窗 */}

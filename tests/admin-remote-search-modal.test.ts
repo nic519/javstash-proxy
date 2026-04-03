@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { SEARCH_SCENE_QUERY, type SceneData } from '../src/graphql/queries';
 import {
   AdminRemoteSearchModal,
+  fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
   shouldApplyAdminSearchResponse,
 } from '../app/admin/_components/AdminRemoteSearchModal';
@@ -112,6 +113,52 @@ describe('fetchAdminRemoteSearchResults', () => {
   });
 });
 
+describe('fetchAdminLocalSearchResults', () => {
+  beforeEach(() => {
+    vi.spyOn(global, 'fetch');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('queries the admin translations endpoint with the trimmed search term', async () => {
+    vi.mocked(global.fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              code: 'ABP-123',
+              titleZh: 'Local title',
+              summaryZh: 'Local summary',
+            },
+          ],
+        })
+      )
+    );
+
+    const result = await fetchAdminLocalSearchResults('  ABP-123  ');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/admin/translations?page=1&pageSize=20&sortBy=updated&search=ABP-123'
+    );
+    expect(result).toEqual([
+      {
+        code: 'ABP-123',
+        titleZh: 'Local title',
+        summaryZh: 'Local summary',
+      },
+    ]);
+  });
+
+  it('short-circuits for an empty trimmed term', async () => {
+    const result = await fetchAdminLocalSearchResults('   ');
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(result).toEqual([]);
+  });
+});
+
 describe('shouldApplyAdminSearchResponse', () => {
   it('only accepts the latest local admin search response version', () => {
     expect(shouldApplyAdminSearchResponse({ requestId: 2, activeRequestId: 3 })).toBe(false);
@@ -135,11 +182,14 @@ describe('AdminRemoteSearchModal', () => {
       createElement(AdminRemoteSearchModal, {
         open: true,
         keyword: 'ABP-123',
+        source: 'remote',
+        localResults: [],
         results,
         loading: false,
         error: '',
         onClose: () => {},
-        onSelect: () => {},
+        onLocalSelect: () => {},
+        onRemoteSelect: () => {},
       })
     );
 
@@ -149,16 +199,46 @@ describe('AdminRemoteSearchModal', () => {
     expect(markup).not.toContain('<table');
   });
 
+  it('renders local search results without changing the admin body list contract', () => {
+    const markup = renderToStaticMarkup(
+      createElement(AdminRemoteSearchModal, {
+        open: true,
+        keyword: 'ABP-123',
+        source: 'local',
+        localResults: [
+          {
+            code: 'ABP-123',
+            titleZh: 'Local title',
+            summaryZh: 'Local summary',
+          },
+        ],
+        results: [],
+        loading: false,
+        error: '',
+        onClose: () => {},
+        onLocalSelect: () => {},
+        onRemoteSelect: () => {},
+      })
+    );
+
+    expect(markup).toContain('本地搜索结果');
+    expect(markup).toContain('Local title');
+    expect(markup).not.toContain('本地未命中');
+  });
+
   it('returns no markup when the modal is closed', () => {
     const markup = renderToStaticMarkup(
       createElement(AdminRemoteSearchModal, {
         open: false,
         keyword: 'ABP-123',
+        source: null,
+        localResults: [],
         results,
         loading: false,
         error: '',
         onClose: () => {},
-        onSelect: () => {},
+        onLocalSelect: () => {},
+        onRemoteSelect: () => {},
       })
     );
 

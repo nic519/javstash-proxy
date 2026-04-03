@@ -4,6 +4,7 @@ export { Pagination } from './Pagination';
 export { ViewToggle } from './ViewToggle';
 export {
   AdminRemoteSearchModal,
+  fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
   shouldApplyAdminSearchResponse,
 } from './AdminRemoteSearchModal';

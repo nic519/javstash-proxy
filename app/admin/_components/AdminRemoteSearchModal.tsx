@@ -1,17 +1,24 @@
 'use client';
 
 import { Loader2, X } from 'lucide-react';
-import { RemoteSceneResults, type Translation } from '../../../components/shared';
+import {
+  ItemCard,
+  RemoteSceneResults,
+  type Translation,
+} from '../../../components/shared';
 import { SEARCH_SCENE_QUERY, type SceneData } from '../../../src/graphql/queries';
 
 export interface AdminRemoteSearchModalProps {
   open: boolean;
   keyword: string;
+  source: 'local' | 'remote' | null;
+  localResults: Translation[];
   results: SceneData[];
   loading: boolean;
   error: string;
   onClose: () => void;
-  onSelect: (item: Translation) => void;
+  onLocalSelect: (item: Translation) => void;
+  onRemoteSelect: (item: Translation) => void;
 }
 
 export function shouldApplyAdminSearchResponse({
@@ -70,14 +77,39 @@ export async function fetchAdminRemoteSearchResults(term: string): Promise<{
   }
 }
 
+export async function fetchAdminLocalSearchResults(term: string): Promise<Translation[]> {
+  const normalizedTerm = term.trim();
+  if (!normalizedTerm) {
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    page: '1',
+    pageSize: '20',
+    sortBy: 'updated',
+    search: normalizedTerm,
+  });
+
+  const response = await fetch(`/api/admin/translations?${params}`);
+  if (!response.ok) {
+    return [];
+  }
+
+  const data = (await response.json()) as { items?: Translation[] };
+  return data.items || [];
+}
+
 export function AdminRemoteSearchModal({
   open,
   keyword,
+  source,
+  localResults,
   results,
   loading,
   error,
   onClose,
-  onSelect,
+  onLocalSelect,
+  onRemoteSelect,
 }: AdminRemoteSearchModalProps) {
   if (!open) {
     return null;
@@ -99,10 +131,12 @@ export function AdminRemoteSearchModal({
         >
           <div>
             <h2 className="text-lg font-medium" style={{ color: 'var(--accent-gold)' }}>
-              Javstash 搜索结果
+              {source === 'local' ? '本地搜索结果' : 'Javstash 搜索结果'}
             </h2>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              本地未命中“{keyword}”，以下为远端结果
+              {source === 'local'
+                ? `“${keyword}” 的结果如下`
+                : `本地未命中“${keyword}”，以下为远端结果`}
             </p>
           </div>
           <button
@@ -126,16 +160,30 @@ export function AdminRemoteSearchModal({
                 }}
               >
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>远端搜索中...</span>
+                <span>搜索中...</span>
               </div>
             </div>
+          ) : source === 'local' ? (
+            localResults.length > 0 ? (
+              <div className="space-y-4">
+                {localResults.map((item, index) => (
+                  <div key={item.code} style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}>
+                    <ItemCard item={item} variant="card" onClick={onLocalSelect} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20" style={{ color: 'var(--text-muted)' }}>
+                暂无搜索结果
+              </div>
+            )
           ) : (
             <RemoteSceneResults
               results={results}
               loading={loading}
               error={error}
               keyword={keyword}
-              onItemClick={onSelect}
+              onItemClick={onRemoteSelect}
             />
           )}
         </div>
