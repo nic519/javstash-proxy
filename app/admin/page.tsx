@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Sidebar } from '@/components/sidebar';
+import { Navigation } from '@/components/Navigation';
 import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
 import {
-  AdminPageHeader,
   AdminPageControls,
   Pagination,
   DetailModal,
@@ -308,11 +307,10 @@ export default function AdminPage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden animated-bg">
-      <Sidebar />
+      <Navigation />
       <main className="flex-1 min-h-0 overflow-hidden p-6 relative z-10">
         <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <div className="flex min-h-0 flex-col gap-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
-            <AdminPageHeader total={total} />
+          <div className="flex min-h-0 flex-col lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
             <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
               <AdminPageControls
                 sortBy={sortBy}
@@ -342,123 +340,123 @@ export default function AdminPage() {
           </div>
 
           <div className="flex h-full min-h-0 flex-col gap-3">
-          {/* 操作提示消息 */}
-          {message && (
+            {/* 操作提示消息 */}
+            {message && (
+              <div
+                className="px-3 py-1.5 rounded-lg text-sm animate-fade-in"
+                style={{
+                  background: message.includes('失败') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                  color: message.includes('失败') ? '#fca5a5' : '#86efac',
+                }}
+              >
+                {message}
+              </div>
+            )}
+
+            {/* 数据表格 */}
             <div
-              className="px-3 py-1.5 rounded-lg text-sm animate-fade-in"
+              className={`admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+              aria-hidden={backgroundInteractionDisabled}
               style={{
-                background: message.includes('失败') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                color: message.includes('失败') ? '#fca5a5' : '#86efac',
+                background:
+                  'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.008) 18%, rgba(255,255,255,0.005) 100%)',
+                boxShadow:
+                  '0 24px 60px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.035)',
+                borderRadius: '28px',
               }}
             >
-              {message}
-            </div>
-          )}
-
-          {/* 数据表格 */}
-          <div
-            className={`admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
-            aria-hidden={backgroundInteractionDisabled}
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.008) 18%, rgba(255,255,255,0.005) 100%)',
-              boxShadow:
-                '0 24px 60px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.035)',
-              borderRadius: '28px',
-            }}
-          >
-            <div className="min-h-0 flex-1 overflow-auto">
-              {loading ? (
-                <div className="flex items-center justify-center py-16">
-                  <div
-                    className="w-8 h-8 border-2 rounded-full animate-spin"
-                    style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
-                  />
-                </div>
-              ) : items.length === 0 ? (
-                <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
-                  暂无数据
-                </div>
-              ) : viewMode === 'table' ? (
-                <table className="w-full text-sm">
-                  <thead
-                    className="sticky top-0 z-10"
-                    style={{
-                      background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.94), rgba(15, 15, 18, 0.78))',
-                      backdropFilter: 'blur(10px)',
-                    }}
-                  >
-                    <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                      <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
-                        代码
-                      </th>
-                      <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
-                        中文标题
-                      </th>
-                      <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
-                        中文简介
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              <div className="min-h-0 flex-1 overflow-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div
+                      className="w-8 h-8 border-2 rounded-full animate-spin"
+                      style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
+                    />
+                  </div>
+                ) : items.length === 0 ? (
+                  <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                    暂无数据
+                  </div>
+                ) : viewMode === 'table' ? (
+                  <table className="w-full text-sm">
+                    <thead
+                      className="sticky top-0 z-10"
+                      style={{
+                        background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.94), rgba(15, 15, 18, 0.78))',
+                        backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                        <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                          代码
+                        </th>
+                        <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                          中文标题
+                        </th>
+                        <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
+                          中文简介
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <ItemCard
+                          key={item.code}
+                          item={item}
+                          variant="table"
+                          onClick={handleLocalSelect}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3 xl:grid-cols-5">
                     {items.map((item) => (
                       <ItemCard
                         key={item.code}
                         item={item}
-                        variant="table"
+                        variant="grid"
                         onClick={handleLocalSelect}
                       />
                     ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3 xl:grid-cols-5">
-                  {items.map((item) => (
-                    <ItemCard
-                      key={item.code}
-                      item={item}
-                      variant="grid"
-                      onClick={handleLocalSelect}
-                    />
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+
+              {!randomMode ? (
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  totalItems={total}
+                  pageSize={pageSize}
+                  disabled={backgroundInteractionDisabled}
+                  onPageChange={setPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size as PageSize);
+                    setPage(1);
+                  }}
+                />
+              ) : null}
             </div>
 
-            {!randomMode ? (
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                totalItems={total}
-                pageSize={pageSize}
-                disabled={backgroundInteractionDisabled}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size as PageSize);
-                  setPage(1);
-                }}
-              />
-            ) : null}
-          </div>
-
-          <AdminSearchResultsOverlay
-            open={remoteOpen}
-            keyword={remoteKeyword}
-            onClose={handleRemoteClose}
-            onLocalSelect={handleLocalSelect}
-            onRemoteSelect={handleRemoteSelect}
-          />
-
-          {/* 详情弹窗 */}
-          {selected && (
-            <DetailModal
-              item={selected}
-              onClose={handleDetailClose}
-              onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
-              onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
-              readOnly={selectedReadOnly || !canManage}
+            <AdminSearchResultsOverlay
+              open={remoteOpen}
+              keyword={remoteKeyword}
+              onClose={handleRemoteClose}
+              onLocalSelect={handleLocalSelect}
+              onRemoteSelect={handleRemoteSelect}
             />
-          )}
+
+            {/* 详情弹窗 */}
+            {selected && (
+              <DetailModal
+                item={selected}
+                onClose={handleDetailClose}
+                onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
+                onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
+                readOnly={selectedReadOnly || !canManage}
+              />
+            )}
           </div>
         </div>
       </main>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Loader2, Play, Terminal } from 'lucide-react';
-import { Sidebar } from '@/components/sidebar';
+import { Navigation } from '@/components/Navigation';
 import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 
 // 默认的查询变量示例
@@ -61,7 +61,7 @@ export default function PlaygroundPage() {
 
   return (
     <div className="min-h-screen flex flex-col animated-bg">
-      <Sidebar />
+      <Navigation />
       <main className="flex-1 p-8 lg:p-12 relative z-10">
         {/* Editor Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

@@ -33,6 +33,18 @@ describe('ViewToggle', () => {
     expect(markup).toContain('aria-pressed="false"');
   });
 
+  it('stretches to the full control width and evenly distributes both actions', () => {
+    const markup = renderToStaticMarkup(
+      createElement(ViewToggle, {
+        value: 'table',
+        onChange: () => {},
+      })
+    );
+
+    expect(markup).toContain('w-full');
+    expect(markup.match(/flex-1 justify-center/g)).toHaveLength(2);
+  });
+
   it('marks both toggle actions as disabled when background interactions are frozen', () => {
     const markup = renderToStaticMarkup(
       createElement(ViewToggle, {

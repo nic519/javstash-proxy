@@ -10,7 +10,7 @@ import type { ViewToggleProps } from './types';
 export function ViewToggle({ value, onChange, disabled = false }: ViewToggleProps) {
   return (
     <div
-      className={`inline-flex h-12 items-center gap-1 rounded-2xl border p-1 ${disabled ? 'opacity-60' : ''}`}
+      className={`flex h-12 w-full items-center gap-1 rounded-2xl border p-1 ${disabled ? 'opacity-60' : ''}`}
       style={{
         background: 'var(--bg-tertiary)',
         borderColor: 'var(--border-subtle)',
@@ -22,7 +22,7 @@ export function ViewToggle({ value, onChange, disabled = false }: ViewToggleProp
         disabled={disabled}
         onClick={() => onChange('table')}
         aria-pressed={value === 'table'}
-        className="flex h-10 items-center gap-2 rounded-xl px-4 text-sm transition-colors"
+        className="flex h-10 flex-1 justify-center items-center gap-2 rounded-xl px-4 text-sm transition-colors"
         style={{
           background: value === 'table' ? 'rgba(212, 175, 55, 0.16)' : 'transparent',
           color: value === 'table' ? 'var(--accent-gold)' : 'var(--text-muted)',
@@ -36,7 +36,7 @@ export function ViewToggle({ value, onChange, disabled = false }: ViewToggleProp
         disabled={disabled}
         onClick={() => onChange('grid')}
         aria-pressed={value === 'grid'}
-        className="flex h-10 items-center gap-2 rounded-xl px-4 text-sm transition-colors"
+        className="flex h-10 flex-1 justify-center items-center gap-2 rounded-xl px-4 text-sm transition-colors"
         style={{
           background: value === 'grid' ? 'rgba(212, 175, 55, 0.16)' : 'transparent',
           color: value === 'grid' ? 'var(--accent-gold)' : 'var(--text-muted)',

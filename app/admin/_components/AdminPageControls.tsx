@@ -47,13 +47,13 @@ export function AdminPageControls({
 
       <div className="space-y-4 p-5">
         <div
-          className={`rounded-3xl border p-4 transition-colors ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+          className={`rounded-3xl border transition-colors ${randomMode ? 'p-4' : 'p-3.5'} ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
           style={{
             background: randomMode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(255,255,255,0.03)',
             borderColor: randomMode ? 'rgba(212, 175, 55, 0.22)' : 'rgba(255,255,255,0.05)',
           }}
         >
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className={`flex items-center justify-between gap-3 ${randomMode ? 'mb-4' : ''}`}>
             <div className="flex items-center gap-2">
               <Shuffle
                 className="h-4 w-4"

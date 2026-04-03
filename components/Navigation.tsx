@@ -22,7 +22,7 @@ const iconMap: Record<string, React.ReactNode> = {
   logout: <LogOut className="h-4 w-4" />,
 };
 
-export function Sidebar() {
+export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
