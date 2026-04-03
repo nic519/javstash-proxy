@@ -104,6 +104,50 @@ describe('RemoteSceneResults', () => {
     expect(markup).toContain('Visible title');
     expect(markup).toContain('请求失败，请重试');
   });
+
+  it('renders remote results as expanded detail cards with modal-level metadata', () => {
+    const markup = renderToStaticMarkup(
+      createElement(RemoteSceneResults, {
+        results: [
+          {
+            id: 'scene-5',
+            code: 'SSIS-777',
+            title: 'Expanded title',
+            details: 'Expanded details',
+            date: 'invalid-date',
+            director: '导演甲',
+            studio: { name: '片商乙' },
+            performers: [
+              { performer: { name: '演员一' } },
+              { performer: { name: '演员二' } },
+            ],
+            tags: [
+              { id: '1', name: '剧情' },
+              { id: '2', name: '制服' },
+            ],
+            images: [{ url: 'https://cdn.example.com/expanded-cover.jpg' }],
+          },
+        ],
+        loading: false,
+        error: '',
+        keyword: 'expanded',
+        onItemClick: () => {},
+      })
+    );
+
+    expect(markup).toContain('SSIS-777');
+    expect(markup).toContain('Expanded title');
+    expect(markup).toContain('Expanded details');
+    expect(markup).toContain('导演');
+    expect(markup).toContain('导演甲');
+    expect(markup).toContain('演员');
+    expect(markup).toContain('演员一');
+    expect(markup).toContain('演员二');
+    expect(markup).toContain('片商乙');
+    expect(markup).toContain('剧情');
+    expect(markup).toContain('制服');
+    expect(markup).toContain('expanded-cover.jpg');
+  });
 });
 
 describe('ItemCard', () => {
