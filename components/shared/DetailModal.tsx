@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy, Users, CalendarDays, Hash, Clapperboard, Tags } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy, Users, CalendarDays, Hash, Clapperboard, FileVideo, Tags } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 import type { SceneData } from '@/src/graphql/queries';
 
@@ -143,7 +143,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
         >
           {/* 顶部栏:标题和操作按钮 */}
           <div
-            className="flex items-center justify-between px-6 py-4 cursor-default"
+            className="flex items-center justify-between px-6 pt-4 cursor-default"
             style={{
               background: 'linear-gradient(180deg, rgba(25, 25, 35, 0.8) 0%, transparent 100%)',
               borderBottom: '1px solid var(--border-color)',
@@ -342,7 +342,7 @@ function DetailView({
       : null;
 
   return (
-    <div className="flex gap-10 max-w-6xl mx-auto">
+    <div className="flex w-full max-w-6xl gap-10">
       {/* 封面大图区域 - 固定尺寸占位 */}
       <div className="flex-shrink-0">
         <div
@@ -387,12 +387,12 @@ function DetailView({
         </div>
       </div>
       {/* 文字信息区域 */}
-      <div className="flex-1 space-y-6 min-w-0 self-start">
+      <div className="flex-1 space-y-4 min-w-0 self-start">
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="grid grid-cols-3">
             <button
               onClick={onCopyCode}
-              className="flex items-center gap-2 group cursor-pointer"
+              className="flex w-full items-center justify-start gap-1 group cursor-pointer rounded-xl"
               title="点击复制"
             >
               <Hash
@@ -413,52 +413,24 @@ function DetailView({
               )}
             </button>
 
-            {releaseDate && (
-              <div className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                <CalendarDays
-                  className="w-4 h-4 flex-shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                  aria-hidden="true"
-                />
-                <span className="text-sm whitespace-nowrap">{releaseDate}</span>
-              </div>
-            )}
-
-            {studioName && (
-              <div className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                <Clapperboard
-                  className="w-4 h-4 flex-shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                  aria-hidden="true"
-                />
-                <span className="text-sm whitespace-nowrap">{studioName}</span>
-              </div>
-            )}
-          </div>
-
-          {performerNames.length > 0 && (
-            <div className="flex items-start gap-3">
-              <Users
-                className="w-4 h-4 mt-1 flex-shrink-0"
+            <div className="flex min-w-0 items-center justify-center gap-2 rounded-xl px-3 py-2" style={{ color: 'var(--text-primary)' }}>
+              <CalendarDays
+                className="w-4 h-4 flex-shrink-0"
                 style={{ color: 'var(--text-muted)' }}
                 aria-hidden="true"
               />
-              <div className="flex flex-wrap gap-2">
-                {performerNames.map((name) => (
-                  <span
-                    key={name}
-                    className="inline-block px-2 py-1 text-xs rounded"
-                    style={{
-                      background: 'var(--bg-tertiary)',
-                      color: 'var(--accent-gold)',
-                    }}
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
+              <span className="text-sm whitespace-nowrap">{releaseDate || '-'}</span>
             </div>
-          )}
+
+            <div className="flex min-w-0 items-center justify-end gap-2 rounded-xl px-3 py-2" style={{ color: 'var(--text-primary)' }}>
+              <FileVideo
+                className="w-4 h-4 flex-shrink-0"
+                style={{ color: 'var(--text-muted)' }}
+                aria-hidden="true"
+              />
+              <span className="text-sm whitespace-nowrap">{studioName || '-'}</span>
+            </div>
+          </div>
         </div>
         <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
 
@@ -471,28 +443,49 @@ function DetailView({
         ) : rawData ? (
           <>
 
-            {/* 基本信息 - 2列布局 */}
+            {/* 基本信息 - 3列布局 */}
             <div className="grid grid-cols-3 gap-4">
               {typeof rawData.director === 'string' && rawData.director && (
-                <div
-                  className="text-sm"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  <span style={{ color: 'var(--text-muted)' }}>导演：</span>
-                  <span>{rawData.director}</span>
+                <div className="flex items-center gap-2 text-sm whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                  <Clapperboard
+                    className="w-4 h-4 flex-shrink-0"
+                    style={{ color: 'var(--text-muted)' }}
+                    aria-hidden="true"
+                  />
+                  <span className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>导演：</span>
+                  <span className="whitespace-nowrap">{rawData.director}</span>
                 </div>
               )}
             </div>
 
-            {/* 标签 - 跨列显示 */}
-            {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
-              <div className="flex items-start gap-3">
-                <Tags
+            {performerNames.length > 0 && (
+              <div className="flex items-start gap-2">
+                <Users
                   className="w-4 h-4 mt-1 flex-shrink-0"
                   style={{ color: 'var(--text-muted)' }}
                   aria-hidden="true"
                 />
                 <div className="flex flex-wrap gap-2">
+                  {performerNames.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-block px-2 py-1 text-xs rounded"
+                      style={{
+                        background: 'var(--bg-tertiary)',
+                        color: 'var(--accent-gold)',
+                      }}
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 标签 - 跨列显示 */}
+            {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
+              <div className="flex items-start ">
+                <div className="flex flex-wrap gap-3">
                   {rawData.tags.slice(0, 8).map((tag: { name?: string }, idx: number) => (
                     tag.name && (
                       <span
@@ -598,7 +591,7 @@ function Field({
 }) {
   return (
     <div className={`group ${className || ''}`}>
- <label
+      <label
         className="block text-xs font-medium tracking-wide uppercase mb-2"
         style={{ color: 'var(--text-muted)' }}
       >
