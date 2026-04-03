@@ -137,6 +137,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
               />
             )}
           </div>
+
         </div>
       </div>
 

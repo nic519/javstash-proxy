@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import type { SceneData } from '@/src/graphql/queries';
 import type { DetailModalProps, EditForm } from '../types';
 import { parseSceneData } from './helpers';
@@ -42,6 +43,9 @@ export function useDetailModal({
   const handleCopyCode = async () => {
     await navigator.clipboard.writeText(item.code);
     setCopied(true);
+    toast.success('番号已复制', {
+      id: `scene-copy-${item.code}`,
+    });
     setTimeout(() => setCopied(false), 2000);
   };
 

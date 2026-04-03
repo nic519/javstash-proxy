@@ -4,9 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import {
   CalendarDays,
-  Check,
   Clapperboard,
-  Copy,
   FileVideo,
   Hash,
   Image as ImageIcon,
@@ -14,7 +12,7 @@ import {
 } from 'lucide-react';
 import type { SceneData } from '@/src/graphql/queries';
 import type { DetailModalProps, EditForm } from '../types';
-import { formatDate, getPerformerNames, getStudioName, getTagColor } from './helpers';
+import { formatDate, getDetailHeaderMeta, getPerformerNames, getStudioName, getTagColor } from './helpers';
 
 export function DetailView({
   item,
@@ -35,15 +33,19 @@ export function DetailView({
   const performerNames = getPerformerNames(rawData);
   const releaseDate = rawData ? formatDate(rawData.date) : null;
   const studioName = getStudioName(rawData);
+  const headerMeta = getDetailHeaderMeta({
+    code: item.code,
+    director: typeof rawData?.director === 'string' ? rawData.director : null,
+    releaseDate,
+    studioName,
+  });
 
   return (
-    <div className="flex w-full gap-10">
-      <div className="flex-shrink-0">
+    <div className="flex w-full flex-col gap-7 xl:flex-row xl:gap-10">
+      <div className="flex-shrink-0 xl:self-start">
         <div
-          className="relative rounded-xl overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
+          className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl cursor-pointer transition-transform hover:scale-[1.02] xl:w-[540px]"
           style={{
-            width: 540,
-            height: 360,
             maxHeight: '70vh',
             boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 0 30px -5px rgba(212,175,55,0.15)',
             background: 'var(--bg-tertiary)',
@@ -79,114 +81,139 @@ export function DetailView({
         </div>
       </div>
 
-      <div className="flex-1 space-y-4 min-w-0 self-start">
-        <div className="space-y-3">
-          <div className="grid grid-cols-3">
-            <button
-              onClick={onCopyCode}
-              className="flex w-full items-center justify-start gap-1 group cursor-pointer rounded-xl"
-              title="点击复制"
-            >
-              <Hash
-                className="w-4 h-4 flex-shrink-0"
-                style={{ color: 'var(--text-muted)' }}
-                aria-hidden="true"
-              />
-              <span
-                className="font-mono text-sm whitespace-nowrap"
-                style={{ color: 'var(--accent-gold)' }}
-              >
-                {item.code}
-              </span>
-              {copied ? (
-                <Check className="w-4 h-4 text-green-500" />
-              ) : (
-                <Copy
-                  className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ color: 'var(--text-muted)' }}
-                />
-              )}
-            </button>
-
-            <div className="flex min-w-0 items-center justify-center gap-2 rounded-xl px-3 py-2" style={{ color: 'var(--text-primary)' }}>
-              <CalendarDays
-                className="w-4 h-4 flex-shrink-0"
-                style={{ color: 'var(--text-muted)' }}
-                aria-hidden="true"
-              />
-              <span className="text-sm whitespace-nowrap">{releaseDate || '-'}</span>
-            </div>
-
-            <div className="flex min-w-0 items-center justify-end gap-2 rounded-xl px-3 py-2" style={{ color: 'var(--text-primary)' }}>
-              <FileVideo
-                className="w-4 h-4 flex-shrink-0"
-                style={{ color: 'var(--text-muted)' }}
-                aria-hidden="true"
-              />
-              <span className="text-sm whitespace-nowrap">{studioName || '-'}</span>
-            </div>
-          </div>
-        </div>
-
-        <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
-
-        {rawData ? (
-          <>
-            <div className="grid grid-cols-3 gap-4">
-              {typeof rawData.director === 'string' && rawData.director && (
-                <div className="flex items-center gap-2.5 text-sm whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
-                  <Clapperboard
-                    className="w-4 h-4 flex-shrink-0"
+      <div className="flex-1 min-w-0 self-start">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 xl:flex-nowrap xl:justify-between">
+            {headerMeta.map((meta) => {
+              const icon = meta.key === 'code'
+                ? (
+                  <Hash
+                    className="h-4 w-4 flex-shrink-0"
                     style={{ color: 'var(--text-muted)' }}
                     aria-hidden="true"
                   />
+                )
+                : meta.key === 'director'
+                  ? (
+                    <Clapperboard
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: 'var(--text-muted)' }}
+                      aria-hidden="true"
+                    />
+                  )
+                  : meta.key === 'date'
+                    ? (
+                      <CalendarDays
+                        className="h-4 w-4 flex-shrink-0"
+                        style={{ color: 'var(--text-muted)' }}
+                        aria-hidden="true"
+                      />
+                    )
+                    : (
+                      <FileVideo
+                        className="h-4 w-4 flex-shrink-0"
+                        style={{ color: 'var(--text-muted)' }}
+                        aria-hidden="true"
+                      />
+                    );
+
+              const content = (
+                <>
+                  {icon}
+                  {meta.key !== 'code' && (
+                    <span
+                      className="text-xs tracking-[0.12em]"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      {meta.label}
+                    </span>
+                  )}
                   <span
-                    className="whitespace-nowrap text-sm tracking-[0.08em]"
-                    style={{ color: 'var(--text-muted)' }}
+                    className={`min-w-0 text-sm sm:text-[15px] ${meta.key === 'code' ? 'font-mono' : ''}`}
+                    style={{ color: meta.key === 'code' && copied ? '#86efac' : meta.key === 'code' ? 'var(--accent-gold)' : 'var(--text-primary)' }}
                   >
-                    导演
+                    {meta.value}
                   </span>
-                  <span className="whitespace-nowrap text-[15px] leading-6">{rawData.director}</span>
+                </>
+              );
+
+              if (meta.key === 'code') {
+                return (
+                  <button
+                    key={meta.key}
+                    onClick={onCopyCode}
+                    className="inline-flex min-w-0 items-center gap-2 rounded-lg transition-opacity hover:opacity-80 xl:flex-1"
+                    style={{ color: 'var(--text-primary)' }}
+                    title="点击复制番号"
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
+              return (
+                <div
+                  key={meta.key}
+                  className="inline-flex min-w-0 items-center gap-2 xl:flex-1"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {content}
+                </div>
+              );
+            })}
+          </div>
+
+          <div
+            className="h-px"
+            style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.18), rgba(255,255,255,0.02))' }}
+          />
+
+          <p
+            className="whitespace-pre-wrap text-[15px] leading-7"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            {form.summaryZh || '-'}
+          </p>
+
+          {rawData ? (
+            <>
+              {performerNames.length > 0 && (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+                  <div className="flex items-center gap-2.5 pt-0.5">
+                    <Users
+                      className="w-4 h-4 flex-shrink-0"
+                      style={{ color: 'var(--text-muted)' }}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className="whitespace-nowrap text-sm leading-6 tracking-[0.08em]"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      演员
+                    </span>
+                  </div>
+                  <div
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6"
+                    style={{ color: 'var(--accent-gold)' }}
+                  >
+                    {performerNames.map((name, index) => (
+                      <div key={name} className="flex items-center gap-3">
+                        {index > 0 && (
+                          <span
+                            className="h-3 w-px rounded-full"
+                            style={{ background: 'rgba(212,175,55,0.22)' }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="whitespace-nowrap">{name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
 
-            {performerNames.length > 0 && (
-              <div className="flex items-center gap-2.5">
-                <Users
-                  className="w-4 h-4 flex-shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                  aria-hidden="true"
-                />
-                <span
-                  className="whitespace-nowrap text-sm leading-6 tracking-[0.08em]"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  演员
-                </span>
-                <div
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6"
-                  style={{ color: 'var(--accent-gold)' }}
-                >
-                  {performerNames.map((name, index) => (
-                    <div key={name} className="flex items-center gap-3">
-                      {index > 0 && (
-                        <span
-                          className="h-3 w-px rounded-full"
-                          style={{ background: 'rgba(212,175,55,0.22)' }}
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span className="whitespace-nowrap">{name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
-              <div className="flex items-start">
-                <div className="flex flex-wrap gap-3">
+              {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2.5 pt-1">
                   {rawData.tags.slice(0, 8).map((tag, idx) => {
                     if (!tag.name) return null;
 
@@ -195,7 +222,7 @@ export function DetailView({
                     return (
                       <span
                         key={`${tag.name}-${idx}`}
-                        className="inline-block rounded-md border px-2.5 py-1 text-xs"
+                        className="inline-block rounded-full border px-3 py-1 text-xs"
                         style={{
                           background: tagColor.background,
                           color: tagColor.color,
@@ -207,10 +234,10 @@ export function DetailView({
                     );
                   })}
                 </div>
-              </div>
-            )}
-          </>
-        ) : null}
+              )}
+            </>
+          ) : null}
+        </div>
       </div>
     </div>
   );

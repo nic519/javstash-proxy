@@ -1,5 +1,11 @@
 import type { SceneData } from '@/src/graphql/queries';
 
+export interface DetailHeaderMetaItem {
+  key: 'code' | 'director' | 'date' | 'studio';
+  label: string;
+  value: string;
+}
+
 export const TAG_COLOR_PALETTE = [
   { background: 'rgba(239, 68, 68, 0.18)', color: '#fecaca', border: 'rgba(248, 113, 113, 0.28)' },
   { background: 'rgba(249, 115, 22, 0.18)', color: '#fed7aa', border: 'rgba(251, 146, 60, 0.28)' },
@@ -57,6 +63,33 @@ export function getStudioName(rawData: SceneData | null): string | null {
     typeof rawData.studio.name === 'string'
     ? rawData.studio.name
     : null;
+}
+
+export function getDetailHeaderMeta({
+  code,
+  director,
+  releaseDate,
+  studioName,
+}: {
+  code: string;
+  director?: string | null;
+  releaseDate?: string | null;
+  studioName?: string | null;
+}) {
+  const items: DetailHeaderMetaItem[] = [{ key: 'code', label: '', value: code }];
+
+  if (releaseDate?.trim()) {
+    items.push({ key: 'date', label: '', value: releaseDate.trim() });
+  }
+
+  if (studioName?.trim()) {
+    items.push({ key: 'studio', label: '', value: studioName.trim() });
+  }
+  if (director?.trim()) {
+    items.push({ key: 'director', label: '', value: director.trim() });
+  }
+
+  return items;
 }
 
 function hashTagName(tagName: string): number {

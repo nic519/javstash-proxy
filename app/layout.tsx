@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="zh" className={cn("dark font-sans", geist.variable)}>
       <body className="antialiased" style={{ background: 'var(--bg-primary)' }}>
         {children}
+        <Toaster position="bottom-center" richColors />
       </body>
     </html>
   );
