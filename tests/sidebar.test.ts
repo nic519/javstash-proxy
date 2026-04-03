@@ -23,8 +23,11 @@ describe('Sidebar', () => {
   it('renders a top navigation bar for desktop layouts', () => {
     const markup = renderToStaticMarkup(createElement(Navigation));
 
-    expect(markup).toContain('class="hidden lg:flex sticky top-0 z-40 items-center justify-between px-6 py-4"');
-    expect(markup).toContain('Navigation');
+    expect(markup).toContain('class="hidden lg:flex sticky top-0 z-40 px-6 py-4"');
+    expect(markup).toContain('Translation Console');
+    expect(markup).toContain('justify-self-center');
+    expect(markup).toContain('aria-label="主导航"');
+    expect(markup).toContain('退出登录');
   });
 
   it('renders a compact mobile trigger and keeps the mobile drawer collapsed by default', () => {
