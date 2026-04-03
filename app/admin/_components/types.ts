@@ -107,6 +107,9 @@ export interface ViewToggleProps {
 export interface AdminPageHeaderProps {
   /** 数据总量 */
   total: number;
+}
+
+export interface AdminPageControlsProps {
   /** 当前排序方式 */
   sortBy: SortBy;
   /** 是否处于随机模式 */

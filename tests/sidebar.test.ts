@@ -20,19 +20,19 @@ describe('Sidebar', () => {
     push.mockReset();
   });
 
-  it('keeps the sidebar pinned to the viewport and makes the navigation list independently scrollable', () => {
+  it('renders a top navigation bar for desktop layouts', () => {
     const markup = renderToStaticMarkup(createElement(Sidebar));
 
-    expect(markup).toContain('class="hidden lg:flex w-72 h-screen shrink-0 sticky top-0 flex-col relative"');
-    expect(markup).toContain('class="flex-1 min-h-0 overflow-y-auto p-4 space-y-1"');
+    expect(markup).toContain('class="hidden lg:flex sticky top-0 z-40 items-center justify-between px-6 py-4"');
+    expect(markup).toContain('Navigation');
   });
 
-  it('renders a floating mobile trigger and keeps the mobile drawer collapsed by default', () => {
+  it('renders a compact mobile trigger and keeps the mobile drawer collapsed by default', () => {
     const markup = renderToStaticMarkup(createElement(Sidebar));
 
     expect(markup).toContain('aria-label="打开导航菜单"');
-    expect(markup).toContain('class="fixed left-4 bottom-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-300 lg:hidden"');
-    expect(markup).toContain('class="absolute left-0 top-0 flex h-dvh w-72 max-w-[82vw] flex-col transition-transform duration-300 ease-out -translate-x-full"');
+    expect(markup).toContain('class="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition-all duration-300 lg:hidden"');
+    expect(markup).toContain('class="absolute right-0 top-0 flex h-dvh w-72 max-w-[82vw] flex-col transition-transform duration-300 ease-out translate-x-full"');
     expect(markup).toContain('aria-hidden="true"');
   });
 });

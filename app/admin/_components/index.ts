@@ -1,5 +1,6 @@
 export * from './types';
 export { AdminPageHeader } from './AdminPageHeader';
+export { AdminPageControls } from './AdminPageControls';
 export { SearchBar } from './SearchBar';
 export { Pagination } from './Pagination';
 export { ViewToggle } from './ViewToggle';

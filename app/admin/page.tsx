@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/sidebar';
 import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
 import {
   AdminPageHeader,
+  AdminPageControls,
   Pagination,
   DetailModal,
   ItemCard,
@@ -306,36 +307,39 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="h-screen overflow-hidden flex animated-bg">
+    <div className="min-h-screen flex flex-col animated-bg">
       <Sidebar />
-      <main className="flex-1 min-w-0 h-screen overflow-hidden p-6 relative z-10">
-        <div className="flex h-full min-h-0 flex-col gap-3">
-          <AdminPageHeader
-            total={total}
-            sortBy={sortBy}
-            randomMode={randomMode}
-            viewMode={viewMode}
-            searchInput={searchInput}
-            backgroundInteractionDisabled={backgroundInteractionDisabled}
-            onSortChange={(value) => {
-              setSortBy(value);
-              setPage(1);
-            }}
-            onRandomModeChange={(value) => {
-              setRandomMode(value);
-              setPage(1);
-              if (value) {
+      <main className="flex-1 min-h-0 overflow-hidden p-6 relative z-10">
+        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+          <div className="flex min-h-0 flex-col gap-4">
+            <AdminPageHeader total={total} />
+            <AdminPageControls
+              sortBy={sortBy}
+              randomMode={randomMode}
+              viewMode={viewMode}
+              searchInput={searchInput}
+              backgroundInteractionDisabled={backgroundInteractionDisabled}
+              onSortChange={(value) => {
+                setSortBy(value);
+                setPage(1);
+              }}
+              onRandomModeChange={(value) => {
+                setRandomMode(value);
+                setPage(1);
+                if (value) {
+                  setRandomVersion((current) => current + 1);
+                }
+              }}
+              onRandomRefresh={() => {
                 setRandomVersion((current) => current + 1);
-              }
-            }}
-            onRandomRefresh={() => {
-              setRandomVersion((current) => current + 1);
-            }}
-            onViewModeChange={setViewMode}
-            onSearchInputChange={setSearchInput}
-            onSearch={handleSearch}
-          />
+              }}
+              onViewModeChange={setViewMode}
+              onSearchInputChange={setSearchInput}
+              onSearch={handleSearch}
+            />
+          </div>
 
+          <div className="flex h-full min-h-0 flex-col gap-3">
           {/* 操作提示消息 */}
           {message && (
             <div
@@ -452,6 +456,7 @@ export default function AdminPage() {
               readOnly={selectedReadOnly || !canManage}
             />
           )}
+          </div>
         </div>
       </main>
     </div>

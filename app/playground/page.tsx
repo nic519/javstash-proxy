@@ -9,6 +9,7 @@ import { SEARCH_SCENE_QUERY } from '@/src/graphql/queries';
 const defaultVariables = `{
   "term": "MIAE-209"
 }`;
+// 默认查询签名: searchScene(term: $term)
 
 /**
  * GraphQL 调试页面组件
@@ -59,7 +60,7 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className="min-h-screen flex animated-bg">
+    <div className="min-h-screen flex flex-col animated-bg">
       <Sidebar />
       <main className="flex-1 p-8 lg:p-12 relative z-10">
         {/* Editor Grid */}
