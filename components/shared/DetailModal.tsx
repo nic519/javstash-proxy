@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Image as ImageIcon, Check, Copy, Users } from 'lucide-react';
 import type { DetailModalProps, EditForm } from './types';
 import type { SceneData } from '@/src/graphql/queries';
 
@@ -304,6 +304,14 @@ function formatDuration(minutes?: number): string | null {
   return `${minutes} 分钟`;
 }
 
+export function getPerformerNames(rawData: SceneData | null): string[] {
+  if (!Array.isArray(rawData?.performers)) return [];
+
+  return rawData.performers
+    .map((entry) => entry.performer?.name?.trim())
+    .filter((name): name is string => Boolean(name));
+}
+
 /**
  * 详情视图
  * 左侧展示封面大图,右侧展示文字信息
@@ -326,6 +334,7 @@ function DetailView({
   rawDataLoading: boolean;
 }) {
   const [imageLoading, setImageLoading] = useState(true);
+  const performerNames = getPerformerNames(rawData).slice(0, 6);
 
   return (
     <div className="flex gap-10 max-w-6xl mx-auto">
@@ -373,25 +382,50 @@ function DetailView({
         </div>
       </div>
       {/* 文字信息区域 */}
-      <div className="flex-1 space-y-6 min-w-0 py-2">
-
-        <button
-          onClick={onCopyCode}
-          className="flex items-center gap-2 group cursor-pointer"
-          title="点击复制"
-        >
-          <span
-            className="font-mono text-sm whitespace-nowrap"
-            style={{ color: 'var(--accent-gold)' }}
+      <div className="flex-1 space-y-6 min-w-0 self-start">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <button
+            onClick={onCopyCode}
+            className="flex items-center gap-2 group cursor-pointer"
+            title="点击复制"
           >
-            {item.code}
-          </span>
-          {copied ? (
-            <Check className="w-4 h-4 text-green-500" />
-          ) : (
-            <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+            <span
+              className="font-mono text-sm whitespace-nowrap"
+              style={{ color: 'var(--accent-gold)' }}
+            >
+              {item.code}
+            </span>
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+            )}
+          </button>
+
+          {performerNames.length > 0 && (
+            <div className="flex flex-1 min-w-[240px] items-start justify-end gap-3">
+              <Users
+                className="w-4 h-4 mt-1 flex-shrink-0"
+                style={{ color: 'var(--text-muted)' }}
+                aria-hidden="true"
+              />
+              <div className="flex flex-wrap justify-end gap-2">
+                {performerNames.map((name) => (
+                  <span
+                    key={name}
+                    className="inline-block px-2 py-1 text-xs rounded"
+                    style={{
+                      background: 'var(--bg-tertiary)',
+                      color: 'var(--accent-gold)',
+                    }}
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
-        </button>
+        </div>
         <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
 
         {/* 原始数据区域 */}
@@ -421,28 +455,6 @@ function DetailView({
                 </Field>
               )}
             </div>
-
-            {/* 演员 - 跨列显示 */}
-            {Array.isArray(rawData.performers) && rawData.performers.length > 0 && (
-              <Field label="演员" className="col-span-2">
-                <div className="flex flex-wrap gap-2">
-                  {rawData.performers.slice(0, 6).map((p: { performer?: { name?: string } }, idx: number) => (
-                    p.performer?.name && (
-                      <span
-                        key={idx}
-                        className="inline-block px-2 py-1 text-xs rounded"
-                        style={{
-                          background: 'var(--bg-tertiary)',
-                          color: 'var(--accent-gold)',
-                        }}
-                      >
-                        {p.performer.name}
-                      </span>
-                    )
-                  ))}
-                </div>
-              </Field>
-            )}
 
             {/* 标签 - 跨列显示 */}
             {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (
