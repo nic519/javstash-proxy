@@ -350,7 +350,7 @@ function DetailView({
       : null;
 
   return (
-    <div className="flex w-full max-w-6xl gap-10">
+    <div className="flex w-full gap-10">
       {/* 封面大图区域 - 固定尺寸占位 */}
       <div className="flex-shrink-0">
         <div
@@ -460,7 +460,7 @@ function DetailView({
                     style={{ color: 'var(--text-muted)' }}
                     aria-hidden="true"
                   />
-                  <span className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>导演：</span>
+                  <span className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>导演</span>
                   <span className="whitespace-nowrap">{rawData.director}</span>
                 </div>
               )}
@@ -473,6 +473,7 @@ function DetailView({
                   style={{ color: 'var(--text-muted)' }}
                   aria-hidden="true"
                 />
+                <span className="whitespace-nowrap text-sm" style={{ color: 'var(--text-muted)' }}>演员</span>
                 <div className="flex flex-wrap gap-2">
                   {performerNames.map((name) => (
                     <span
