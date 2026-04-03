@@ -50,6 +50,10 @@ export default function AdminPage() {
   const [pageSize, setPageSize] = useState(() => readCurrentListState().pageSize);
   // 排序方式
   const [sortBy, setSortBy] = useState<SortBy>(() => readCurrentListState().sortBy);
+  // 随机列表模式
+  const [randomMode, setRandomMode] = useState(false);
+  // 随机列表刷新版本
+  const [randomVersion, setRandomVersion] = useState(0);
   // 当前视图模式
   const [viewMode, setViewMode] = useState<AdminViewMode>(() => readCurrentListState().viewMode);
   // 搜索输入框的值（未提交时）
@@ -98,10 +102,15 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        page: String(page),
         pageSize: String(pageSize),
-        sortBy,
       });
+      if (randomMode) {
+        params.set('random', 'true');
+        params.set('randomVersion', String(randomVersion));
+      } else {
+        params.set('page', String(page));
+        params.set('sortBy', sortBy);
+      }
       const res = await fetch(`/api/admin/translations?${params}`);
       if (!shouldApplyAdminSearchResponse({
         requestId,
@@ -131,7 +140,7 @@ export default function AdminPage() {
         setLoading(false);
       }
     }
-  }, [page, pageSize, sortBy]);
+  }, [page, pageSize, randomMode, randomVersion, sortBy]);
 
   // 页码或搜索关键词变化时重新获取数据
   useEffect(() => {
@@ -307,12 +316,23 @@ export default function AdminPage() {
         <AdminPageHeader
           total={total}
           sortBy={sortBy}
+          randomMode={randomMode}
           viewMode={viewMode}
           searchInput={searchInput}
           backgroundInteractionDisabled={backgroundInteractionDisabled}
           onSortChange={(value) => {
             setSortBy(value);
             setPage(1);
+          }}
+          onRandomModeChange={(value) => {
+            setRandomMode(value);
+            setPage(1);
+            if (value) {
+              setRandomVersion((current) => current + 1);
+            }
+          }}
+          onRandomRefresh={() => {
+            setRandomVersion((current) => current + 1);
           }}
           onViewModeChange={setViewMode}
           onSearchInputChange={setSearchInput}
@@ -390,17 +410,19 @@ export default function AdminPage() {
               )}
             </>
           )}
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            disabled={backgroundInteractionDisabled}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size as PageSize);
-              setPage(1);
-            }}
-          />
+          {!randomMode ? (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              disabled={backgroundInteractionDisabled}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size as PageSize);
+                setPage(1);
+              }}
+            />
+          ) : null}
         </div>
 
         <AdminRemoteSearchModal

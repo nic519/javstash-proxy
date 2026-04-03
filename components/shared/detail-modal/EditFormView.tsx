@@ -32,6 +32,12 @@ export function EditFormView({
         value={form.coverUrl}
         onChange={(value) => onChange({ ...form, coverUrl: value })}
       />
+      <TextAreaField
+        label="raw_response"
+        value={form.rawResponse}
+        onChange={(value) => onChange({ ...form, rawResponse: value })}
+        rows={12}
+      />
       <div className="flex justify-end gap-3 pt-4">
         <button
           onClick={onCancel}

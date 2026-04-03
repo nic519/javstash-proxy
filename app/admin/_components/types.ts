@@ -104,6 +104,8 @@ export interface AdminPageHeaderProps {
   total: number;
   /** 当前排序方式 */
   sortBy: SortBy;
+  /** 是否处于随机模式 */
+  randomMode: boolean;
   /** 当前视图模式 */
   viewMode: AdminViewMode;
   /** 当前搜索词 */
@@ -112,6 +114,10 @@ export interface AdminPageHeaderProps {
   backgroundInteractionDisabled?: boolean;
   /** 排序变更回调 */
   onSortChange: (value: SortBy) => void;
+  /** 随机模式变更回调 */
+  onRandomModeChange: (value: boolean) => void;
+  /** 再随机一次回调 */
+  onRandomRefresh: () => void;
   /** 视图模式变更回调 */
   onViewModeChange: (value: AdminViewMode) => void;
   /** 搜索词变更回调 */

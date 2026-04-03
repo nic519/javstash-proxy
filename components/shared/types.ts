@@ -60,4 +60,6 @@ export interface EditForm {
   summaryZh: string;
   /** 封面地址 */
   coverUrl: string;
+  /** 原始响应 */
+  rawResponse: string;
 }

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import type { SceneData } from '../src/graphql/queries';
+import { EditFormView } from '../components/shared/detail-modal/EditFormView';
 import {
   getPerformerNames,
   getTagColor,
@@ -54,5 +57,27 @@ describe('getTagColor', () => {
 describe('parseSceneData', () => {
   it('returns null for legacy array payloads', () => {
     expect(parseSceneData(JSON.stringify([{ code: 'REAL-358' }]))).toBeNull();
+  });
+});
+
+describe('EditFormView', () => {
+  it('renders raw_response as an editable textarea in edit mode', () => {
+    const markup = renderToStaticMarkup(
+      createElement(EditFormView, {
+        form: {
+          titleZh: '标题',
+          summaryZh: '简介',
+          coverUrl: 'https://example.com/cover.jpg',
+          rawResponse: '{"code":"ABP-123"}',
+        },
+        onChange: () => {},
+        onSave: () => {},
+        onCancel: () => {},
+        saving: false,
+      })
+    );
+
+    expect(markup).toContain('raw_response');
+    expect(markup).toContain('{&quot;code&quot;:&quot;ABP-123&quot;}');
   });
 });

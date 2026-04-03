@@ -22,6 +22,7 @@ export function useDetailModal({
     titleZh: item.titleZh,
     summaryZh: item.summaryZh,
     coverUrl: item.coverUrl || '',
+    rawResponse: item.rawResponse || '',
   });
 
   useEffect(() => {
@@ -33,8 +34,9 @@ export function useDetailModal({
       titleZh: item.titleZh,
       summaryZh: item.summaryZh,
       coverUrl: item.coverUrl || '',
+      rawResponse: item.rawResponse || '',
     });
-  }, [item.code, item.coverUrl, item.summaryZh, item.titleZh]);
+  }, [item.code, item.coverUrl, item.rawResponse, item.summaryZh, item.titleZh]);
 
   useEffect(() => {
     setRawData(item.rawResponse ? parseSceneData(item.rawResponse) : null);
@@ -61,7 +63,12 @@ export function useDetailModal({
       });
 
       if (res.ok) {
-        onUpdate({ ...item, ...form, coverUrl: form.coverUrl || undefined });
+        onUpdate({
+          ...item,
+          ...form,
+          coverUrl: form.coverUrl || undefined,
+          rawResponse: form.rawResponse || undefined,
+        });
         setEditing(false);
       }
     } finally {

@@ -124,6 +124,26 @@ export class TursoCache {
   }
 
   /**
+   * List a non-deterministic set of translations for random mode
+   */
+  async listRandomTranslations(limit: number): Promise<Translation[]> {
+    const result = await this.client.execute({
+      sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response, updated_at FROM translations
+            ORDER BY RANDOM() LIMIT ?`,
+      args: [limit],
+    });
+
+    return result.rows.map((row) => ({
+      code: row.code as string,
+      titleZh: (row.title_zh as string) ?? '',
+      summaryZh: (row.summary_zh as string) ?? '',
+      coverUrl: (row.cover_url as string) ?? undefined,
+      rawResponse: (row.raw_response as string) ?? undefined,
+      updatedAt: (row.updated_at as string) ?? undefined,
+    }));
+  }
+
+  /**
    * Get a single translation by code
    */
   async getTranslation(code: string): Promise<Translation | null> {

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUpAZ, ArrowUpDown, Clock3, ListFilter } from 'lucide-react';
+import { ArrowUpAZ, ArrowUpDown, Clock3, Dices, ListFilter, Shuffle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -32,10 +32,13 @@ const SORT_OPTIONS: Array<{
 export function AdminPageHeader({
   total,
   sortBy,
+  randomMode,
   viewMode,
   searchInput,
   backgroundInteractionDisabled,
   onSortChange,
+  onRandomModeChange,
+  onRandomRefresh,
   onViewModeChange,
   onSearchInputChange,
   onSearch,
@@ -50,6 +53,80 @@ export function AdminPageHeader({
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3">
+        <div
+          className={`inline-flex h-12 items-center gap-2 rounded-2xl border px-2 text-sm transition-colors ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+          style={{
+            background: randomMode ? 'rgba(212, 175, 55, 0.12)' : 'var(--bg-tertiary)',
+            borderColor: randomMode ? 'rgba(212, 175, 55, 0.28)' : 'var(--border-subtle)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <div className="flex items-center gap-3 pl-2">
+            <Shuffle
+              className="h-4 w-4"
+              style={{ color: randomMode ? 'var(--accent-gold)' : 'var(--text-muted)' }}
+            />
+            <span
+              className="text-sm font-medium"
+              style={{ color: randomMode ? 'var(--accent-gold)' : 'var(--text-primary)' }}
+            >
+              随机模式
+            </span>
+          </div>
+
+          <button
+            type="button"
+            disabled={backgroundInteractionDisabled}
+            role="switch"
+            aria-checked={randomMode}
+            onClick={() => onRandomModeChange(!randomMode)}
+            className="group inline-flex items-center"
+            title={randomMode ? '关闭随机模式' : '开启随机模式'}
+          >
+            <span
+              className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors"
+              style={{
+                background: randomMode ? 'var(--accent-gold)' : 'rgba(255,255,255,0.14)',
+                boxShadow: randomMode
+                  ? 'inset 0 0 0 1px rgba(15,15,20,0.08)'
+                  : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+              }}
+            >
+              <span
+                className="absolute h-5 w-5 rounded-full bg-white transition-transform"
+                style={{
+                  left: '4px',
+                  transform: randomMode ? 'translateX(16px)' : 'translateX(0)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+                }}
+              />
+            </span>
+          </button>
+
+          {randomMode ? (
+            <>
+              <span
+                className="h-6 w-px"
+                style={{ background: 'rgba(212,175,55,0.18)' }}
+              />
+              <button
+                type="button"
+                disabled={backgroundInteractionDisabled}
+                onClick={onRandomRefresh}
+                className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors"
+                title="换一组随机结果"
+                style={{
+                  background: 'rgba(212, 175, 55, 0.16)',
+                  color: 'var(--accent-gold)',
+                }}
+              >
+                <Dices className="h-4 w-4" />
+                <span>换一组</span>
+              </button>
+            </>
+          ) : null}
+        </div>
+
         <ViewToggle
           value={viewMode}
           onChange={onViewModeChange}
@@ -57,7 +134,7 @@ export function AdminPageHeader({
         />
 
         <Select
-          disabled={backgroundInteractionDisabled}
+          disabled={backgroundInteractionDisabled || randomMode}
           value={sortBy}
           onValueChange={(value) => onSortChange(value as SortBy)}
         >
