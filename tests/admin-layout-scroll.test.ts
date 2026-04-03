@@ -23,6 +23,7 @@ vi.mock('../app/admin/_components', () => ({
   DetailModal: () => null,
   ItemCard: () => createElement('tr', null),
   AdminRemoteSearchModal: () => null,
+  applyAdminSearchOverlayState: (_params: URLSearchParams) => new URLSearchParams(),
   createAdminListSearchParams: () => new URLSearchParams(),
   fetchAdminLocalSearchResults: vi.fn(),
   fetchAdminRemoteSearchResults: vi.fn(),
@@ -31,6 +32,10 @@ vi.mock('../app/admin/_components', () => ({
     pageSize: 20,
     sortBy: 'updated',
     viewMode: 'table',
+  }),
+  readAdminSearchOverlayState: () => ({
+    open: false,
+    keyword: '',
   }),
   shouldApplyAdminSearchResponse: () => true,
   shouldDisableAdminBackgroundInteractions: () => false,
