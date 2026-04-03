@@ -4,27 +4,23 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
-import type { SceneData } from '@/src/graphql/queries';
 import {
   AdminPageHeader,
   Pagination,
   DetailModal,
   ItemCard,
+  AdminSearchResultsOverlay,
   type Translation,
   type ListResult,
   type SortBy,
   type PageSize,
   type AdminViewMode,
-  AdminRemoteSearchModal,
   applyAdminSearchOverlayState,
   createAdminListSearchParams,
-  fetchAdminLocalSearchResults,
-  fetchAdminRemoteSearchResults,
   readAdminSearchOverlayState,
   readAdminListState,
   shouldApplyAdminSearchResponse,
   shouldDisableAdminBackgroundInteractions,
-  prepareRemoteSearchFallbackState,
   writeAdminListPreferences,
 } from './_components';
 
@@ -67,16 +63,6 @@ export default function AdminPage() {
   const [remoteOpen, setRemoteOpen] = useState(() => overlayState.open);
   // 远端搜索关键词
   const [remoteKeyword, setRemoteKeyword] = useState(() => overlayState.keyword);
-  // 远端搜索结果
-  const [remoteResults, setRemoteResults] = useState<SceneData[]>([]);
-  // 本地搜索结果（在搜索弹框里显示）
-  const [localSearchResults, setLocalSearchResults] = useState<Translation[]>([]);
-  // 远端搜索加载状态
-  const [remoteLoading, setRemoteLoading] = useState(false);
-  // 远端搜索错误信息
-  const [remoteError, setRemoteError] = useState('');
-  // 搜索结果来源
-  const [searchSource, setSearchSource] = useState<'local' | 'remote' | null>(null);
   // 当前选中的条目（用于详情弹窗）
   const [selected, setSelected] = useState<Translation | null>(null);
   // 当前详情是否只读（远端结果）
@@ -87,8 +73,6 @@ export default function AdminPage() {
   const [message, setMessage] = useState('');
   // 本地查询请求版本
   const localRequestVersionRef = useRef(0);
-  // 搜索执行版本
-  const searchRequestVersionRef = useRef(0);
   // 消息清除定时器
   const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -237,84 +221,6 @@ export default function AdminPage() {
       messageTimeoutRef.current = null;
     }, 3000);
   };
-
-  useEffect(() => {
-    const keyword = remoteKeyword.trim();
-
-    if (!remoteOpen) {
-      setLocalSearchResults([]);
-      setRemoteResults([]);
-      setRemoteError('');
-      setRemoteLoading(false);
-      setSearchSource(null);
-      return;
-    }
-
-    if (!keyword) {
-      setLocalSearchResults([]);
-      setRemoteResults([]);
-      setRemoteError('');
-      setRemoteLoading(false);
-      setSearchSource(null);
-      return;
-    }
-
-    const requestId = searchRequestVersionRef.current + 1;
-    searchRequestVersionRef.current = requestId;
-    setRemoteLoading(true);
-    setRemoteError('');
-    setRemoteResults([]);
-    setLocalSearchResults([]);
-    setSearchSource(null);
-
-    void (async () => {
-      try {
-        const localResults = await fetchAdminLocalSearchResults(keyword);
-        if (!shouldApplyAdminSearchResponse({
-          requestId,
-          activeRequestId: searchRequestVersionRef.current,
-        })) {
-          return;
-        }
-
-        const fallbackState = prepareRemoteSearchFallbackState(keyword, localResults);
-
-        if (!fallbackState.open) {
-          setSearchSource('local');
-          setLocalSearchResults(localResults);
-          setRemoteLoading(false);
-          return;
-        }
-
-        setSearchSource('remote');
-        const remoteResult = await fetchAdminRemoteSearchResults(fallbackState.keyword);
-        if (!shouldApplyAdminSearchResponse({
-          requestId,
-          activeRequestId: searchRequestVersionRef.current,
-        })) {
-          return;
-        }
-        setRemoteResults(remoteResult.results);
-        setRemoteError(remoteResult.error);
-      } catch {
-        if (!shouldApplyAdminSearchResponse({
-          requestId,
-          activeRequestId: searchRequestVersionRef.current,
-        })) {
-          return;
-        }
-        setSearchSource('remote');
-        setRemoteError('请求失败，请重试');
-      } finally {
-        if (shouldApplyAdminSearchResponse({
-          requestId,
-          activeRequestId: searchRequestVersionRef.current,
-        })) {
-          setRemoteLoading(false);
-        }
-      }
-    })();
-  }, [remoteOpen, remoteKeyword]);
 
   /**
    * 执行搜索
@@ -515,14 +421,9 @@ export default function AdminPage() {
           ) : null}
         </div>
 
-        <AdminRemoteSearchModal
+        <AdminSearchResultsOverlay
           open={remoteOpen}
           keyword={remoteKeyword}
-          source={searchSource}
-          localResults={localSearchResults}
-          results={remoteResults}
-          loading={remoteLoading}
-          error={remoteError}
           onClose={handleRemoteClose}
           onLocalSelect={handleLocalSelect}
           onRemoteSelect={handleRemoteSelect}

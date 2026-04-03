@@ -3,11 +3,12 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SEARCH_SCENE_QUERY, type SceneData } from '../src/graphql/queries';
 import {
-  AdminRemoteSearchModal,
+  AdminSearchResultsOverlay,
   fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
+  resolveAdminSearchResults,
   shouldApplyAdminSearchResponse,
-} from '../app/admin/_components/AdminRemoteSearchModal';
+} from '../app/admin/_components/AdminSearchResultsOverlay';
 
 describe('fetchAdminRemoteSearchResults', () => {
   beforeEach(() => {
@@ -166,7 +167,72 @@ describe('shouldApplyAdminSearchResponse', () => {
   });
 });
 
-describe('AdminRemoteSearchModal', () => {
+describe('resolveAdminSearchResults', () => {
+  beforeEach(() => {
+    vi.spyOn(global, 'fetch');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns empty local state when the keyword is blank', async () => {
+    const result = await resolveAdminSearchResults('   ');
+
+    expect(result).toEqual({
+      source: null,
+      localResults: [],
+      results: [],
+      error: '',
+    });
+  });
+
+  it('stays on local results when local search hits', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          items: [{ code: 'ABP-123', titleZh: 'Local title', summaryZh: 'Local summary' }],
+        })
+      )
+    );
+
+    const result = await resolveAdminSearchResults('ABP-123');
+
+    expect(result).toEqual({
+      source: 'local',
+      localResults: [{ code: 'ABP-123', titleZh: 'Local title', summaryZh: 'Local summary' }],
+      results: [],
+      error: '',
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to remote results when local search misses', async () => {
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [] })))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              searchScene: [{ id: 'scene-1', code: 'ABP-123', title: 'Remote title' }],
+            },
+          })
+        )
+      );
+
+    const result = await resolveAdminSearchResults('ABP-123');
+
+    expect(result).toEqual({
+      source: 'remote',
+      localResults: [],
+      results: [{ id: 'scene-1', code: 'ABP-123', title: 'Remote title' }],
+      error: '',
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('AdminSearchResultsOverlay', () => {
   const results: SceneData[] = [
     {
       id: 'scene-1',
@@ -179,7 +245,7 @@ describe('AdminRemoteSearchModal', () => {
 
   it('renders the admin fallback shell and shared remote results when open', () => {
     const markup = renderToStaticMarkup(
-      createElement(AdminRemoteSearchModal, {
+      createElement(AdminSearchResultsOverlay, {
         open: true,
         keyword: 'ABP-123',
         source: 'remote',
@@ -201,7 +267,7 @@ describe('AdminRemoteSearchModal', () => {
 
   it('renders local search results without changing the admin body list contract', () => {
     const markup = renderToStaticMarkup(
-      createElement(AdminRemoteSearchModal, {
+      createElement(AdminSearchResultsOverlay, {
         open: true,
         keyword: 'ABP-123',
         source: 'local',
@@ -238,7 +304,7 @@ describe('AdminRemoteSearchModal', () => {
 
   it('returns no markup when the modal is closed', () => {
     const markup = renderToStaticMarkup(
-      createElement(AdminRemoteSearchModal, {
+      createElement(AdminSearchResultsOverlay, {
         open: false,
         keyword: 'ABP-123',
         source: null,

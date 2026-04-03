@@ -22,7 +22,7 @@ vi.mock('../app/admin/_components', () => ({
   Pagination: () => createElement('div', null, 'Pagination'),
   DetailModal: () => null,
   ItemCard: () => createElement('tr', null),
-  AdminRemoteSearchModal: () => null,
+  AdminSearchResultsOverlay: () => null,
   applyAdminSearchOverlayState: (_params: URLSearchParams) => new URLSearchParams(),
   createAdminListSearchParams: () => new URLSearchParams(),
   fetchAdminLocalSearchResults: vi.fn(),
