@@ -8,6 +8,7 @@
     "dev": "next dev -p 3456",
     "build": "next build",
     "start": "next start -p 3456",
+    "fill:missing-raw-response": "node scripts/fill-missing-raw-response.mjs",
     "typecheck": "tsc --noEmit",
     "fix:cover-urls": "node scripts/fix-cover-urls.mjs",
     "test": "vitest run",

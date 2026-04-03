@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import type { SceneData } from '@/src/graphql/queries';
 import {
@@ -11,15 +12,17 @@ import {
   type Translation,
   type ListResult,
   type SortBy,
+  type PageSize,
   type AdminViewMode,
   AdminRemoteSearchModal,
+  createAdminListSearchParams,
   fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
-  readAdminViewMode,
+  readAdminListState,
   shouldApplyAdminSearchResponse,
   shouldDisableAdminBackgroundInteractions,
   prepareRemoteSearchFallbackState,
-  writeAdminViewMode,
+  writeAdminListPreferences,
 } from './_components';
 
 /**
@@ -27,20 +30,27 @@ import {
  * 提供翻译缓存的查看、搜索、编辑和删除功能
  */
 export default function AdminPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const readCurrentListState = () =>
+    readAdminListState({
+      searchParams,
+      storage: typeof window === 'undefined' ? null : window.localStorage,
+    });
+
   // 翻译列表数据
   const [items, setItems] = useState<Translation[]>([]);
   // 数据总量（用于分页计算）
   const [total, setTotal] = useState(0);
   // 当前页码
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => readCurrentListState().page);
   // 每页条数
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(() => readCurrentListState().pageSize);
   // 排序方式
-  const [sortBy, setSortBy] = useState<SortBy>('updated');
+  const [sortBy, setSortBy] = useState<SortBy>(() => readCurrentListState().sortBy);
   // 当前视图模式
-  const [viewMode, setViewMode] = useState<AdminViewMode>(() =>
-    readAdminViewMode(typeof window === 'undefined' ? null : window.localStorage)
-  );
+  const [viewMode, setViewMode] = useState<AdminViewMode>(() => readCurrentListState().viewMode);
   // 搜索输入框的值（未提交时）
   const [searchInput, setSearchInput] = useState('');
   // 数据加载状态
@@ -125,8 +135,40 @@ export default function AdminPage() {
   }, [fetchData]);
 
   useEffect(() => {
-    writeAdminViewMode(typeof window === 'undefined' ? null : window.localStorage, viewMode);
-  }, [viewMode]);
+    const nextState = readCurrentListState();
+
+    setPage((current) => (current === nextState.page ? current : nextState.page));
+    setPageSize((current) => (current === nextState.pageSize ? current : nextState.pageSize));
+    setSortBy((current) => (current === nextState.sortBy ? current : nextState.sortBy));
+    setViewMode((current) => (current === nextState.viewMode ? current : nextState.viewMode));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const nextParams = createAdminListSearchParams({
+      page,
+      pageSize,
+      sortBy,
+      viewMode,
+    });
+    const nextQuery = nextParams.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery !== currentQuery) {
+      router.replace(`${pathname}?${nextQuery}`, { scroll: false });
+    }
+
+    writeAdminListPreferences(typeof window === 'undefined' ? null : window.localStorage, {
+      pageSize,
+      sortBy,
+      viewMode,
+    });
+  }, [page, pageSize, sortBy, viewMode, pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   useEffect(() => {
     return () => {
@@ -203,11 +245,6 @@ export default function AdminPage() {
     setItems((prev) => prev.map((item) => (item.code === updated.code ? updated : item)));
     setSelected(updated);
     showMessage('保存成功');
-  };
-
-  const handleHydrate = (hydrated: Translation) => {
-    setItems((prev) => prev.map((item) => (item.code === hydrated.code ? hydrated : item)));
-    setSelected((prev) => (prev?.code === hydrated.code ? hydrated : prev));
   };
 
   /**
@@ -345,7 +382,7 @@ export default function AdminPage() {
             disabled={backgroundInteractionDisabled}
             onPageChange={setPage}
             onPageSizeChange={(size) => {
-              setPageSize(size);
+              setPageSize(size as PageSize);
               setPage(1);
             }}
           />
@@ -369,7 +406,6 @@ export default function AdminPage() {
           <DetailModal
             item={selected}
             onClose={handleDetailClose}
-            onHydrate={handleHydrate}
             onUpdate={selectedReadOnly ? undefined : handleUpdate}
             onDelete={selectedReadOnly ? undefined : handleDelete}
             readOnly={selectedReadOnly}

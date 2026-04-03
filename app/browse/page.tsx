@@ -129,7 +129,6 @@ export default function BrowsePage() {
         <DetailModal
           item={selected}
           onClose={() => setSelected(null)}
-          onHydrate={setSelected}
           readOnly
         />
       )}

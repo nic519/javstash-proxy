@@ -3,10 +3,15 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ViewToggle } from '../app/admin/_components/ViewToggle';
 import {
+  ADMIN_PAGE_SIZE_STORAGE_KEY,
+  ADMIN_SORT_BY_STORAGE_KEY,
   ADMIN_VIEW_MODE_STORAGE_KEY,
+  createAdminListSearchParams,
   prepareRemoteSearchFallbackState,
+  readAdminListState,
   readAdminViewMode,
   shouldDisableAdminBackgroundInteractions,
+  writeAdminListPreferences,
   writeAdminViewMode,
 } from '../app/admin/_components/types';
 import type { Translation } from '../components/shared/types';
@@ -93,6 +98,84 @@ describe('admin view mode persistence helpers', () => {
     );
 
     expect(calls).toEqual([[ADMIN_VIEW_MODE_STORAGE_KEY, 'grid']]);
+  });
+});
+
+describe('admin list state persistence helpers', () => {
+  it('prefers URL values and only falls back to stored non-page preferences', () => {
+    const state = readAdminListState({
+      searchParams: new URLSearchParams('page=3&sortBy=code'),
+      storage: {
+        getItem: (key) => {
+          if (key === ADMIN_PAGE_SIZE_STORAGE_KEY) {
+            return '50';
+          }
+
+          if (key === ADMIN_VIEW_MODE_STORAGE_KEY) {
+            return 'grid';
+          }
+
+          return null;
+        },
+      },
+    });
+
+    expect(state).toEqual({
+      page: 3,
+      pageSize: 50,
+      sortBy: 'code',
+      viewMode: 'grid',
+    });
+  });
+
+  it('falls back to defaults when URL and storage values are invalid', () => {
+    const state = readAdminListState({
+      searchParams: new URLSearchParams('page=0&pageSize=999&sortBy=nope&viewMode=nope'),
+      storage: {
+        getItem: () => 'bad-value',
+      },
+    });
+
+    expect(state).toEqual({
+      page: 1,
+      pageSize: 20,
+      sortBy: 'updated',
+      viewMode: 'table',
+    });
+  });
+
+  it('writes only non-page list preferences into storage', () => {
+    const calls: Array<[string, string]> = [];
+
+    writeAdminListPreferences(
+      {
+        setItem: (key, value) => {
+          calls.push([key, value]);
+        },
+      },
+      {
+        pageSize: 50,
+        sortBy: 'code',
+        viewMode: 'grid',
+      }
+    );
+
+    expect(calls).toEqual([
+      [ADMIN_PAGE_SIZE_STORAGE_KEY, '50'],
+      [ADMIN_SORT_BY_STORAGE_KEY, 'code'],
+      [ADMIN_VIEW_MODE_STORAGE_KEY, 'grid'],
+    ]);
+  });
+
+  it('creates stable URL params for the admin list state', () => {
+    const params = createAdminListSearchParams({
+      page: 3,
+      pageSize: 50,
+      sortBy: 'code',
+      viewMode: 'grid',
+    });
+
+    expect(params.toString()).toBe('page=3&pageSize=50&sortBy=code&viewMode=grid');
   });
 });
 

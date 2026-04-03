@@ -3,7 +3,7 @@ import type { SceneData } from '../src/graphql/queries';
 import {
   getPerformerNames,
   getTagColor,
-  mergeHydratedTranslation,
+  parseSceneData,
 } from '../components/shared/detail-modal/helpers';
 
 describe('getPerformerNames', () => {
@@ -51,31 +51,8 @@ describe('getTagColor', () => {
   });
 });
 
-describe('mergeHydratedTranslation', () => {
-  it('preserves existing editable fields while attaching fetched rawResponse data', () => {
-    const item = {
-      code: 'REAL-358',
-      titleZh: '已有标题',
-      summaryZh: '已有简介',
-      coverUrl: 'https://cdn.example.com/existing-cover.jpg',
-    };
-
-    expect(
-      mergeHydratedTranslation(
-        item,
-        JSON.stringify({
-          id: 'scene-3',
-          code: 'REAL-358',
-          title: 'Upstream title',
-        })
-      )
-    ).toEqual({
-      ...item,
-      rawResponse: JSON.stringify({
-        id: 'scene-3',
-        code: 'REAL-358',
-        title: 'Upstream title',
-      }),
-    });
+describe('parseSceneData', () => {
+  it('returns null for legacy array payloads', () => {
+    expect(parseSceneData(JSON.stringify([{ code: 'REAL-358' }]))).toBeNull();
   });
 });

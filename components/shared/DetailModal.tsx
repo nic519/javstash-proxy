@@ -8,21 +8,20 @@ import { DetailView, EditFormView, IconButton, useDetailModal } from './detail-m
  * 详情弹窗组件
  * 支持查看和编辑两种模式，可预览封面图片
  */
-export function DetailModal({ item, onClose, onHydrate, onUpdate, onDelete, readOnly }: DetailModalProps) {
+export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: DetailModalProps) {
   const {
     copied,
     deleting,
     editing,
     form,
     rawData,
-    rawDataLoading,
     saving,
     setEditing,
     setForm,
     handleCopyCode,
     handleDelete,
     handleSave,
-  } = useDetailModal({ item, onHydrate, onUpdate, onDelete });
+  } = useDetailModal({ item, onUpdate, onDelete });
 
   return (
     <div className="fixed inset-0 z-50 animate-fade-in">
@@ -135,7 +134,6 @@ export function DetailModal({ item, onClose, onHydrate, onUpdate, onDelete, read
                 onCopyCode={handleCopyCode}
                 copied={copied}
                 rawData={rawData}
-                rawDataLoading={rawDataLoading}
               />
             )}
           </div>

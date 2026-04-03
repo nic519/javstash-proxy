@@ -9,18 +9,38 @@ export type EditForm = EditFormType;
  * 排序方式
  */
 export type SortBy = 'updated' | 'code';
+export const ADMIN_SORT_BY_STORAGE_KEY = 'admin:sort-by';
 
 /**
  * 管理后台视图模式
  */
 export type AdminViewMode = 'table' | 'grid';
 export const ADMIN_VIEW_MODE_STORAGE_KEY = 'admin:view-mode';
+export const ADMIN_PAGE_SIZE_STORAGE_KEY = 'admin:page-size';
 
 /**
  * 可选的每页数量选项
  */
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 export type PageSize = typeof PAGE_SIZE_OPTIONS[number];
+
+export interface AdminListState {
+  page: number;
+  pageSize: PageSize;
+  sortBy: SortBy;
+  viewMode: AdminViewMode;
+}
+
+export interface AdminListPreferences {
+  pageSize: PageSize;
+  sortBy: SortBy;
+  viewMode: AdminViewMode;
+}
+
+interface AdminListSearchParamsLike {
+  get(name: string): string | null;
+  has(name: string): boolean;
+}
 
 /**
  * 列表查询结果
@@ -104,6 +124,20 @@ export function normalizeAdminViewMode(value: string | null | undefined): AdminV
   return value === 'grid' ? 'grid' : 'table';
 }
 
+export function normalizeAdminSortBy(value: string | null | undefined): SortBy {
+  return value === 'code' ? 'code' : 'updated';
+}
+
+export function normalizeAdminPageSize(value: string | null | undefined): PageSize {
+  const parsed = Number(value);
+  return PAGE_SIZE_OPTIONS.includes(parsed as PageSize) ? (parsed as PageSize) : 20;
+}
+
+export function normalizeAdminPage(value: string | null | undefined): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : 1;
+}
+
 export function readAdminViewMode(
   storage: Pick<Storage, 'getItem'> | null | undefined
 ): AdminViewMode {
@@ -118,6 +152,50 @@ export function writeAdminViewMode(
   viewMode: AdminViewMode
 ) {
   storage?.setItem(ADMIN_VIEW_MODE_STORAGE_KEY, viewMode);
+}
+
+export function readAdminListState({
+  searchParams,
+  storage,
+}: {
+  searchParams: AdminListSearchParamsLike;
+  storage: Pick<Storage, 'getItem'> | null | undefined;
+}): AdminListState {
+  const page = normalizeAdminPage(searchParams.get('page'));
+  const pageSize = searchParams.has('pageSize')
+    ? normalizeAdminPageSize(searchParams.get('pageSize'))
+    : normalizeAdminPageSize(storage?.getItem(ADMIN_PAGE_SIZE_STORAGE_KEY));
+  const sortBy = searchParams.has('sortBy')
+    ? normalizeAdminSortBy(searchParams.get('sortBy'))
+    : normalizeAdminSortBy(storage?.getItem(ADMIN_SORT_BY_STORAGE_KEY));
+  const viewMode = searchParams.has('viewMode')
+    ? normalizeAdminViewMode(searchParams.get('viewMode'))
+    : readAdminViewMode(storage);
+
+  return {
+    page,
+    pageSize,
+    sortBy,
+    viewMode,
+  };
+}
+
+export function writeAdminListPreferences(
+  storage: Pick<Storage, 'setItem'> | null | undefined,
+  preferences: AdminListPreferences
+) {
+  storage?.setItem(ADMIN_PAGE_SIZE_STORAGE_KEY, String(preferences.pageSize));
+  storage?.setItem(ADMIN_SORT_BY_STORAGE_KEY, preferences.sortBy);
+  writeAdminViewMode(storage, preferences.viewMode);
+}
+
+export function createAdminListSearchParams(state: AdminListState): URLSearchParams {
+  return new URLSearchParams({
+    page: String(normalizeAdminPage(String(state.page))),
+    pageSize: String(normalizeAdminPageSize(String(state.pageSize))),
+    sortBy: normalizeAdminSortBy(state.sortBy),
+    viewMode: normalizeAdminViewMode(state.viewMode),
+  });
 }
 
 export function shouldDisableAdminBackgroundInteractions(remoteOpen: boolean): boolean {

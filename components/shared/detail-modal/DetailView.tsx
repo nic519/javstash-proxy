@@ -10,7 +10,6 @@ import {
   FileVideo,
   Hash,
   Image as ImageIcon,
-  Loader2,
   Users,
 } from 'lucide-react';
 import type { SceneData } from '@/src/graphql/queries';
@@ -24,7 +23,6 @@ export function DetailView({
   onCopyCode,
   copied,
   rawData,
-  rawDataLoading,
 }: {
   item: DetailModalProps['item'];
   form: EditForm;
@@ -32,7 +30,6 @@ export function DetailView({
   onCopyCode: () => void;
   copied: boolean;
   rawData: SceneData | null;
-  rawDataLoading: boolean;
 }) {
   const [imageLoading, setImageLoading] = useState(true);
   const performerNames = getPerformerNames(rawData);
@@ -133,12 +130,7 @@ export function DetailView({
 
         <p className="whitespace-pre-wrap leading-relaxed">{form.summaryZh || '-'}</p>
 
-        {rawDataLoading ? (
-          <div className="flex items-center gap-2 py-4">
-            <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--text-muted)' }} />
-            <span style={{ color: 'var(--text-muted)' }}>正在加载原始数据...</span>
-          </div>
-        ) : rawData ? (
+        {rawData ? (
           <>
             <div className="grid grid-cols-3 gap-4">
               {typeof rawData.director === 'string' && rawData.director && (

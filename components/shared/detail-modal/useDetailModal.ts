@@ -3,20 +3,20 @@
 import { useEffect, useState } from 'react';
 import type { SceneData } from '@/src/graphql/queries';
 import type { DetailModalProps, EditForm } from '../types';
-import { mergeHydratedTranslation, parseSceneData } from './helpers';
+import { parseSceneData } from './helpers';
 
 export function useDetailModal({
   item,
-  onHydrate,
   onUpdate,
   onDelete,
-}: Pick<DetailModalProps, 'item' | 'onHydrate' | 'onUpdate' | 'onDelete'>) {
+}: Pick<DetailModalProps, 'item' | 'onUpdate' | 'onDelete'>) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [rawData, setRawData] = useState<SceneData | null>(null);
-  const [rawDataLoading, setRawDataLoading] = useState(false);
+  const [rawData, setRawData] = useState<SceneData | null>(() =>
+    item.rawResponse ? parseSceneData(item.rawResponse) : null
+  );
   const [form, setForm] = useState<EditForm>({
     titleZh: item.titleZh,
     summaryZh: item.summaryZh,
@@ -36,45 +36,8 @@ export function useDetailModal({
   }, [item.code, item.coverUrl, item.summaryZh, item.titleZh]);
 
   useEffect(() => {
-    const parsedData = item.rawResponse ? parseSceneData(item.rawResponse) : null;
-
-    if (parsedData) {
-      setRawData(parsedData);
-      setRawDataLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setRawDataLoading(true);
-
-    fetch(`/api/admin/scenes/${encodeURIComponent(item.code)}/raw`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        const nextRawResponse = typeof data.rawResponse === 'string' ? data.rawResponse : '';
-        const nextRawData = nextRawResponse ? parseSceneData(nextRawResponse) : null;
-
-        setRawData(nextRawData);
-
-        if (nextRawResponse && nextRawResponse !== item.rawResponse) {
-          onHydrate?.(mergeHydratedTranslation(item, nextRawResponse));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setRawData(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setRawDataLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [item, item.code, item.rawResponse, onHydrate]);
+    setRawData(item.rawResponse ? parseSceneData(item.rawResponse) : null);
+  }, [item.rawResponse]);
 
   const handleCopyCode = async () => {
     await navigator.clipboard.writeText(item.code);
@@ -126,7 +89,6 @@ export function useDetailModal({
     editing,
     form,
     rawData,
-    rawDataLoading,
     saving,
     setEditing,
     setForm,
