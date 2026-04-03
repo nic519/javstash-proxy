@@ -30,6 +30,7 @@ export function Pagination({
   onPageChange,
   pageSize,
   onPageSizeChange,
+  disabled = false,
 }: PaginationProps) {
   const [jumpPage, setJumpPage] = useState('');
 
@@ -71,7 +72,11 @@ export function Pagination({
       {/* 左侧: 每页数量 */}
       {pageSize && onPageSizeChange && (
         <div className="flex items-center gap-2">
-          <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => onPageSizeChange(Number(v))}
+            disabled={disabled}
+          >
             <SelectTrigger className="h-8 w-20 text-xs">
               <SelectValue />
             </SelectTrigger>
@@ -94,8 +99,8 @@ export function Pagination({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() => onPageChange(page - 1)}
-              className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              onClick={() => !disabled && onPageChange(page - 1)}
+              className={page === 1 || disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
             />
           </PaginationItem>
           {getPageNumbers().map((p, i) =>
@@ -107,8 +112,8 @@ export function Pagination({
               <PaginationItem key={p}>
                 <PaginationLink
                   isActive={page === p}
-                  onClick={() => onPageChange(p)}
-                  className="cursor-pointer"
+                  onClick={() => !disabled && onPageChange(p)}
+                  className={disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                 >
                   {p}
                 </PaginationLink>
@@ -117,8 +122,8 @@ export function Pagination({
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() => onPageChange(page + 1)}
-              className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              onClick={() => !disabled && onPageChange(page + 1)}
+              className={page === totalPages || disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
             />
           </PaginationItem>
         </PaginationContent>
@@ -131,9 +136,10 @@ export function Pagination({
         </span>
         <input
           type="number"
+          disabled={disabled}
           value={jumpPage}
           onChange={(e) => setJumpPage(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleJump()}
+          onKeyDown={(e) => !disabled && e.key === 'Enter' && handleJump()}
           placeholder={String(page)}
           className="w-14 h-7 px-2 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-amber-500/50"
           style={{
@@ -143,6 +149,8 @@ export function Pagination({
           }}
         />
         <button
+          type="button"
+          disabled={disabled}
           onClick={handleJump}
           className="h-7 px-2 rounded text-xs transition-colors hover:bg-amber-500/20"
           style={{

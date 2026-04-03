@@ -14,6 +14,7 @@ export type SortBy = 'updated' | 'code';
  * 管理后台视图模式
  */
 export type AdminViewMode = 'table' | 'grid';
+export const ADMIN_VIEW_MODE_STORAGE_KEY = 'admin:view-mode';
 
 /**
  * 可选的每页数量选项
@@ -41,6 +42,8 @@ export interface SearchBarProps {
   onChange: (value: string) => void;
   /** 执行搜索回调 */
   onSearch: () => void;
+  /** 是否禁用 */
+  disabled?: boolean;
 }
 
 /**
@@ -57,6 +60,8 @@ export interface PaginationProps {
   pageSize?: number;
   /** 每页数量变更回调 */
   onPageSizeChange?: (size: number) => void;
+  /** 是否禁用 */
+  disabled?: boolean;
 }
 
 /**
@@ -67,6 +72,32 @@ export interface ViewToggleProps {
   value: AdminViewMode;
   /** 视图变更回调 */
   onChange: (value: AdminViewMode) => void;
+  /** 是否禁用 */
+  disabled?: boolean;
+}
+
+export function normalizeAdminViewMode(value: string | null | undefined): AdminViewMode {
+  return value === 'grid' ? 'grid' : 'table';
+}
+
+export function readAdminViewMode(
+  storage: Pick<Storage, 'getItem'> | null | undefined
+): AdminViewMode {
+  if (!storage) {
+    return 'table';
+  }
+  return normalizeAdminViewMode(storage.getItem(ADMIN_VIEW_MODE_STORAGE_KEY));
+}
+
+export function writeAdminViewMode(
+  storage: Pick<Storage, 'setItem'> | null | undefined,
+  viewMode: AdminViewMode
+) {
+  storage?.setItem(ADMIN_VIEW_MODE_STORAGE_KEY, viewMode);
+}
+
+export function shouldDisableAdminBackgroundInteractions(remoteOpen: boolean): boolean {
+  return remoteOpen;
 }
 
 /**

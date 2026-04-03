@@ -134,7 +134,7 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
       className="glass-card group overflow-hidden rounded-2xl p-0 text-left cursor-pointer"
     >
       <div
-        className="relative aspect-[3/4] w-full overflow-hidden flex items-center justify-center"
+        className="relative aspect-[2.8/4] w-full overflow-hidden flex items-center justify-center"
         style={{ background: 'var(--bg-tertiary)' }}
       >
         {item.coverUrl ? (

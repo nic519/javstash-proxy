@@ -22,8 +22,11 @@ import {
   ViewToggle,
   AdminRemoteSearchModal,
   fetchAdminRemoteSearchResults,
+  readAdminViewMode,
   shouldApplyAdminSearchResponse,
+  shouldDisableAdminBackgroundInteractions,
   prepareRemoteSearchFallbackState,
+  writeAdminViewMode,
 } from './_components';
 
 /**
@@ -42,7 +45,9 @@ export default function AdminPage() {
   // 排序方式
   const [sortBy, setSortBy] = useState<SortBy>('updated');
   // 当前视图模式
-  const [viewMode, setViewMode] = useState<AdminViewMode>('table');
+  const [viewMode, setViewMode] = useState<AdminViewMode>(() =>
+    readAdminViewMode(typeof window === 'undefined' ? null : window.localStorage)
+  );
   // 实际执行的搜索关键词
   const [search, setSearch] = useState('');
   // 搜索输入框的值（未提交时）
@@ -72,6 +77,7 @@ export default function AdminPage() {
 
   // 计算总页数
   const totalPages = Math.ceil(total / pageSize);
+  const backgroundInteractionDisabled = shouldDisableAdminBackgroundInteractions(remoteOpen);
 
   /**
    * 获取翻译列表数据
@@ -132,6 +138,10 @@ export default function AdminPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    writeAdminViewMode(typeof window === 'undefined' ? null : window.localStorage, viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     return () => {
@@ -198,6 +208,9 @@ export default function AdminPage() {
    * 重置页码并更新搜索关键词
    */
   const handleSearch = () => {
+    if (backgroundInteractionDisabled) {
+      return;
+    }
     setPage(1);
     setSearch(searchInput);
   };
@@ -223,6 +236,9 @@ export default function AdminPage() {
   };
 
   const handleLocalSelect = (item: Translation) => {
+    if (backgroundInteractionDisabled) {
+      return;
+    }
     setSelectedReadOnly(false);
     setSelected(item);
   };
@@ -258,9 +274,14 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap justify-end">
-            <ViewToggle value={viewMode} onChange={setViewMode} />
+            <ViewToggle
+              value={viewMode}
+              onChange={setViewMode}
+              disabled={backgroundInteractionDisabled}
+            />
             {/* 排序选择 */}
             <Select
+              disabled={backgroundInteractionDisabled}
               value={sortBy}
               onValueChange={(v) => {
                 setSortBy(v as SortBy);
@@ -275,7 +296,12 @@ export default function AdminPage() {
                 <SelectItem value="code">按番号首字母</SelectItem>
               </SelectContent>
             </Select>
-            <SearchBar value={searchInput} onChange={setSearchInput} onSearch={handleSearch} />
+            <SearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              disabled={backgroundInteractionDisabled}
+            />
           </div>
         </div>
 
@@ -293,7 +319,10 @@ export default function AdminPage() {
         )}
 
         {/* 数据表格 */}
-        <div className="glass-card animate-fade-in stagger-1 overflow-hidden">
+        <div
+          className={`glass-card animate-fade-in stagger-1 overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+          aria-hidden={backgroundInteractionDisabled}
+        >
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div
@@ -351,6 +380,7 @@ export default function AdminPage() {
             page={page}
             totalPages={totalPages}
             pageSize={pageSize}
+            disabled={backgroundInteractionDisabled}
             onPageChange={setPage}
             onPageSizeChange={(size) => {
               setPageSize(size);

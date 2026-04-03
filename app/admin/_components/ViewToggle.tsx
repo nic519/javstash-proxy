@@ -7,7 +7,7 @@ import type { ViewToggleProps } from './types';
  * 管理后台视图切换
  * 在表格视图和网格视图之间切换
  */
-export function ViewToggle({ value, onChange }: ViewToggleProps) {
+export function ViewToggle({ value, onChange, disabled = false }: ViewToggleProps) {
   return (
     <div
       className="inline-flex items-center gap-1 rounded-xl p-1"
@@ -15,6 +15,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
     >
       <button
         type="button"
+        disabled={disabled}
         onClick={() => onChange('table')}
         aria-pressed={value === 'table'}
         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
@@ -28,6 +29,7 @@ export function ViewToggle({ value, onChange }: ViewToggleProps) {
       </button>
       <button
         type="button"
+        disabled={disabled}
         onClick={() => onChange('grid')}
         aria-pressed={value === 'grid'}
         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"

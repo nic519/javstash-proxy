@@ -2,7 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ViewToggle } from '../app/admin/_components/ViewToggle';
-import { prepareRemoteSearchFallbackState } from '../app/admin/_components/types';
+import {
+  ADMIN_VIEW_MODE_STORAGE_KEY,
+  prepareRemoteSearchFallbackState,
+  readAdminViewMode,
+  shouldDisableAdminBackgroundInteractions,
+  writeAdminViewMode,
+} from '../app/admin/_components/types';
 import type { Translation } from '../components/shared/types';
 
 describe('ViewToggle', () => {
@@ -18,6 +24,18 @@ describe('ViewToggle', () => {
     expect(markup).toContain('网格');
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-pressed="false"');
+  });
+
+  it('marks both toggle actions as disabled when background interactions are frozen', () => {
+    const markup = renderToStaticMarkup(
+      createElement(ViewToggle, {
+        value: 'grid',
+        onChange: () => {},
+        disabled: true,
+      })
+    );
+
+    expect(markup).toContain('disabled=""');
   });
 });
 
@@ -52,5 +70,35 @@ describe('prepareRemoteSearchFallbackState', () => {
       open: false,
       keyword: '',
     });
+  });
+});
+
+describe('admin view mode persistence helpers', () => {
+  it('reads a stored grid view mode and falls back to table for invalid values', () => {
+    expect(readAdminViewMode({ getItem: () => 'grid' })).toBe('grid');
+    expect(readAdminViewMode({ getItem: () => 'nope' })).toBe('table');
+    expect(readAdminViewMode(null)).toBe('table');
+  });
+
+  it('writes the chosen view mode using the stable storage key', () => {
+    const calls: Array<[string, string]> = [];
+
+    writeAdminViewMode(
+      {
+        setItem: (key, value) => {
+          calls.push([key, value]);
+        },
+      },
+      'grid'
+    );
+
+    expect(calls).toEqual([[ADMIN_VIEW_MODE_STORAGE_KEY, 'grid']]);
+  });
+});
+
+describe('shouldDisableAdminBackgroundInteractions', () => {
+  it('only disables background interactions while the remote modal is open', () => {
+    expect(shouldDisableAdminBackgroundInteractions(false)).toBe(false);
+    expect(shouldDisableAdminBackgroundInteractions(true)).toBe(true);
   });
 });
