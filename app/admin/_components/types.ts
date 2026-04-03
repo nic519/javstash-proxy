@@ -87,6 +87,8 @@ export interface PaginationProps {
   pageSize?: number;
   /** 每页数量变更回调 */
   onPageSizeChange?: (size: number) => void;
+  /** 分页展示模式 */
+  variant?: 'full' | 'compact' | 'responsive';
   /** 是否禁用 */
   disabled?: boolean;
 }

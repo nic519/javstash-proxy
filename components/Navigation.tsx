@@ -301,41 +301,10 @@ export function Navigation({ mobilePanelContent, scrollContainerId }: Navigation
             boxShadow: '0 -20px 48px rgba(0, 0, 0, 0.32)',
           }}
         >
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            <div className="min-w-0">
-              <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                工具
-              </div>
-              <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
-                Admin Command Panel
-              </div>
-            </div>
-            <button
-              type="button"
-              aria-label="关闭工具面板"
-              onClick={() => setMobileOpen(false)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border"
-              style={{
-                borderColor: 'rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
-                color: 'var(--text-primary)',
-              }}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-4">
             {mobilePanelContent ? (
               <section className="mb-5">
-                <div className="mb-3 px-1">
-                  <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    页面操作
-                  </div>
-                  <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
-                    Search / Sort / View
-                  </div>
-                </div>
                 <div onClick={(event) => event.stopPropagation()}>
                   {mobilePanelContent}
                 </div>

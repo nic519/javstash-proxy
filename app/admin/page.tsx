@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Navigation } from '@/components/Navigation';
 import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
@@ -28,7 +28,7 @@ import {
  * 缓存管理页面
  * 提供翻译缓存的查看、搜索、编辑和删除功能
  */
-export default function AdminPage() {
+function AdminPageContent() {
   const listScrollContainerId = 'admin-list-scroll-container';
   const router = useRouter();
   const pathname = usePathname();
@@ -458,6 +458,7 @@ export default function AdminPage() {
                   totalPages={totalPages}
                   totalItems={total}
                   pageSize={pageSize}
+                  variant="responsive"
                   disabled={backgroundInteractionDisabled}
                   onPageChange={setPage}
                   onPageSizeChange={(size) => {
@@ -490,5 +491,13 @@ export default function AdminPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminPageContent />
+    </Suspense>
   );
 }
