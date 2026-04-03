@@ -1,24 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Loader2, AlertCircle, Frown } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { SEARCH_SCENE_QUERY, type SceneData } from '@/src/graphql/queries';
-import { ItemCard, DetailModal, type Translation } from '@/components/shared';
-
-/**
- * 将 GraphQL Scene 数据转换为 Translation 类型
- */
-function sceneToTranslation(scene: SceneData): Translation {
-  return {
-    code: scene.code,
-    titleZh: scene.title || '',
-    summaryZh: scene.details || '',
-    coverUrl: scene.images?.[0]?.url,
-    rawResponse: JSON.stringify(scene),
-    updatedAt: scene.updated,
-  };
-}
+import { DetailModal, RemoteSceneResults, type Translation } from '@/components/shared';
 
 /**
  * 浏览页面组件
@@ -42,7 +28,8 @@ export default function BrowsePage() {
    */
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!keyword.trim()) return;
+    const term = keyword.trim();
+    if (!term) return;
 
     setLoading(true);
     setError('');
@@ -54,7 +41,7 @@ export default function BrowsePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: SEARCH_SCENE_QUERY,
-          variables: { term: keyword },
+          variables: { term },
         }),
       });
 
@@ -128,69 +115,13 @@ export default function BrowsePage() {
           </form>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-8 p-4 rounded-xl flex items-center gap-3 animate-fade-in" style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            color: '#fca5a5'
-          }}>
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Results */}
-        <div className="space-y-4">
-          {results.map((scene, index) => {
-            const item = sceneToTranslation(scene);
-            return (
-              <div
-                key={scene.id}
-                style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
-              >
-                <ItemCard
-                  item={item}
-                  variant="card"
-                  onClick={handleItemClick}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Empty State */}
-        {results.length === 0 && !loading && keyword && !error && (
-          <div className="text-center py-20 animate-fade-in">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--bg-tertiary)' }}>
-              <Frown className="w-10 h-10" style={{ color: 'var(--text-muted)' }} />
-            </div>
-            <p className="text-xl font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-              未找到相关结果
-            </p>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              请尝试其他关键词或检查输入
-            </p>
-          </div>
-        )}
-
-        {/* Initial State */}
-        {results.length === 0 && !loading && !keyword && (
-          <div className="text-center py-20 animate-fade-in">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{
-              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05))',
-              border: '1px solid rgba(212, 175, 55, 0.2)'
-            }}>
-              <Search className="w-10 h-10" style={{ color: 'var(--accent-gold)' }} />
-            </div>
-            <p className="text-xl font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-              开始搜索
-            </p>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              输入番号、演员名或关键词来搜索内容
-            </p>
-          </div>
-        )}
+        <RemoteSceneResults
+          results={results}
+          loading={loading}
+          error={error}
+          keyword={keyword}
+          onItemClick={handleItemClick}
+        />
       </main>
 
       {/* Detail Modal - 只读模式 */}

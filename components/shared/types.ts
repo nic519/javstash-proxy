@@ -20,7 +20,7 @@ export interface Translation {
 /**
  * ItemCard 组件变体
  */
-export type ItemCardVariant = 'table' | 'card';
+export type ItemCardVariant = 'table' | 'card' | 'grid';
 
 /**
  * ItemCard 组件属性

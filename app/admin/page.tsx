@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sidebar } from '@/components/sidebar';
+import type { SceneData } from '@/src/graphql/queries';
 import {
   Select,
   SelectContent,
@@ -17,6 +18,12 @@ import {
   type Translation,
   type ListResult,
   type SortBy,
+  type AdminViewMode,
+  ViewToggle,
+  AdminRemoteSearchModal,
+  fetchAdminRemoteSearchResults,
+  shouldApplyAdminSearchResponse,
+  prepareRemoteSearchFallbackState,
 } from './_components';
 
 /**
@@ -34,16 +41,34 @@ export default function AdminPage() {
   const [pageSize, setPageSize] = useState(20);
   // 排序方式
   const [sortBy, setSortBy] = useState<SortBy>('updated');
+  // 当前视图模式
+  const [viewMode, setViewMode] = useState<AdminViewMode>('table');
   // 实际执行的搜索关键词
   const [search, setSearch] = useState('');
   // 搜索输入框的值（未提交时）
   const [searchInput, setSearchInput] = useState('');
   // 数据加载状态
   const [loading, setLoading] = useState(true);
+  // 远端搜索弹窗是否打开
+  const [remoteOpen, setRemoteOpen] = useState(false);
+  // 远端搜索关键词
+  const [remoteKeyword, setRemoteKeyword] = useState('');
+  // 远端搜索结果
+  const [remoteResults, setRemoteResults] = useState<SceneData[]>([]);
+  // 远端搜索加载状态
+  const [remoteLoading, setRemoteLoading] = useState(false);
+  // 远端搜索错误信息
+  const [remoteError, setRemoteError] = useState('');
   // 当前选中的条目（用于详情弹窗）
   const [selected, setSelected] = useState<Translation | null>(null);
+  // 当前详情是否只读（远端结果）
+  const [selectedReadOnly, setSelectedReadOnly] = useState(false);
   // 操作提示消息
   const [message, setMessage] = useState('');
+  // 本地查询请求版本
+  const localRequestVersionRef = useRef(0);
+  // 消息清除定时器
+  const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 计算总页数
   const totalPages = Math.ceil(total / pageSize);
@@ -53,6 +78,8 @@ export default function AdminPage() {
    * 根据页码、搜索关键词和排序方式请求后端 API
    */
   const fetchData = useCallback(async () => {
+    const requestId = localRequestVersionRef.current + 1;
+    localRequestVersionRef.current = requestId;
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -63,15 +90,41 @@ export default function AdminPage() {
       if (search) params.set('search', search);
 
       const res = await fetch(`/api/admin/translations?${params}`);
+      if (!shouldApplyAdminSearchResponse({
+        requestId,
+        activeRequestId: localRequestVersionRef.current,
+      })) {
+        return;
+      }
+
       if (res.ok) {
         const data: ListResult = await res.json();
         setItems(data.items);
         setTotal(data.total);
+        const fallbackState = prepareRemoteSearchFallbackState(search, data.items);
+        if (!fallbackState.open) {
+          setRemoteResults([]);
+          setRemoteError('');
+          setRemoteLoading(false);
+        }
+        setRemoteOpen(fallbackState.open);
+        setRemoteKeyword(fallbackState.keyword);
       }
     } catch {
+      if (!shouldApplyAdminSearchResponse({
+        requestId,
+        activeRequestId: localRequestVersionRef.current,
+      })) {
+        return;
+      }
       showMessage('获取数据失败');
     } finally {
-      setLoading(false);
+      if (shouldApplyAdminSearchResponse({
+        requestId,
+        activeRequestId: localRequestVersionRef.current,
+      })) {
+        setLoading(false);
+      }
     }
   }, [page, pageSize, search, sortBy]);
 
@@ -80,13 +133,64 @@ export default function AdminPage() {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!remoteOpen || !remoteKeyword) {
+      setRemoteLoading(false);
+      setRemoteError('');
+      if (!remoteOpen) {
+        setRemoteResults([]);
+      }
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setRemoteLoading(true);
+    setRemoteError('');
+    setRemoteResults([]);
+
+    fetchAdminRemoteSearchResults(remoteKeyword)
+      .then(({ results, error }) => {
+        if (cancelled) {
+          return;
+        }
+        setRemoteResults(results);
+        setRemoteError(error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setRemoteLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [remoteOpen, remoteKeyword]);
+
   /**
    * 显示操作提示消息
    * 3 秒后自动消失
    */
   const showMessage = (msg: string) => {
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
     setMessage(msg);
-    setTimeout(() => setMessage(''), 3000);
+    messageTimeoutRef.current = setTimeout(() => {
+      setMessage('');
+      messageTimeoutRef.current = null;
+    }, 3000);
   };
 
   /**
@@ -118,6 +222,29 @@ export default function AdminPage() {
     showMessage('删除成功');
   };
 
+  const handleLocalSelect = (item: Translation) => {
+    setSelectedReadOnly(false);
+    setSelected(item);
+  };
+
+  const handleRemoteSelect = (item: Translation) => {
+    setSelectedReadOnly(true);
+    setSelected(item);
+  };
+
+  const handleDetailClose = () => {
+    setSelected(null);
+    setSelectedReadOnly(false);
+  };
+
+  const handleRemoteClose = () => {
+    setRemoteOpen(false);
+    setRemoteKeyword('');
+    setRemoteResults([]);
+    setRemoteError('');
+    setRemoteLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex animated-bg">
       <Sidebar />
@@ -130,7 +257,8 @@ export default function AdminPage() {
               {total.toLocaleString()} 条
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <ViewToggle value={viewMode} onChange={setViewMode} />
             {/* 排序选择 */}
             <Select
               value={sortBy}
@@ -178,31 +306,46 @@ export default function AdminPage() {
               暂无数据
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
-                    代码
-                  </th>
-                  <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
-                    中文标题
-                  </th>
-                  <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
-                    中文简介
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <ItemCard
-                    key={item.code}
-                    item={item}
-                    variant="table"
-                    onClick={setSelected}
-                  />
-                ))}
-              </tbody>
-            </table>
+            <>
+              {viewMode === 'table' ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                        代码
+                      </th>
+                      <th className="text-left px-3 py-2 font-medium" style={{ color: 'var(--text-muted)' }}>
+                        中文标题
+                      </th>
+                      <th className="text-left px-3 py-2 font-medium hidden lg:table-cell w-full" style={{ color: 'var(--text-muted)' }}>
+                        中文简介
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => (
+                      <ItemCard
+                        key={item.code}
+                        item={item}
+                        variant="table"
+                        onClick={handleLocalSelect}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 xl:grid-cols-5">
+                  {items.map((item) => (
+                    <ItemCard
+                      key={item.code}
+                      item={item}
+                      variant="grid"
+                      onClick={handleLocalSelect}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
           <Pagination
             page={page}
@@ -216,13 +359,24 @@ export default function AdminPage() {
           />
         </div>
 
+        <AdminRemoteSearchModal
+          open={remoteOpen}
+          keyword={remoteKeyword}
+          results={remoteResults}
+          loading={remoteLoading}
+          error={remoteError}
+          onClose={handleRemoteClose}
+          onSelect={handleRemoteSelect}
+        />
+
         {/* 详情弹窗 */}
         {selected && (
           <DetailModal
             item={selected}
-            onClose={() => setSelected(null)}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
+            onClose={handleDetailClose}
+            onUpdate={selectedReadOnly ? undefined : handleUpdate}
+            onDelete={selectedReadOnly ? undefined : handleDelete}
+            readOnly={selectedReadOnly}
           />
         )}
       </main>

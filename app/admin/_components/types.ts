@@ -1,5 +1,5 @@
 // Import shared types for use in this file
-import type { Translation as TranslationType, EditForm as EditFormType } from '@/components/shared/types';
+import type { Translation as TranslationType, EditForm as EditFormType } from '../../../components/shared/types';
 
 // Re-export shared types
 export type Translation = TranslationType;
@@ -9,6 +9,11 @@ export type EditForm = EditFormType;
  * 排序方式
  */
 export type SortBy = 'updated' | 'code';
+
+/**
+ * 管理后台视图模式
+ */
+export type AdminViewMode = 'table' | 'grid';
 
 /**
  * 可选的每页数量选项
@@ -52,4 +57,30 @@ export interface PaginationProps {
   pageSize?: number;
   /** 每页数量变更回调 */
   onPageSizeChange?: (size: number) => void;
+}
+
+/**
+ * 视图切换组件属性
+ */
+export interface ViewToggleProps {
+  /** 当前视图模式 */
+  value: AdminViewMode;
+  /** 视图变更回调 */
+  onChange: (value: AdminViewMode) => void;
+}
+
+/**
+ * 仅在本地搜索无结果且存在有效搜索词时，准备远端搜索的初始状态
+ */
+export function prepareRemoteSearchFallbackState(
+  searchTerm: string,
+  currentItems: readonly unknown[]
+): { open: boolean; keyword: string } {
+  const keyword = searchTerm.trim();
+  const open = keyword.length > 0 && currentItems.length === 0;
+
+  return {
+    open,
+    keyword: open ? keyword : '',
+  };
 }
