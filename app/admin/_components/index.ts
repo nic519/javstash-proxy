@@ -1,4 +1,5 @@
 export * from './types';
+export { AdminPageHeader } from './AdminPageHeader';
 export { SearchBar } from './SearchBar';
 export { Pagination } from './Pagination';
 export { ViewToggle } from './ViewToggle';

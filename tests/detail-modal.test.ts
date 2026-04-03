@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SceneData } from '../src/graphql/queries';
-import { getPerformerNames } from '../components/shared/DetailModal';
+import { getPerformerNames, getTagColor } from '../components/shared/detail-modal/helpers';
 
 describe('getPerformerNames', () => {
   it('returns only non-empty performer names in order', () => {
@@ -27,5 +27,22 @@ describe('getPerformerNames', () => {
         code: 'ABP-456',
       })
     ).toEqual([]);
+  });
+});
+
+describe('getTagColor', () => {
+  it('returns a stable color for the same tag name', () => {
+    expect(getTagColor('剧情')).toEqual(getTagColor('剧情'));
+    expect(getTagColor('女教师')).toEqual(getTagColor('女教师'));
+  });
+
+  it('spreads different tag names across the palette', () => {
+    const paletteEntries = new Set(
+      ['剧情', '秘书', '户外', '人妻', '学生', '制服', '巨乳', '恋爱', '办公室', '出差'].map((tag) =>
+        JSON.stringify(getTagColor(tag))
+      )
+    );
+
+    expect(paletteEntries.size).toBeGreaterThan(1);
   });
 });

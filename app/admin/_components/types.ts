@@ -76,6 +76,30 @@ export interface ViewToggleProps {
   disabled?: boolean;
 }
 
+/**
+ * 管理页头组件属性
+ */
+export interface AdminPageHeaderProps {
+  /** 数据总量 */
+  total: number;
+  /** 当前排序方式 */
+  sortBy: SortBy;
+  /** 当前视图模式 */
+  viewMode: AdminViewMode;
+  /** 当前搜索词 */
+  searchInput: string;
+  /** 是否禁止后台交互 */
+  backgroundInteractionDisabled?: boolean;
+  /** 排序变更回调 */
+  onSortChange: (value: SortBy) => void;
+  /** 视图模式变更回调 */
+  onViewModeChange: (value: AdminViewMode) => void;
+  /** 搜索词变更回调 */
+  onSearchInputChange: (value: string) => void;
+  /** 搜索回调 */
+  onSearch: () => void;
+}
+
 export function normalizeAdminViewMode(value: string | null | undefined): AdminViewMode {
   return value === 'grid' ? 'grid' : 'table';
 }

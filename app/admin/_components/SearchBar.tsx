@@ -12,7 +12,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasValue = value.trim().length > 0;
   const actionButtonClassName =
-    'my-1 flex h-9 w-9 items-center justify-center rounded-md transition-colors focus:outline-none';
+    'flex h-10 w-10 items-center justify-center rounded-lg transition-colors focus:outline-none';
   const actionButtonStyle = {
     color: 'var(--text-primary)',
   } as const;
@@ -38,7 +38,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
 
   return (
     <div
-      className={`flex items-center overflow-hidden rounded-xl border ${disabled ? 'opacity-60' : ''}`}
+      className={`flex h-10 items-center overflow-hidden rounded-xl border ${disabled ? 'opacity-60' : ''}`}
       style={{
         background: 'var(--bg-tertiary)',
         borderColor: 'var(--border-subtle)',
@@ -54,11 +54,11 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => !disabled && e.key === 'Enter' && onSearch()}
         placeholder="搜索..."
-        className="h-9 w-56 min-w-0 border-none bg-transparent px-3 text-sm outline-none"
+        className="h-10 w-56 min-w-0 border-none bg-transparent px-3 text-sm outline-none"
         style={{ color: 'var(--text-primary)' }}
       />
       <div
-        className="flex self-stretch items-center pl-1"
+        className="flex h-full items-center pl-1"
         style={{ borderLeft: '1px solid var(--border-subtle)' }}
       >
         <button
@@ -93,7 +93,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
           title="搜索"
           disabled={disabled}
           onClick={onSearch}
-          className="flex min-w-12 items-center justify-center self-stretch rounded-none px-3 transition-colors focus:outline-none"
+          className="flex h-full min-w-12 items-center justify-center self-stretch rounded-none px-3 transition-colors focus:outline-none"
           style={{
             borderLeft: '1px solid rgba(212, 175, 55, 0.1)',
             background:

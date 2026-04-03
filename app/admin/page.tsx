@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sidebar } from '@/components/sidebar';
 import type { SceneData } from '@/src/graphql/queries';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  SearchBar,
+  AdminPageHeader,
   Pagination,
   DetailModal,
   ItemCard,
@@ -19,7 +12,6 @@ import {
   type ListResult,
   type SortBy,
   type AdminViewMode,
-  ViewToggle,
   AdminRemoteSearchModal,
   fetchAdminLocalSearchResults,
   fetchAdminRemoteSearchResults,
@@ -255,45 +247,20 @@ export default function AdminPage() {
     <div className="min-h-screen flex animated-bg">
       <Sidebar />
       <main className="flex-1 p-6 relative z-10">
-        {/* 页面标题和搜索栏 */}
-        <div className="flex items-center justify-between mb-4 animate-fade-in">
-          <div>
-            <h1 className="font-display text-2xl font-semibold gradient-text">缓存管理</h1>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              {total.toLocaleString()} 条
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap justify-end">
-            <ViewToggle
-              value={viewMode}
-              onChange={setViewMode}
-              disabled={backgroundInteractionDisabled}
-            />
-            {/* 排序选择 */}
-            <Select
-              disabled={backgroundInteractionDisabled}
-              value={sortBy}
-              onValueChange={(v) => {
-                setSortBy(v as SortBy);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-9 w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="updated">按修改时间</SelectItem>
-                <SelectItem value="code">按番号首字母</SelectItem>
-              </SelectContent>
-            </Select>
-            <SearchBar
-              value={searchInput}
-              onChange={setSearchInput}
-              onSearch={handleSearch}
-              disabled={backgroundInteractionDisabled}
-            />
-          </div>
-        </div>
+        <AdminPageHeader
+          total={total}
+          sortBy={sortBy}
+          viewMode={viewMode}
+          searchInput={searchInput}
+          backgroundInteractionDisabled={backgroundInteractionDisabled}
+          onSortChange={(value) => {
+            setSortBy(value);
+            setPage(1);
+          }}
+          onViewModeChange={setViewMode}
+          onSearchInputChange={setSearchInput}
+          onSearch={handleSearch}
+        />
 
         {/* 操作提示消息 */}
         {message && (
