@@ -193,20 +193,36 @@ export function Navigation({ scrollContainerId }: NavigationProps) {
       className="hidden lg:flex sticky top-0 z-40 px-6 py-4"
       style={{
         background:
-          'linear-gradient(180deg, rgba(6, 6, 8, 0.86), rgba(6, 6, 8, 0.48) 82%, rgba(6, 6, 8, 0))',
+          'linear-gradient(180deg, rgba(6, 6, 8, 0.52), rgba(6, 6, 8, 0.18) 82%, rgba(6, 6, 8, 0))',
       }}
     >
       <div
-        className="grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 rounded-[1.9rem] border px-5 py-3.5"
+        className="relative grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 overflow-hidden rounded-[1.9rem] border px-5 py-3.5"
         style={{
           background:
-            'linear-gradient(180deg, rgba(20,20,24,0.86), rgba(12,12,16,0.72))',
-          borderColor: 'rgba(255,255,255,0.06)',
+            'linear-gradient(180deg, rgba(20,20,24,0.62), rgba(12,12,16,0.42))',
+          borderColor: 'rgba(255,255,255,0.03)',
           backdropFilter: 'blur(24px)',
           boxShadow:
-            '0 22px 50px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(201, 162, 39, 0.08)',
+            '0 10px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -1px 0 rgba(201, 162, 39, 0.035)',
         }}
       >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-10 top-0 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.14), rgba(255,255,255,0))',
+          }}
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle at 50% -20%, rgba(255,255,255,0.08), rgba(255,255,255,0) 46%), radial-gradient(circle at 14% 50%, rgba(201, 162, 39, 0.05), rgba(201, 162, 39, 0) 32%), radial-gradient(circle at 86% 50%, rgba(201, 162, 39, 0.04), rgba(201, 162, 39, 0) 30%)',
+          }}
+        />
         <div className="justify-self-start">
           {brandBlock}
         </div>
@@ -216,9 +232,9 @@ export function Navigation({ scrollContainerId }: NavigationProps) {
           className="justify-self-center rounded-full border p-1.5"
           style={{
             background:
-              'linear-gradient(180deg, rgba(8,8,10,0.82), rgba(18,18,24,0.66))',
-            borderColor: 'rgba(255,255,255,0.08)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px rgba(0,0,0,0.22)',
+              'linear-gradient(180deg, rgba(8,8,10,0.58), rgba(18,18,24,0.36))',
+            borderColor: 'rgba(255,255,255,0.06)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035), 0 8px 18px rgba(0,0,0,0.14)',
           }}
         >
           <div className="flex items-center gap-1.5">
@@ -232,9 +248,9 @@ export function Navigation({ scrollContainerId }: NavigationProps) {
             className="inline-flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5"
             style={{
               color: '#f1b5b5',
-              background: 'linear-gradient(180deg, rgba(84, 25, 25, 0.24), rgba(60, 14, 14, 0.16))',
-              borderColor: 'rgba(239, 68, 68, 0.2)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+              background: 'linear-gradient(180deg, rgba(84, 25, 25, 0.16), rgba(60, 14, 14, 0.08))',
+              borderColor: 'rgba(239, 68, 68, 0.14)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
             }}
           >
             {iconMap.logout}
