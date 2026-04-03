@@ -2,7 +2,6 @@
 
 import { Loader2, X } from 'lucide-react';
 import {
-  ItemCard,
   RemoteSceneResults,
   type Translation,
 } from '../../../components/shared';
@@ -163,27 +162,15 @@ export function AdminRemoteSearchModal({
                 <span>搜索中...</span>
               </div>
             </div>
-          ) : source === 'local' ? (
-            localResults.length > 0 ? (
-              <div className="space-y-4">
-                {localResults.map((item, index) => (
-                  <div key={item.code} style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}>
-                    <ItemCard item={item} variant="card" onClick={onLocalSelect} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20" style={{ color: 'var(--text-muted)' }}>
-                暂无搜索结果
-              </div>
-            )
           ) : (
             <RemoteSceneResults
               results={results}
+              localResults={localResults}
               loading={loading}
               error={error}
               keyword={keyword}
-              onItemClick={onRemoteSelect}
+              source={source}
+              onItemClick={source === 'local' ? onLocalSelect : onRemoteSelect}
             />
           )}
         </div>

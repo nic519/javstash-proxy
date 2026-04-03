@@ -210,6 +210,12 @@ describe('AdminRemoteSearchModal', () => {
             code: 'ABP-123',
             titleZh: 'Local title',
             summaryZh: 'Local summary',
+            rawResponse: JSON.stringify({
+              director: '本地导演',
+              performers: [{ performer: { name: '本地演员' } }],
+              tags: [{ name: '本地标签' }],
+              studio: { name: '本地片商' },
+            }),
           },
         ],
         results: [],
@@ -223,7 +229,11 @@ describe('AdminRemoteSearchModal', () => {
 
     expect(markup).toContain('本地搜索结果');
     expect(markup).toContain('Local title');
+    expect(markup).toContain('本地导演');
+    expect(markup).toContain('本地演员');
+    expect(markup).toContain('本地标签');
     expect(markup).not.toContain('本地未命中');
+    expect(markup).not.toContain('<table');
   });
 
   it('returns no markup when the modal is closed', () => {

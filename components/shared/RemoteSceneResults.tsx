@@ -18,6 +18,7 @@ import type { Translation } from './types';
 import {
   formatDate,
   getPerformerNames,
+  parseSceneData,
   getStudioName,
   getTagColor,
 } from './detail-modal/helpers';
@@ -25,9 +26,11 @@ import type { SceneData } from '@/src/graphql/queries';
 
 interface RemoteSceneResultsProps {
   results: SceneData[];
+  localResults?: Translation[];
   loading: boolean;
   error: string;
   keyword: string;
+  source?: 'local' | 'remote' | null;
   onItemClick: (item: Translation) => void;
 }
 
@@ -37,15 +40,22 @@ interface RemoteSceneResultsProps {
  */
 export function RemoteSceneResults({
   results,
+  localResults = [],
   loading,
   error,
   keyword,
+  source = 'remote',
   onItemClick,
 }: RemoteSceneResultsProps) {
   const normalizedKeyword = keyword.trim();
-  const showResults = results.length > 0;
-  const showInitialState = results.length === 0 && !loading && !normalizedKeyword && !error;
-  const showNoResultsState = results.length === 0 && !loading && normalizedKeyword && !error;
+  const showingLocalResults = source === 'local';
+  const localScenes = localResults.map((item) => ({
+    item,
+    scene: item.rawResponse ? parseSceneData(item.rawResponse) : null,
+  }));
+  const showResults = showingLocalResults ? localScenes.length > 0 : results.length > 0;
+  const showInitialState = !showResults && !loading && !normalizedKeyword && !error;
+  const showNoResultsState = !showResults && !loading && normalizedKeyword && !error;
 
   return (
     <div>
@@ -65,17 +75,26 @@ export function RemoteSceneResults({
 
       {showResults ? (
         <div className="space-y-4">
-          {results.map((scene, index) => {
-            const item = sceneToTranslation(scene);
-            return (
-              <div
-                key={scene.id}
-                style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
-              >
-                <RemoteSceneCard item={item} scene={scene} onClick={onItemClick} />
-              </div>
-            );
-          })}
+          {showingLocalResults
+            ? localScenes.map(({ item, scene }, index) => (
+                <div
+                  key={item.code}
+                  style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
+                >
+                  <RemoteSceneCard item={item} scene={scene} onClick={onItemClick} />
+                </div>
+              ))
+            : results.map((scene, index) => {
+                const item = sceneToTranslation(scene);
+                return (
+                  <div
+                    key={scene.id}
+                    style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
+                  >
+                    <RemoteSceneCard item={item} scene={scene} onClick={onItemClick} />
+                  </div>
+                );
+              })}
         </div>
       ) : showNoResultsState ? (
         <div className="text-center py-20 animate-fade-in">
@@ -121,13 +140,13 @@ function RemoteSceneCard({
   onClick,
 }: {
   item: Translation;
-  scene: SceneData;
+  scene: SceneData | null;
   onClick: (item: Translation) => void;
 }) {
-  const releaseDate = formatDate(scene.date) || '-';
+  const releaseDate = formatDate(scene?.date || item.updatedAt) || '-';
   const studioName = getStudioName(scene) || '-';
   const performerNames = getPerformerNames(scene);
-  const tagNames = Array.isArray(scene.tags)
+  const tagNames = Array.isArray(scene?.tags)
     ? scene.tags.map((tag) => tag.name?.trim()).filter((tag): tag is string => Boolean(tag)).slice(0, 8)
     : [];
 
@@ -173,7 +192,7 @@ function RemoteSceneCard({
 
         <div className="min-w-0 flex-1 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            {scene.director ? (
+            {scene?.director ? (
               <MetaPill icon={<Clapperboard className="h-4 w-4" />} value={`导演 ${scene.director}`} />
             ) : null}
 

@@ -148,6 +148,38 @@ describe('RemoteSceneResults', () => {
     expect(markup).toContain('制服');
     expect(markup).toContain('expanded-cover.jpg');
   });
+
+  it('renders local search results with the same expanded result card layout', () => {
+    const markup = renderToStaticMarkup(
+      createElement(RemoteSceneResults, {
+        results: [],
+        localResults: [
+          {
+            code: 'IPZZ-001',
+            titleZh: 'Local expanded title',
+            summaryZh: 'Local expanded summary',
+            rawResponse: JSON.stringify({
+              director: '本地导演',
+              performers: [{ performer: { name: '本地演员' } }],
+              tags: [{ name: '本地标签' }],
+            }),
+          },
+        ],
+        loading: false,
+        error: '',
+        keyword: 'local',
+        source: 'local',
+        onItemClick: () => {},
+      })
+    );
+
+    expect(markup).toContain('IPZZ-001');
+    expect(markup).toContain('Local expanded title');
+    expect(markup).toContain('Local expanded summary');
+    expect(markup).toContain('本地导演');
+    expect(markup).toContain('本地演员');
+    expect(markup).toContain('本地标签');
+  });
 });
 
 describe('ItemCard', () => {
