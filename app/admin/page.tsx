@@ -405,7 +405,7 @@ function AdminPageContent() {
             >
               {/* 真正负责滚动的列表区域。
                   Navigation 会根据这个容器的滚动状态做联动。 */}
-              <div id={listScrollContainerId} className="min-h-0 flex-1 overflow-auto">
+              <div id={listScrollContainerId} className="hide-scrollbar min-h-0 flex-1 overflow-auto">
                 {loading ? (
                   <div className="flex items-center justify-center py-36">
                     <div

@@ -302,7 +302,7 @@ export function Navigation({ mobilePanelContent, scrollContainerId }: Navigation
           }}
         >
 
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="hide-scrollbar flex-1 overflow-y-auto px-4 py-4">
             {mobilePanelContent ? (
               <section className="mb-5">
                 <div onClick={(event) => event.stopPropagation()}>
