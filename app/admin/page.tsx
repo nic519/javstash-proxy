@@ -20,6 +20,7 @@ import {
   readAdminSearchOverlayState,
   readAdminListState,
   shouldApplyAdminSearchResponse,
+  shouldAllowAdminLocalSelection,
   shouldDisableAdminBackgroundInteractions,
   writeAdminListPreferences,
 } from './_components';
@@ -271,8 +272,11 @@ function AdminPageContent() {
     showMessage('删除成功');
   };
 
-  const handleLocalSelect = (item: Translation) => {
-    if (backgroundInteractionDisabled) {
+  const handleLocalSelect = (
+    item: Translation,
+    origin: 'list' | 'search-overlay' = 'list'
+  ) => {
+    if (!shouldAllowAdminLocalSelection({ backgroundInteractionDisabled, origin })) {
       return;
     }
     setSelectedReadOnly(!canManage);
@@ -490,7 +494,7 @@ function AdminPageContent() {
               open={remoteOpen}
               keyword={remoteKeyword}
               onClose={handleRemoteClose}
-              onLocalSelect={handleLocalSelect}
+              onLocalSelect={(item) => handleLocalSelect(item, 'search-overlay')}
               onRemoteSelect={handleRemoteSelect}
             />
 

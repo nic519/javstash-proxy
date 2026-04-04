@@ -11,6 +11,7 @@ import {
   prepareRemoteSearchFallbackState,
   readAdminListState,
   readAdminSearchOverlayState,
+  shouldAllowAdminLocalSelection,
   readAdminViewMode,
   shouldDisableAdminBackgroundInteractions,
   writeAdminListPreferences,
@@ -232,5 +233,28 @@ describe('shouldDisableAdminBackgroundInteractions', () => {
   it('only disables background interactions while the remote modal is open', () => {
     expect(shouldDisableAdminBackgroundInteractions(false)).toBe(false);
     expect(shouldDisableAdminBackgroundInteractions(true)).toBe(true);
+  });
+});
+
+describe('shouldAllowAdminLocalSelection', () => {
+  it('keeps overlay-local result clicks interactive while background content stays frozen', () => {
+    expect(
+      shouldAllowAdminLocalSelection({
+        backgroundInteractionDisabled: true,
+        origin: 'search-overlay',
+      })
+    ).toBe(true);
+    expect(
+      shouldAllowAdminLocalSelection({
+        backgroundInteractionDisabled: true,
+        origin: 'list',
+      })
+    ).toBe(false);
+    expect(
+      shouldAllowAdminLocalSelection({
+        backgroundInteractionDisabled: false,
+        origin: 'list',
+      })
+    ).toBe(true);
   });
 });

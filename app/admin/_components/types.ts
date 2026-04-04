@@ -42,6 +42,8 @@ export interface AdminSearchOverlayState {
   keyword: string;
 }
 
+export type AdminLocalSelectionOrigin = 'list' | 'search-overlay';
+
 interface AdminListSearchParamsLike {
   get(name: string): string | null;
   has(name: string): boolean;
@@ -250,6 +252,20 @@ export function applyAdminSearchOverlayState(
 
 export function shouldDisableAdminBackgroundInteractions(remoteOpen: boolean): boolean {
   return remoteOpen;
+}
+
+export function shouldAllowAdminLocalSelection({
+  backgroundInteractionDisabled,
+  origin,
+}: {
+  backgroundInteractionDisabled: boolean;
+  origin: AdminLocalSelectionOrigin;
+}): boolean {
+  if (!backgroundInteractionDisabled) {
+    return true;
+  }
+
+  return origin === 'search-overlay';
 }
 
 /**
