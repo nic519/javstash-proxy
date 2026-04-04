@@ -345,9 +345,9 @@ function AdminPageContent() {
         {/* 整体布局：
             - 小屏只有列表主体
             - 大屏变成左侧控制栏 + 右侧内容区的双栏结构 */}
-        <div className="grid h-full min-h-0  lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <div className="grid h-full min-h-0 lg:gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <div className="hidden min-h-0 flex-col lg:flex lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
-            <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4">
+            <div className="min-h-0 lg:flex-1 lg:overflow-y-auto">
               <AdminPageControls
                 sortBy={sortBy}
                 randomMode={randomMode}

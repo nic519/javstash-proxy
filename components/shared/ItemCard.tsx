@@ -126,50 +126,32 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
         style={{ background: 'var(--bg-tertiary)' }}
       >
         {item.coverUrl ? (
-          <>
-            {/* 背景填充层：
-                当原图本身偏矮，主图即使 `object-cover` 后也可能视觉上“不够满”。
-                这里额外放一层同图作为底图，故意稍微放大并做一点柔化，
-                让卡片上下都能被图像信息填满，避免出现你截图里那种“上面有图、下面显得空”的感觉。 */}
-            <Image
-              src={item.coverUrl}
-              alt=""
-              aria-hidden="true"
-              fill
-              unoptimized
-              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
-              className="scale-[1.18] object-cover object-center opacity-45 blur-2xl"
-            />
-            {/* 主图层：
-                这一层继续负责清晰展示封面主体。
-                也就是说现在是“底层补满氛围 + 上层保持主体清晰”的组合。 */}
-            <Image
-              src={item.coverUrl}
-              alt={item.code}
-              fill
-              unoptimized
-              // `sizes` 只影响 Next/Image 选择什么尺寸的资源，不会改变页面上的实际显示大小。
-              // 如果你在调“显示效果”，通常不用先动这里。
-              // 只有在你确认图片清晰度或加载体积不合适时，才需要回头调整这个值。
-              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
-              // 图片显示策略说明：
-              // - `object-cover`：始终铺满容器，宁可裁切，不留空白。
-              // - `object-right`：裁切时尽量保留右边内容，适合主体常在右侧的封面。
-              // - `origin-right`：hover 放大时以右边为基准缩放，视觉上会更“贴住右侧”。
-              //
-              // 你可以这样试：
-              // 1. 如果觉得主体总被裁掉，先把 `object-right` 改成 `object-center`。
-              // 2. 如果觉得 hover 放大后裁得更严重，先把 `scale-105` 改小一点。
-              // 3. 如果想让图片看起来“更满”，通常先改外层比例，而不是先改这里。
-              //
-              // 如果是“原图偏矮，高度视觉上不够撑”的情况，
-              // 现在由上面的背景填充层兜底；你可以继续微调：
-              // - 背景层的 `scale-[1.18]`：越大越容易把空感补满
-              // - 背景层的 `opacity-45`：越大越明显
-              // - 背景层的 `blur-2xl`：越大越柔和，不会抢主图主体
-              className="object-cover object-right origin-right transition-transform duration-300 group-hover:scale-105"
-            />
-          </>
+          <Image
+            src={item.coverUrl}
+            alt={item.code}
+            fill
+            unoptimized
+            // `sizes` 只影响 Next/Image 选择什么尺寸的资源，不会改变页面上的实际显示大小。
+            // 如果你在调“显示效果”，通常不用先动这里。
+            // 只有在你确认图片清晰度或加载体积不合适时，才需要回头调整这个值。
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
+            // 图片显示策略说明：
+            // - `object-cover`：始终铺满容器，宁可裁切，不留空白。
+            // - `object-right`：裁切时尽量保留右边内容，适合主体常在右侧的封面。
+            // - `origin-right`：hover 放大时以右边为基准缩放，视觉上会更“贴住右侧”。
+            //
+            // 你可以这样试：
+            // 1. 如果觉得主体总被裁掉，先把 `object-right` 改成 `object-center`。
+            // 2. 如果觉得 hover 放大后裁得更严重，先把 `scale-105` 改小一点。
+            // 3. 如果想让图片看起来“更满”，通常先改外层比例，而不是先改这里。
+            //
+            // 如果你后面真的想处理“原图偏矮也要视觉上完全撑满”的问题，
+            // 一个常见做法是在下面再加一层同图背景填充层：
+            // - 底层负责铺满整个卡片
+            // - 上层主图负责保持主体清晰
+            // 这样会比直接拉伸主图更自然。
+            className="object-cover object-right origin-right transition-transform duration-300 group-hover:scale-105"
+          />
         ) : (
           <div className="px-3 text-xs" style={{ color: 'var(--text-muted)' }}>
             No Cover
