@@ -222,6 +222,27 @@ describe('ItemCard', () => {
     expect(markup).not.toContain('No Cover');
   });
 
+  it('keeps the cover height fixed while letting text content grow naturally inside an equal-height card', () => {
+    const markup = renderToStaticMarkup(
+      createElement(ItemCard, {
+        item: {
+          code: 'ABP-125',
+          titleZh: 'A longer grid title that wraps to the next line',
+          summaryZh: '',
+          coverUrl: 'https://cdn.example.com/stretch-cover.jpg',
+        },
+        variant: 'grid',
+        onClick: () => {},
+      })
+    );
+
+    expect(markup).toContain('flex h-full flex-col');
+    expect(markup).toContain('aspect-[2.8/4] w-full overflow-hidden');
+    expect(markup).toContain('flex flex-1 flex-col p-3');
+    expect(markup).toContain('text-sm font-medium line-clamp-3');
+    expect(markup).not.toContain('min-h-[2.75rem]');
+  });
+
   it('renders performer names from rawResponse on the grid variant', () => {
     const markup = renderToStaticMarkup(
       createElement(ItemCard, {

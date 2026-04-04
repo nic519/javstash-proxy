@@ -100,7 +100,7 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
     <button
       type="button"
       onClick={() => onClick(item)}
-      className="group overflow-hidden rounded-[26px] p-0 text-left cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+      className="group flex h-full flex-col overflow-hidden rounded-[26px] p-0 text-left cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018))',
         boxShadow: '0 18px 40px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255,255,255,0.03)',
@@ -122,7 +122,7 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
         // - 在当前写法里，显示框本身其实已经固定好了高度；
         // - 真正的问题通常不是“容器没高度”，而是图片内容被 cover 裁切后，视觉上看起来不够满，
         //   或者主体落点不理想。
-        className="relative aspect-[2.8/4] w-full overflow-hidden flex items-center justify-center"
+        className="relative aspect-[2.8/4] w-full overflow-hidden"
         style={{ background: 'var(--bg-tertiary)' }}
       >
         {item.coverUrl ? (
@@ -159,15 +159,15 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
         )}
       </div>
 
-      <div className="p-3">
+      <div className="flex flex-1 flex-col p-3">
         <p className="mb-1 text-[11px] font-mono uppercase tracking-[0.18em]" style={{ color: 'var(--accent-gold)' }}>
           {item.code}
         </p>
-        <h3 className="text-sm font-medium line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+        <h3 className="text-sm font-medium line-clamp-3" style={{ color: 'var(--text-primary)' }}>
           {item.titleZh || item.code}
         </h3>
         {performers.length > 0 && (
-          <p className="mt-2 text-xs line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+          <p className="mt-1.5 text-xs line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
             {performers.join(' / ')}
           </p>
         )}

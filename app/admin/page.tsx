@@ -454,7 +454,7 @@ function AdminPageContent() {
                 ) : (
                   // 网格模式在手机上把 gap 和 padding 收紧，
                   // 这样两列卡片可以占到更多可用宽度
-                  <div className="grid grid-cols-2 gap-2.5 p-2.5 sm:gap-4 sm:p-2 md:grid-cols-3 xl:grid-cols-5">
+                  <div className="grid auto-rows-fr grid-cols-2 items-stretch gap-2.5 p-2.5 sm:gap-4 sm:p-2 md:grid-cols-3 xl:grid-cols-5">
                     {items.map((item) => (
                       <ItemCard
                         key={item.code}
