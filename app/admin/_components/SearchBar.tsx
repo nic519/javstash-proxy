@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { Copy, Search, X } from 'lucide-react';
 import type { SearchBarProps } from './types';
 
 /**
@@ -11,6 +11,24 @@ import type { SearchBarProps } from './types';
 export function SearchBar({ value, onChange, onSearch, disabled = false }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasValue = value.trim().length > 0;
+
+  const handlePasteFromClipboard = async () => {
+    if (disabled || hasValue || !navigator.clipboard?.readText) {
+      return;
+    }
+
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) {
+        return;
+      }
+
+      onChange(text);
+      inputRef.current?.focus();
+    } catch {
+      // Ignore clipboard read failures and leave the input unchanged.
+    }
+  };
 
   const handleClear = () => {
     if (disabled || !hasValue) {
@@ -43,7 +61,7 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
           className="h-12 w-full min-w-0 border-none bg-transparent pl-4 pr-12 text-sm outline-none"
           style={{ color: 'var(--text-primary)' }}
         />
-        {hasValue && (
+        {hasValue ? (
           <button
             type="button"
             aria-label="清空输入框"
@@ -54,6 +72,20 @@ export function SearchBar({ value, onChange, onSearch, disabled = false }: Searc
             style={{ color: 'var(--text-muted)' }}
           >
             <X className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label="从剪切板复制"
+            title="从剪切板复制"
+            disabled={disabled}
+            onClick={() => {
+              void handlePasteFromClipboard();
+            }}
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors focus:outline-none"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <Copy className="w-4 h-4" />
           </button>
         )}
       </div>
