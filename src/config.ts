@@ -1,7 +1,7 @@
 import type { AppConfig } from './types';
 
 /**
- * Load configuration from environment variables
+ * 从环境变量加载运行配置。
  */
 export function loadConfig(): AppConfig {
   const javstashApiKey = process.env.JAVSTASH_API_KEY;

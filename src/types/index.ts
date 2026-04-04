@@ -1,8 +1,8 @@
 /**
- * Core types for the JavStash Proxy
+ * JavStash Proxy 的核心类型定义。
  */
 
-// GraphQL Request/Response types
+// GraphQL 请求与响应类型。
 export interface GraphQLRequest {
   query: string;
   variables?: Record<string, any>;
@@ -21,7 +21,7 @@ export interface GraphQLResponse<T = any> {
   }>;
 }
 
-// Scene types
+// 场景相关类型。
 export interface Scene {
   id: string;
   title?: string;
@@ -38,7 +38,7 @@ export interface SceneInput {
   organized?: boolean;
 }
 
-// Stash types
+// Stash 服务配置类型。
 export interface StashConfig {
   url: string;
   apiKey?: string;
@@ -49,7 +49,7 @@ export interface StashBox {
   endpoint: string;
 }
 
-// Translation types
+// 翻译相关类型。
 export interface Translation {
   code: string;
   titleZh: string;

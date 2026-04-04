@@ -1,16 +1,16 @@
 /**
- * Translation cache entry
+ * 翻译缓存记录。
  */
 export interface Translation {
   code: string;
   titleZh: string;
   summaryZh: string;
   coverUrl?: string;
-  rawResponse?: string; // Original scene JSON from upstream
+  rawResponse?: string; // 上游返回的原始场景 JSON，便于直接回放响应
 }
 
 /**
- * Scene node extracted from GraphQL response
+ * 从 GraphQL 响应中提取出的场景节点。
  */
 export interface SceneNode {
   code?: string;
@@ -20,7 +20,7 @@ export interface SceneNode {
 }
 
 /**
- * Application configuration
+ * 应用运行配置。
  */
 export interface AppConfig {
   javstashApiKey: string;
@@ -30,7 +30,7 @@ export interface AppConfig {
 }
 
 /**
- * GraphQL request body
+ * GraphQL 请求体。
  */
 export interface GraphQLRequest {
   query: string;

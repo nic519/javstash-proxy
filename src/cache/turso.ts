@@ -1,19 +1,28 @@
 import { createClient } from '@libsql/client';
 import type { Translation } from '../types';
 
+/**
+ * Turso 缓存访问层。
+ * 负责对翻译结果和原始响应做统一的读写操作。
+ */
 export class TursoCache {
   private client;
 
+  /**
+   * @param url Turso 数据库地址
+   * @param authToken Turso 访问令牌
+   */
   constructor(url: string, authToken: string) {
     this.client = createClient({ url, authToken });
   }
 
   /**
-   * Get translations by codes from cache
+   * 根据片号批量查询缓存翻译结果。
    */
   async getTranslations(codes: string[]): Promise<Translation[]> {
     if (codes.length === 0) return [];
 
+    // 动态生成 IN 查询占位符，兼容任意数量的片号。
     const placeholders = codes.map(() => '?').join(',');
     const result = await this.client.execute({
       sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response FROM translations WHERE code IN (${placeholders})`,
@@ -30,11 +39,13 @@ export class TursoCache {
   }
 
   /**
-   * Save translations to cache
+   * 批量写入翻译结果。
+   * 若片号已存在，则覆盖最新的中文内容、封面和原始响应。
    */
   async saveBatch(translations: Translation[]): Promise<void> {
     if (translations.length === 0) return;
 
+    // 统一使用同一个时间戳，方便后续排序和排查。
     const now = new Date().toISOString();
     const statements = translations.map((t) => ({
       sql: `INSERT INTO translations (code, title_zh, summary_zh, cover_url, raw_response, updated_at)
@@ -52,7 +63,7 @@ export class TursoCache {
   }
 
   /**
-   * Get cache statistics
+   * 获取缓存统计信息。
    */
   async getStats(): Promise<{ cacheCount: number; lastUpdated: string }> {
     const result = await this.client.execute(
@@ -67,14 +78,14 @@ export class TursoCache {
   }
 
   /**
-   * Clear all cache entries
+   * 清空全部缓存。
    */
   async clearAll(): Promise<void> {
     await this.client.execute('DELETE FROM translations');
   }
 
   /**
-   * List translations with pagination, search and sorting
+   * 分页查询缓存列表，支持搜索和排序。
    */
   async listTranslations(options: {
     page: number;
@@ -90,20 +101,20 @@ export class TursoCache {
       ? [`%${options.search}%`, `%${options.search}%`, `%${options.search}%`]
       : [];
 
-    // Determine sort order
+    // 根据调用方指定的字段决定排序方式。
     const sortBy = options.sortBy || 'updated';
     const orderBy = sortBy === 'code'
       ? 'ORDER BY code ASC'
       : 'ORDER BY updated_at DESC';
 
-    // Get total count
+    // 先查询总数，便于前端做分页。
     const countResult = await this.client.execute({
       sql: `SELECT COUNT(*) as count FROM translations ${searchCondition}`,
       args: searchArgs,
     });
     const total = countResult.rows[0]?.count as number ?? 0;
 
-    // Get items
+    // 再查询当前页数据。
     const result = await this.client.execute({
       sql: `SELECT code, title_zh, summary_zh, cover_url, raw_response, updated_at FROM translations ${searchCondition}
             ${orderBy} LIMIT ? OFFSET ?`,
@@ -124,7 +135,7 @@ export class TursoCache {
   }
 
   /**
-   * List a non-deterministic set of translations for random mode
+   * 随机返回一组翻译记录。
    */
   async listRandomTranslations(limit: number): Promise<Translation[]> {
     const result = await this.client.execute({
@@ -144,7 +155,7 @@ export class TursoCache {
   }
 
   /**
-   * Get a single translation by code
+   * 按片号读取单条翻译记录。
    */
   async getTranslation(code: string): Promise<Translation | null> {
     const result = await this.client.execute({
@@ -165,7 +176,8 @@ export class TursoCache {
   }
 
   /**
-   * Update a single translation
+   * 局部更新单条翻译记录。
+   * 只会修改调用方显式传入的字段。
    */
   async updateTranslation(code: string, data: Partial<Omit<Translation, 'code'>>): Promise<void> {
     const updates: string[] = [];
@@ -198,7 +210,7 @@ export class TursoCache {
   }
 
   /**
-   * Delete a single translation by code
+   * 删除指定片号的缓存记录。
    */
   async deleteTranslation(code: string): Promise<void> {
     await this.client.execute({
@@ -208,8 +220,8 @@ export class TursoCache {
   }
 
   /**
-   * Check if all codes have raw_response cached
-   * Returns missing codes (those without raw_response)
+   * 检查一组片号中哪些还缺少原始响应。
+   * 返回值为缺失 raw_response 的片号列表。
    */
   async getMissingRawResponses(codes: string[]): Promise<string[]> {
     if (codes.length === 0) return [];

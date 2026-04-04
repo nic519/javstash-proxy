@@ -4,8 +4,8 @@ import type { DeepLXTranslator } from '../translator/deeplx';
 import { extractCoverUrlFromRawResponse, isBadCoverUrl } from '../cover-url';
 
 /**
- * Extract scene codes from GraphQL request variables
- * Looks for common patterns like 'codes', 'code', 'filter.codes', etc.
+ * 从 GraphQL 请求变量中尽量提取场景编号。
+ * 会兼容 `codes`、`code`、`filter.codes` 等常见字段形态。
  */
 export function extractCodesFromRequest(request: GraphQLRequest): string[] {
   const codes: string[] = [];
@@ -15,7 +15,7 @@ export function extractCodesFromRequest(request: GraphQLRequest): string[] {
 
   function extractFromValue(value: unknown): void {
     if (typeof value === 'string') {
-      // Check if it looks like a scene code (e.g., SSIS-001, ABC-123)
+      // 识别形如 SSIS-001、ABC-123 的片号格式。
       if (/^[A-Z]{2,6}-\d{3,5}$/i.test(value)) {
         codes.push(value.toUpperCase());
       }
@@ -26,7 +26,7 @@ export function extractCodesFromRequest(request: GraphQLRequest): string[] {
     }
   }
 
-  // Common variable names that might contain codes
+  // 常见的片号字段名。
   const codeKeys = ['codes', 'code', 'scene_codes', 'sceneCodes', 'ids', 'id'];
   for (const key of codeKeys) {
     if (key in variables) {
@@ -34,7 +34,7 @@ export function extractCodesFromRequest(request: GraphQLRequest): string[] {
     }
   }
 
-  // Also check filter object
+  // 额外检查 filter 对象中的嵌套条件。
   if ('filter' in variables && typeof variables.filter === 'object' && variables.filter) {
     const filter = variables.filter as Record<string, unknown>;
     for (const key of codeKeys) {
@@ -48,8 +48,8 @@ export function extractCodesFromRequest(request: GraphQLRequest): string[] {
 }
 
 /**
- * Try to restore response entirely from cache
- * Returns null if cache is incomplete
+ * 尝试完全从缓存恢复响应。
+ * 只要有任意片号缺少原始响应，就返回 null 交给上游继续处理。
  */
 export async function tryRestoreFromCache(
   request: GraphQLRequest,
@@ -58,27 +58,25 @@ export async function tryRestoreFromCache(
   const codes = extractCodesFromRequest(request);
 
   if (codes.length === 0) {
-    return null; // Cannot determine codes from request
+    return null; // 无法从请求中判断片号，不能安全走缓存还原。
   }
 
-  // Check if all codes have raw_response cached
+  // 只有全部片号都拥有 raw_response 时，才能构造完整响应。
   const missingCodes = await cache.getMissingRawResponses(codes);
   if (missingCodes.length > 0) {
-    return null; // Cache incomplete
+    return null; // 缓存不完整，回退到正常上游请求。
   }
 
-  // Get all cached translations
+  // 取出所有缓存翻译内容。
   const cached = await cache.getTranslations(codes);
   const cachedMap = new Map(cached.map((t) => [t.code, t]));
 
-  // Build a response with translated content
-  // Note: This creates a minimal response structure
-  // The actual structure depends on the GraphQL query
+  // 构造一个最小可用响应结构，并把缓存中的中文标题/简介覆盖进去。
   const scenes = codes.map((code) => {
     const t = cachedMap.get(code);
     if (!t?.rawResponse) return null;
 
-    // Parse raw response and apply translations
+    // 还原原始场景对象，再套用缓存中的中文文本。
     const rawScene = JSON.parse(t.rawResponse);
     return {
       ...rawScene,
@@ -87,8 +85,7 @@ export async function tryRestoreFromCache(
     };
   }).filter(Boolean);
 
-  // Return in a generic structure
-  // Note: This may not match all GraphQL query structures
+  // 这里返回的是通用结构，适合当前代理的主要使用场景。
   return {
     data: {
       findScenes: {
@@ -100,7 +97,7 @@ export async function tryRestoreFromCache(
 }
 
 /**
- * Extract scene nodes from GraphQL response
+ * 从 GraphQL 响应中递归提取场景节点。
  */
 export function extractScenes(data: unknown): SceneNode[] {
   const results: SceneNode[] = [];
@@ -115,9 +112,9 @@ export function extractScenes(data: unknown): SceneNode[] {
 
     const record = obj as Record<string, unknown>;
 
-    // Check if this is a scene node (has code and title/details)
+    // 同时具备 code 和 title/details 时，视为一个场景节点。
     if (record.code && (record.title || record.details)) {
-      // Extract cover URL from images array
+      // 顺手提取第一张封面图，后续缓存时可直接使用。
       let coverUrl: string | undefined;
       const images = record.images;
       if (Array.isArray(images) && images.length > 0 && images[0]?.url) {
@@ -132,7 +129,7 @@ export function extractScenes(data: unknown): SceneNode[] {
       });
     }
 
-    // Recursively traverse children
+    // 继续递归处理嵌套字段。
     Object.values(record).forEach(traverse);
   }
 
@@ -141,7 +138,8 @@ export function extractScenes(data: unknown): SceneNode[] {
 }
 
 /**
- * Extract scene nodes with their raw JSON from GraphQL response
+ * 提取场景节点及其原始 JSON 文本。
+ * 原始文本会进入缓存，用于后续直接还原响应。
  */
 export function extractScenesWithRaw(data: unknown): Array<{ scene: SceneNode; rawJson: string }> {
   const results: Array<{ scene: SceneNode; rawJson: string }> = [];
@@ -156,9 +154,9 @@ export function extractScenesWithRaw(data: unknown): Array<{ scene: SceneNode; r
 
     const record = obj as Record<string, unknown>;
 
-    // Check if this is a scene node (has code and title/details)
+    // 命中场景节点时，同时保存结构化数据和原始 JSON。
     if (record.code && (record.title || record.details)) {
-      // Extract cover URL from images array
+      // 额外记录封面地址，后续可用来修正历史缓存中的坏链接。
       let coverUrl: string | undefined;
       const images = record.images;
       if (Array.isArray(images) && images.length > 0 && images[0]?.url) {
@@ -176,7 +174,7 @@ export function extractScenesWithRaw(data: unknown): Array<{ scene: SceneNode; r
       });
     }
 
-    // Recursively traverse children
+    // 继续向下遍历整个响应树。
     Object.values(record).forEach(traverse);
   }
 
@@ -185,7 +183,8 @@ export function extractScenesWithRaw(data: unknown): Array<{ scene: SceneNode; r
 }
 
 /**
- * Process GraphQL response: translate and cache
+ * 处理 GraphQL 响应。
+ * 主要流程：提取场景、查缓存、翻译缺失项、补齐原始响应，再把中文内容写回当前结果。
  */
 export async function processResponse(
   data: unknown,
@@ -198,12 +197,12 @@ export async function processResponse(
     return data;
   }
 
-  // Batch query cache
+  // 批量读取缓存，减少数据库往返次数。
   const codes = scenesWithRaw.map((s) => s.scene.code).filter(Boolean) as string[];
   const cached = await cache.getTranslations(codes);
   const cachedMap = new Map(cached.map((t) => [t.code, t]));
 
-  // separate scenes that need translation vs need raw response only
+  // 按缓存状态分类：需要翻译、只需补原始响应、可直接恢复。
   const toTranslate: Array<{ scene: SceneNode; rawJson: string }> = [];
   const toUpdateRaw: Array<{ scene: SceneNode; rawJson: string }> = [];
   const toRestore: Translation[] = [];
@@ -213,18 +212,18 @@ export async function processResponse(
 
     const cachedItem = cachedMap.get(scene.code);
     if (cachedItem?.rawResponse) {
-      // Has cached raw response, can restore directly
+      // 翻译和原始响应都齐全，可以直接用于最终替换。
       toRestore.push(cachedItem);
     } else if (!cachedItem) {
-      // Not in cache at all, need to translate and cache
+      // 完全未命中缓存，需要翻译并持久化。
       toTranslate.push({ scene, rawJson });
     } else {
-      // Has translation but no raw response, just update raw response
+      // 已有翻译但缺少原始响应，只补缓存即可。
       toUpdateRaw.push({ scene, rawJson });
     }
   }
 
-  // Translate new items
+  // 翻译新增内容，并把原始响应一并写入缓存。
   if (toTranslate.length > 0) {
     const translations = await translator.translateBatch(toTranslate.map((t) => t.scene));
     const translationsWithRaw = translations.map((t, i) => ({
@@ -235,7 +234,7 @@ export async function processResponse(
     translationsWithRaw.forEach((t) => cachedMap.set(t.code, t));
   }
 
-  // Update raw response only (no translation needed)
+  // 对已有翻译但缺 raw_response 的记录补齐原始数据。
   if (toUpdateRaw.length > 0) {
     for (const { scene, rawJson } of toUpdateRaw) {
       const cachedItem = cachedMap.get(scene.code!);
@@ -248,7 +247,7 @@ export async function processResponse(
           : undefined,
       });
 
-      // Update cached map for replacement
+      // 同步更新内存中的缓存映射，确保本次请求也能拿到最新值。
       if (cachedItem) {
         cachedItem.rawResponse = rawJson;
         if (cachedItem.coverUrl && isBadCoverUrl(cachedItem.coverUrl) && nextCoverUrl) {
@@ -258,14 +257,14 @@ export async function processResponse(
     }
   }
 
-  // Restore from cache (replace with translated content)
+  // 最后在当前响应对象上原地替换标题和简介。
   replaceInPlace(data, cachedMap);
 
   return data;
 }
 
 /**
- * Recursively replace title/details in response
+ * 递归地把响应中的标题和简介替换为缓存中的中文内容。
  */
 function replaceInPlace(data: unknown, translations: Map<string, Translation>): void {
   if (!data || typeof data !== 'object') return;
