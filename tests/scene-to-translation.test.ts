@@ -219,6 +219,7 @@ describe('ItemCard', () => {
     expect(markup).toContain('object-right');
     expect(markup).toContain('origin-right');
     expect(markup).toContain('grid-cover.jpg');
+    expect(markup).toContain('scale-[1.18]');
     expect(markup).not.toContain('No Cover');
   });
 

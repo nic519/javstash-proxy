@@ -50,8 +50,8 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
             boxShadow: '0 25px 80px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)',
             // 控制弹窗最大高度：
             // `680px` 是理想最大高度，`calc(100vh - 2rem)` 表示至少给上下各留 1rem 空隙
-            // 如果你想让弹窗更高，就把 680px 调大；想更贴近屏幕边缘，就把 2rem 调小
-            maxHeight: 'min(680px, calc(100vh - 2rem))',
+            // 如果你想让弹窗更高，就把 780px 调大；想更贴近屏幕边缘，就把 2rem 调小
+            maxHeight: 'min(780px, calc(100vh - 1rem))',
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -79,12 +79,11 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
               )}
             </div>
             <div
-              className="inline-flex shrink-0 items-center overflow-hidden rounded-2xl"
+              className="inline-flex shrink-0 items-center overflow-hidden rounded-xl"
               style={{
                 background: 'rgba(255,255,255,0.04)',
                 boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(10px)',
-                minWidth: readOnly ? undefined : '8.25rem',
               }}
             >
               {/* 只在非只读模式下显示编辑和删除按钮 */}
