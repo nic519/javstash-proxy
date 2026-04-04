@@ -309,6 +309,7 @@ function AdminPageContent() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden animated-bg">
       <Navigation
+        // 小屏时把控制区塞进导航抽屉，避免筛选控件长期占据页面高度
         mobilePanelContent={
           <AdminPageControls
             sortBy={sortBy}
@@ -337,10 +338,16 @@ function AdminPageContent() {
         }
         scrollContainerId={listScrollContainerId}
       />
-      <main className="flex-1 min-h-0 overflow-hidden p-6 relative z-10">
-        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+      {/* 主内容区：
+          - 手机上使用较小 padding，尽量减少四周留白
+          - 平板和桌面再逐步恢复更宽松的边距 */}
+      <main className="relative z-10 min-h-0 flex-1 overflow-hidden px-2 py-3 sm:p-0 lg:p-6">
+        {/* 整体布局：
+            - 小屏只有列表主体
+            - 大屏变成左侧控制栏 + 右侧内容区的双栏结构 */}
+        <div className="grid h-full min-h-0  lg:grid-cols-[18rem_minmax(0,1fr)]">
           <div className="hidden min-h-0 flex-col lg:flex lg:sticky lg:top-6 lg:max-h-[calc(100vh-8.5rem)]">
-            <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
+            <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4">
               <AdminPageControls
                 sortBy={sortBy}
                 randomMode={randomMode}
@@ -384,19 +391,23 @@ function AdminPageContent() {
 
             {/* 数据表格 */}
             <div
-              className={`admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
+              // 列表外层“画布”：
+              // 小屏圆角更小，避免边缘空隙看起来太厚；
+              // 大屏再恢复更圆润的卡片化视觉
+              className={`admin-list-canvas animate-fade-in stagger-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] sm:rounded-[24px] lg:rounded-[28px] ${backgroundInteractionDisabled ? 'opacity-60' : ''}`}
               aria-hidden={backgroundInteractionDisabled}
               style={{
                 background:
                   'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.008) 18%, rgba(255,255,255,0.005) 100%)',
                 boxShadow:
                   '0 24px 60px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.035)',
-                borderRadius: '28px',
               }}
             >
+              {/* 真正负责滚动的列表区域。
+                  Navigation 会根据这个容器的滚动状态做联动。 */}
               <div id={listScrollContainerId} className="min-h-0 flex-1 overflow-auto">
                 {loading ? (
-                  <div className="flex items-center justify-center py-16">
+                  <div className="flex items-center justify-center py-36">
                     <div
                       className="w-8 h-8 border-2 rounded-full animate-spin"
                       style={{ borderColor: 'var(--border-light)', borderTopColor: 'var(--accent-gold)' }}
@@ -409,6 +420,7 @@ function AdminPageContent() {
                 ) : viewMode === 'table' ? (
                   <table className="w-full text-sm">
                     <thead
+                      // 表头吸顶，向下滚动时字段标题不会消失
                       className="sticky top-0 z-10"
                       style={{
                         background: 'linear-gradient(180deg, rgba(15, 15, 18, 0.94), rgba(15, 15, 18, 0.78))',
@@ -432,6 +444,7 @@ function AdminPageContent() {
                         <ItemCard
                           key={item.code}
                           item={item}
+                          // table 模式下，ItemCard 内部会渲染成一行 <tr>
                           variant="table"
                           onClick={handleLocalSelect}
                         />
@@ -439,11 +452,14 @@ function AdminPageContent() {
                     </tbody>
                   </table>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3 xl:grid-cols-5">
+                  // 网格模式在手机上把 gap 和 padding 收紧，
+                  // 这样两列卡片可以占到更多可用宽度
+                  <div className="grid grid-cols-2 gap-2.5 p-2.5 sm:gap-4 sm:p-2 md:grid-cols-3 xl:grid-cols-5">
                     {items.map((item) => (
                       <ItemCard
                         key={item.code}
                         item={item}
+                        // grid 模式下，ItemCard 会渲染成可点击卡片
                         variant="grid"
                         onClick={handleLocalSelect}
                       />
@@ -452,6 +468,7 @@ function AdminPageContent() {
                 )}
               </div>
 
+              {/* 随机模式没有固定页码概念，所以只在普通列表模式显示分页 */}
               {!randomMode ? (
                 <Pagination
                   page={page}

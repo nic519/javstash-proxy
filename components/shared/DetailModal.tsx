@@ -38,11 +38,19 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
         onClick={onClose}
       >
         <div
-          className="flex flex-col my-4 mx-4 max-w-7xl w-full rounded-2xl overflow-hidden animate-scale-in cursor-pointer"
+          /* 这一层决定弹窗本体的整体尺寸和外观：
+             - `mx-4 my-4` 控制弹窗距离屏幕四周的外边距，数值越大，弹窗看起来越小
+             - `w-full` 让弹窗尽量占满当前可用宽度
+             - `max-w-7xl` 控制“最大宽度”，想让弹窗更窄或更宽，优先改这里
+             - `rounded-3xl` 控制弹窗圆角大小 */
+          className="flex flex-col my-4 mx-4 max-w-7xl w-full rounded-3xl overflow-hidden animate-scale-in cursor-pointer"
           style={{
             background: 'rgba(15, 15, 20, 0.85)',
             backdropFilter: 'blur(12px)',
             boxShadow: '0 25px 80px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.1)',
+            // 控制弹窗最大高度：
+            // `680px` 是理想最大高度，`calc(100vh - 2rem)` 表示至少给上下各留 1rem 空隙
+            // 如果你想让弹窗更高，就把 680px 调大；想更贴近屏幕边缘，就把 2rem 调小
             maxHeight: 'min(680px, calc(100vh - 2rem))',
           }}
           onClick={(e) => e.stopPropagation()}
@@ -58,7 +66,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
           >
             <div className="flex items-center gap-3">
               <div
-                className="w-1 h-6 rounded-full"
+                className="hidden h-6 w-1 rounded-full sm:block"
                 style={{ background: 'var(--accent-gold)' }}
               />
               {form.titleZh && (
@@ -71,11 +79,12 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
               )}
             </div>
             <div
-              className="inline-flex items-center overflow-hidden rounded-2xl"
+              className="inline-flex shrink-0 items-center overflow-hidden rounded-2xl"
               style={{
                 background: 'rgba(255,255,255,0.04)',
                 boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(10px)',
+                minWidth: readOnly ? undefined : '8.25rem',
               }}
             >
               {/* 只在非只读模式下显示编辑和删除按钮 */}
@@ -115,6 +124,7 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
 
           {/* 内容区域 */}
           <div
+            // `p-6` 控制弹窗内容区内边距，想让内容更“顶满”就调小，想更松弛就调大
             className="flex-1 overflow-y-auto p-6 cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
