@@ -7,12 +7,11 @@ import {
   CalendarDays,
   Clapperboard,
   Frown,
-  Hash,
   Image as ImageIcon,
   Search,
   Tags,
-  Users,
 } from 'lucide-react';
+import { CopyableCode, PerformerList } from './SceneMeta';
 import { sceneToTranslation } from './sceneToTranslation';
 import type { Translation } from './types';
 import {
@@ -224,17 +223,7 @@ function RemoteSceneCard({
               <MetaPill icon={<Clapperboard className="h-4 w-4" />} value={`导演 ${scene.director}`} />
             ) : null}
 
-            <div
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2"
-              style={{
-                background: 'rgba(212, 175, 55, 0.08)',
-                border: '1px solid rgba(212, 175, 55, 0.18)',
-                color: 'var(--accent-gold)',
-              }}
-            >
-              <Hash className="h-4 w-4" />
-              <span className="font-mono text-sm">{item.code}</span>
-            </div>
+            <CopyableCode code={item.code} variant="pill" />
 
             <MetaPill icon={<CalendarDays className="h-4 w-4" />} value={releaseDate} />
             <MetaPill icon={<Tags className="h-4 w-4" />} value={studioName} />
@@ -256,18 +245,7 @@ function RemoteSceneCard({
           </div>
 
           {performerNames.length > 0 ? (
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
-                <Users className="h-4 w-4" />
-              </span>
-              <p
-                className="min-w-0 flex-1 truncate text-sm"
-                style={{ color: 'var(--accent-gold)' }}
-                title={performerNames.join(' / ')}
-              >
-                演员 {performerNames.join(' / ')}
-              </p>
-            </div>
+            <PerformerList names={performerNames} variant="row" />
           ) : null}
 
           {tagNames.length > 0 ? (

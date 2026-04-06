@@ -6,11 +6,10 @@ import {
   CalendarDays,
   Clapperboard,
   FileVideo,
-  Hash,
   Image as ImageIcon,
-  Users,
 } from 'lucide-react';
 import type { SceneData } from '@/src/graphql/queries';
+import { CopyableCode, PerformerList } from '../SceneMeta';
 import type { DetailModalProps, EditForm } from '../types';
 import { formatDate, getDetailHeaderMeta, getPerformerNames, getStudioName, getTagColor } from './helpers';
 
@@ -115,13 +114,7 @@ export function DetailView({
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 xl:flex-nowrap xl:justify-between">
             {headerMeta.map((meta) => {
               const icon = meta.key === 'code'
-                ? (
-                  <Hash
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: 'var(--text-muted)' }}
-                    aria-hidden="true"
-                  />
-                )
+                ? null
                 : meta.key === 'director'
                   ? (
                     <Clapperboard
@@ -174,18 +167,14 @@ export function DetailView({
 
               if (meta.key === 'code') {
                 return (
-                  <button
+                  <CopyableCode
                     key={meta.key}
-                    onClick={onCopyCode}
-                    // 番号做成按钮是为了支持一键复制。
-                    // `xl:flex-1` 会让大屏时它和其他字段更平均地分配空间；
-                    // 如果你想让番号区域更短、更紧凑，可以先去掉或调整这个类。
-                    className="inline-flex min-w-0 items-center gap-2 rounded-lg transition-opacity hover:opacity-80 xl:flex-1"
-                    style={{ color: 'var(--text-primary)' }}
-                    title="点击复制番号"
-                  >
-                    {content}
-                  </button>
+                    code={meta.value}
+                    variant="detail"
+                    copied={copied}
+                    onCopy={onCopyCode}
+                    stopPropagation={false}
+                  />
                 );
               }
 
@@ -223,47 +212,7 @@ export function DetailView({
           {rawData ? (
             <>
               {performerNames.length > 0 && (
-                // 演员信息块：
-                // 外层在小屏下纵向排列，大一点的屏幕改成横向，方便标题和内容自然对齐。
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
-                  {/* 左边“演员”标签区。
-                      `gap-2.5` 和 `pt-0.5` 主要用于微调图标与文字的视觉对齐。 */}
-                  <div className="flex items-center gap-2.5 pt-0.5">
-                    <Users
-                      className="w-4 h-4 flex-shrink-0"
-                      style={{ color: 'var(--text-muted)' }}
-                      aria-hidden="true"
-                    />
-                    <span
-                      className="whitespace-nowrap text-sm leading-6 tracking-[0.08em]"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      演员
-                    </span>
-                  </div>
-                  {/* 右边演员名字区：
-                      - `gap-x-3 gap-y-1` 控制名字之间的横向和换行间距。
-                      - `text-[15px] leading-6` 控制演员文本的整体观感大小。 */}
-                  <div
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6"
-                    style={{ color: 'var(--accent-gold)' }}
-                  >
-                    {performerNames.map((name, index) => (
-                      <div key={name} className="flex items-center gap-3">
-                        {index > 0 && (
-                          // 每个演员之间的细分隔线。
-                          // 如果你想让分隔更明显，可以提高背景透明度或增加高度。
-                          <span
-                            className="h-3 w-px rounded-full"
-                            style={{ background: 'rgba(212,175,55,0.22)' }}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="whitespace-nowrap">{name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <PerformerList names={performerNames} variant="detail" />
               )}
 
               {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (

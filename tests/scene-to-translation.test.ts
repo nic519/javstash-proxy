@@ -143,6 +143,8 @@ describe('RemoteSceneResults', () => {
     expect(markup).toContain('演员');
     expect(markup).toContain('演员一');
     expect(markup).toContain('演员二');
+    expect(markup).toContain('点击复制演员');
+    expect(markup).toContain('点击复制番号');
     expect(markup).toContain('片商乙');
     expect(markup).toContain('剧情');
     expect(markup).toContain('制服');
@@ -263,8 +265,38 @@ describe('ItemCard', () => {
     );
 
     expect(markup).toContain('SSIS-001');
+    expect(markup).toContain('点击复制番号');
     expect(markup).toContain('河北彩花');
     expect(markup).toContain('葵司');
+    expect(markup).not.toContain('lucide-users');
+  });
+
+  it('limits compact performer display to three names with an ellipsis indicator', () => {
+    const markup = renderToStaticMarkup(
+      createElement(ItemCard, {
+        item: {
+          code: 'SSIS-002',
+          titleZh: 'Many performers',
+          summaryZh: '',
+          rawResponse: JSON.stringify({
+            performers: [
+              { performer: { name: '演员一' } },
+              { performer: { name: '演员二' } },
+              { performer: { name: '演员三' } },
+              { performer: { name: '演员四' } },
+            ],
+          }),
+        },
+        variant: 'grid',
+        onClick: () => {},
+      })
+    );
+
+    expect(markup).toContain('演员一');
+    expect(markup).toContain('演员二');
+    expect(markup).toContain('演员三');
+    expect(markup).toContain('...');
+    expect(markup).not.toContain('演员四');
   });
 
   it('falls back to the original updatedAt string when formatting is invalid', () => {
@@ -304,5 +336,26 @@ describe('ItemCard', () => {
     expect(markup).toContain('<button');
     expect(markup).toContain('aria-label');
     expect(markup).toContain('sr-only');
+  });
+
+  it('renders table code as a dedicated copy trigger', () => {
+    const markup = renderToStaticMarkup(
+      createElement('table', null,
+        createElement('tbody', null,
+          createElement(ItemCard, {
+            item: {
+              code: 'ABP-321',
+              titleZh: 'Copy title',
+              summaryZh: 'Summary',
+            },
+            variant: 'table',
+            onClick: () => {},
+          })
+        )
+      )
+    );
+
+    expect(markup).toContain('ABP-321');
+    expect(markup).toContain('点击复制番号');
   });
 });

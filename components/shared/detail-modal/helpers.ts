@@ -41,11 +41,13 @@ export function parseSceneData(jsonStr: string): SceneData | null {
 export function formatDate(dateStr?: string): string | null {
   if (!dateStr) return null;
 
-  try {
-    return new Date(dateStr).toLocaleDateString('zh-CN');
-  } catch {
+  const date = new Date(dateStr);
+
+  if (Number.isNaN(date.getTime())) {
     return dateStr;
   }
+
+  return date.toLocaleDateString('zh-CN');
 }
 
 export function getPerformerNames(rawData: SceneData | null): string[] {

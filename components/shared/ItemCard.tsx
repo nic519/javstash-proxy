@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import type { KeyboardEvent } from 'react';
+import { CopyableCode, PerformerList } from './SceneMeta';
+import { formatDate, getPerformerNames, parseSceneData } from './detail-modal/helpers';
 import type { ItemCardProps, Translation } from './types';
 
 /**
@@ -12,7 +14,7 @@ export function ItemCard({ item, variant, onClick }: ItemCardProps) {
   if (variant === 'table') {
     return <TableRow item={item} onClick={onClick} />;
   }
-  return <GridCard item={item} onClick={onClick} />;
+  return <GridCard item={item} variant={variant} onClick={onClick} />;
 }
 
 /**
@@ -44,9 +46,7 @@ function TableRow({ item, onClick }: { item: Translation; onClick: (item: Transl
           >
             Open
           </button>
-          <span className="font-mono whitespace-nowrap" style={{ color: 'var(--accent-gold)' }}>
-            {item.code}
-          </span>
+          <CopyableCode code={item.code} variant="inline" />
         </div>
       </td>
       {/* 标题列 */}
@@ -93,13 +93,25 @@ function TableRow({ item, onClick }: { item: Translation; onClick: (item: Transl
  *    但也会让边缘裁切再明显一点。
  *    如果你想更稳一点，可以降成 `scale-[1.02]` 或先临时去掉观察。
  */
-function GridCard({ item, onClick }: { item: Translation; onClick: (item: Translation) => void }) {
-  const performers = getPerformers(item.rawResponse);
+function GridCard({
+  item,
+  variant,
+  onClick,
+}: {
+  item: Translation;
+  variant: Exclude<ItemCardProps['variant'], 'table'>;
+  onClick: (item: Translation) => void;
+}) {
+  const scene = item.rawResponse ? parseSceneData(item.rawResponse) : null;
+  const performers = getPerformerNames(scene);
+  const releaseDate = formatDate(item.updatedAt);
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onClick(item)}
+      onKeyDown={(event) => handleActivationKeyDown(event, () => onClick(item))}
       className="group flex h-full flex-col overflow-hidden rounded-[26px] p-0 text-left cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018))',
@@ -160,32 +172,21 @@ function GridCard({ item, onClick }: { item: Translation; onClick: (item: Transl
       </div>
 
       <div className="flex flex-1 flex-col p-3">
-        <p className="mb-1 text-[11px] font-mono uppercase tracking-[0.18em]" style={{ color: 'var(--accent-gold)' }}>
-          {item.code}
-        </p>
+        <div className="self-start">
+          <CopyableCode code={item.code} variant="inline" />
+        </div>
         <h3 className="text-sm font-medium line-clamp-3" style={{ color: 'var(--text-primary)' }}>
           {item.titleZh || item.code}
         </h3>
-        {performers.length > 0 && (
-          <p className="mt-1.5 text-xs line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-            {performers.join(' / ')}
+        <PerformerList names={performers} variant="compact" maxVisibleNames={2} />
+        {variant === 'card' && releaseDate ? (
+          <p className="mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+            {releaseDate}
           </p>
-        )}
+        ) : null}
       </div>
-    </button>
+    </div>
   );
-}
-
-/**
- * 格式化日期
- */
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) {
-    return dateStr;
-  }
-  return date.toLocaleDateString('zh-CN');
 }
 
 function handleActivationKeyDown(
@@ -195,28 +196,5 @@ function handleActivationKeyDown(
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     activate();
-  }
-}
-
-function getPerformers(rawResponse?: string): string[] {
-  if (!rawResponse) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(rawResponse) as {
-      performers?: Array<{ performer?: { name?: string } }>;
-    };
-
-    if (!Array.isArray(parsed.performers)) {
-      return [];
-    }
-
-    return parsed.performers
-      .map((entry) => entry.performer?.name?.trim())
-      .filter((name): name is string => Boolean(name))
-      .slice(0, 2);
-  } catch {
-    return [];
   }
 }
