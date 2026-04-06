@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { KeyboardEvent } from 'react';
-import { Clock3, Heart, Trash2 } from 'lucide-react';
+import { Clock3, Heart, ThumbsDown } from 'lucide-react';
 import { CopyableCode, PerformerList } from './SceneMeta';
 import { USER_ITEM_TAG_LABELS, USER_ITEM_TAGS, type UserItemTag } from './types';
 import { formatDate, getPerformerNames, parseSceneData } from './detail-modal/helpers';
@@ -256,7 +256,7 @@ function TagToggleRow({
   const iconByTag: Record<UserItemTag, typeof Clock3> = {
     watch_later: Clock3,
     favorite: Heart,
-    deleted: Trash2,
+    dislike: ThumbsDown,
   };
 
   return (

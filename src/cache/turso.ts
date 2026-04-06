@@ -46,6 +46,10 @@ export class TursoCache {
     await this.userItemTagsSchemaReady;
   }
 
+  private normalizeUserItemTag(tag: string): UserItemTag {
+    return tag === 'deleted' ? 'dislike' : (tag as UserItemTag);
+  }
+
   /**
    * 根据片号批量查询缓存翻译结果。
    */
@@ -216,13 +220,22 @@ export class TursoCache {
   }): Promise<void> {
     await this.ensureUserItemTagsTable();
 
+    const normalizedTag = this.normalizeUserItemTag(tag);
     const now = new Date().toISOString();
+
+    if (normalizedTag === 'dislike') {
+      await this.client.execute({
+        sql: 'DELETE FROM user_item_tags WHERE user_email = ? AND item_code = ? AND tag = ?',
+        args: [userEmail, itemCode, 'deleted'],
+      });
+    }
+
     await this.client.execute({
       sql: `INSERT INTO user_item_tags (user_email, item_code, tag, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(user_email, item_code, tag) DO UPDATE SET
               updated_at = excluded.updated_at`,
-      args: [userEmail, itemCode, tag, now, now],
+      args: [userEmail, itemCode, normalizedTag, now, now],
     });
   }
 
@@ -237,9 +250,15 @@ export class TursoCache {
   }): Promise<void> {
     await this.ensureUserItemTagsTable();
 
+    const normalizedTag = this.normalizeUserItemTag(tag);
+
     await this.client.execute({
-      sql: 'DELETE FROM user_item_tags WHERE user_email = ? AND item_code = ? AND tag = ?',
-      args: [userEmail, itemCode, tag],
+      sql: normalizedTag === 'dislike'
+        ? 'DELETE FROM user_item_tags WHERE user_email = ? AND item_code = ? AND tag IN (?, ?)'
+        : 'DELETE FROM user_item_tags WHERE user_email = ? AND item_code = ? AND tag = ?',
+      args: normalizedTag === 'dislike'
+        ? [userEmail, itemCode, normalizedTag, 'deleted']
+        : [userEmail, itemCode, normalizedTag],
     });
   }
 
@@ -257,9 +276,16 @@ export class TursoCache {
     const conditions = ['user_email = ?'];
     const args: (string | number)[] = [userEmail];
 
-    if (tag) {
-      conditions.push('tag = ?');
-      args.push(tag);
+    const normalizedTag = tag ? this.normalizeUserItemTag(tag) : undefined;
+
+    if (normalizedTag) {
+      if (normalizedTag === 'dislike') {
+        conditions.push('(tag = ? OR tag = ?)');
+        args.push(normalizedTag, 'deleted');
+      } else {
+        conditions.push('tag = ?');
+        args.push(normalizedTag);
+      }
     }
 
     if (itemCodes && itemCodes.length > 0) {
@@ -278,7 +304,7 @@ export class TursoCache {
 
     return result.rows.map((row) => ({
       itemCode: row.item_code as string,
-      tag: row.tag as UserItemTag,
+      tag: this.normalizeUserItemTag(row.tag as string),
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     }));

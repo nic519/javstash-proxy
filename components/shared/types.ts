@@ -17,14 +17,14 @@ export interface Translation {
   updatedAt?: string;
 }
 
-export const USER_ITEM_TAGS = ['watch_later', 'favorite', 'deleted'] as const;
+export const USER_ITEM_TAGS = ['watch_later', 'favorite', 'dislike'] as const;
 export type UserItemTag = typeof USER_ITEM_TAGS[number];
 export type UserItemTagFilter = 'all' | UserItemTag;
 
 export const USER_ITEM_TAG_LABELS: Record<UserItemTag, string> = {
   watch_later: '稍后再看',
   favorite: '特别收藏',
-  deleted: '已删除',
+  dislike: '不喜欢',
 };
 
 export interface UserItemTagRecord {

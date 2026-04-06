@@ -9,7 +9,7 @@ import {
   FileVideo,
   Heart,
   Image as ImageIcon,
-  Trash2,
+  ThumbsDown,
 } from 'lucide-react';
 import type { SceneData } from '@/src/graphql/queries';
 import { CopyableCode, PerformerList } from '../SceneMeta';
@@ -47,7 +47,7 @@ export function DetailView({
   const iconByTag: Record<UserItemTag, typeof Clock3> = {
     watch_later: Clock3,
     favorite: Heart,
-    deleted: Trash2,
+    dislike: ThumbsDown,
   };
   const performerNames = getPerformerNames(rawData);
   const releaseDate = rawData ? formatDate(rawData.date) : null;

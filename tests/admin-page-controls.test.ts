@@ -92,6 +92,6 @@ describe('AdminPageControls', () => {
     expect(markup).toContain('我的标签');
     expect(markup).toContain('稍后再看');
     expect(markup).toContain('特别收藏');
-    expect(markup).toContain('已删除');
+    expect(markup).toContain('不喜欢');
   });
 });

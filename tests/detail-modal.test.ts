@@ -110,6 +110,6 @@ describe('DetailView', () => {
 
     expect(markup).toContain('aria-label="稍后再看"');
     expect(markup).toContain('aria-label="特别收藏"');
-    expect(markup).toContain('aria-label="已删除"');
+    expect(markup).toContain('aria-label="不喜欢"');
   });
 });
