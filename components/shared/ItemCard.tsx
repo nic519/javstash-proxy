@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import type { KeyboardEvent } from 'react';
+import { Clock3, Heart, Trash2 } from 'lucide-react';
 import { CopyableCode, PerformerList } from './SceneMeta';
+import { USER_ITEM_TAG_LABELS, USER_ITEM_TAGS, type UserItemTag } from './types';
 import { formatDate, getPerformerNames, parseSceneData } from './detail-modal/helpers';
 import type { ItemCardProps, Translation } from './types';
 
@@ -10,18 +12,47 @@ import type { ItemCardProps, Translation } from './types';
  * 通用 ItemCard 组件
  * 支持表格行和卡片两种显示样式
  */
-export function ItemCard({ item, variant, onClick }: ItemCardProps) {
+export function ItemCard({ item, variant, onClick, activeTags, onToggleTag, tagsDisabled }: ItemCardProps) {
   if (variant === 'table') {
-    return <TableRow item={item} onClick={onClick} />;
+    return (
+      <TableRow
+        item={item}
+        onClick={onClick}
+        activeTags={activeTags}
+        onToggleTag={onToggleTag}
+        tagsDisabled={tagsDisabled}
+      />
+    );
   }
-  return <GridCard item={item} variant={variant} onClick={onClick} />;
+  return (
+    <GridCard
+      item={item}
+      variant={variant}
+      onClick={onClick}
+      activeTags={activeTags}
+      onToggleTag={onToggleTag}
+      tagsDisabled={tagsDisabled}
+    />
+  );
 }
 
 /**
  * 表格行样式
  * 紧凑的单行布局，显示 code、titleZh、summaryZh
  */
-function TableRow({ item, onClick }: { item: Translation; onClick: (item: Translation) => void }) {
+function TableRow({
+  item,
+  onClick,
+  activeTags = [],
+  onToggleTag,
+  tagsDisabled = false,
+}: {
+  item: Translation;
+  onClick: (item: Translation) => void;
+  activeTags?: UserItemTag[];
+  onToggleTag?: (item: Translation, tag: UserItemTag) => void;
+  tagsDisabled?: boolean;
+}) {
   return (
     <tr
       onClick={() => onClick(item)}
@@ -30,7 +61,8 @@ function TableRow({ item, onClick }: { item: Translation; onClick: (item: Transl
     >
       {/* 代码列 */}
       <td className="px-3 py-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={(event) => {
@@ -47,6 +79,13 @@ function TableRow({ item, onClick }: { item: Translation; onClick: (item: Transl
             Open
           </button>
           <CopyableCode code={item.code} variant="inline" />
+        </div>
+          <TagToggleRow
+            item={item}
+            activeTags={activeTags}
+            onToggleTag={onToggleTag}
+            tagsDisabled={tagsDisabled}
+          />
         </div>
       </td>
       {/* 标题列 */}
@@ -97,10 +136,16 @@ function GridCard({
   item,
   variant,
   onClick,
+  activeTags = [],
+  onToggleTag,
+  tagsDisabled = false,
 }: {
   item: Translation;
   variant: Exclude<ItemCardProps['variant'], 'table'>;
   onClick: (item: Translation) => void;
+  activeTags?: UserItemTag[];
+  onToggleTag?: (item: Translation, tag: UserItemTag) => void;
+  tagsDisabled?: boolean;
 }) {
   const scene = item.rawResponse ? parseSceneData(item.rawResponse) : null;
   const performers = getPerformerNames(scene);
@@ -184,7 +229,65 @@ function GridCard({
             {releaseDate}
           </p>
         ) : null}
+        <div className="mt-3">
+          <TagToggleRow
+            item={item}
+            activeTags={activeTags}
+            onToggleTag={onToggleTag}
+            tagsDisabled={tagsDisabled}
+          />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function TagToggleRow({
+  item,
+  activeTags = [],
+  onToggleTag,
+  tagsDisabled = false,
+}: {
+  item: Translation;
+  activeTags?: UserItemTag[];
+  onToggleTag?: (item: Translation, tag: UserItemTag) => void;
+  tagsDisabled?: boolean;
+}) {
+  const iconByTag: Record<UserItemTag, typeof Clock3> = {
+    watch_later: Clock3,
+    favorite: Heart,
+    deleted: Trash2,
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {USER_ITEM_TAGS.map((tag) => {
+        const active = activeTags.includes(tag);
+        const Icon = iconByTag[tag];
+
+        return (
+          <button
+            key={tag}
+            type="button"
+            disabled={tagsDisabled}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleTag?.(item, tag);
+            }}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              background: active ? 'rgba(212, 175, 55, 0.16)' : 'rgba(255,255,255,0.03)',
+              borderColor: active ? 'rgba(212, 175, 55, 0.28)' : 'rgba(255,255,255,0.08)',
+              color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
+            }}
+            aria-pressed={active}
+            aria-label={USER_ITEM_TAG_LABELS[tag]}
+            title={USER_ITEM_TAG_LABELS[tag]}
+          >
+            <Icon className="h-3.5 w-3.5" />
+          </button>
+        );
+      })}
     </div>
   );
 }

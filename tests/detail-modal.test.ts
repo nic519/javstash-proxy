@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { SceneData } from '../src/graphql/queries';
+import { DetailView } from '../components/shared/detail-modal';
 import { EditFormView } from '../components/shared/detail-modal/EditFormView';
 import {
   getPerformerNames,
@@ -79,5 +80,36 @@ describe('EditFormView', () => {
 
     expect(markup).toContain('raw_response');
     expect(markup).toContain('{&quot;code&quot;:&quot;ABP-123&quot;}');
+  });
+});
+
+describe('DetailView', () => {
+  it('renders preset tag toggles in detail mode', () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailView, {
+        item: {
+          code: 'ABP-123',
+          titleZh: '标题',
+          summaryZh: '简介',
+        },
+        form: {
+          titleZh: '标题',
+          summaryZh: '简介',
+          coverUrl: '',
+          rawResponse: '',
+        },
+        onClose: () => {},
+        onCopyCode: () => {},
+        copied: false,
+        rawData: null,
+        activeTags: ['watch_later'],
+        onToggleTag: () => {},
+        tagsDisabled: false,
+      })
+    );
+
+    expect(markup).toContain('aria-label="稍后再看"');
+    expect(markup).toContain('aria-label="特别收藏"');
+    expect(markup).toContain('aria-label="已删除"');
   });
 });

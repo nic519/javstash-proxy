@@ -1,9 +1,14 @@
 // Import shared types for use in this file
-import type { Translation as TranslationType, EditForm as EditFormType } from '../../../components/shared/types';
+import type {
+  Translation as TranslationType,
+  EditForm as EditFormType,
+  UserItemTagFilter as UserItemTagFilterType,
+} from '../../../components/shared/types';
 
 // Re-export shared types
 export type Translation = TranslationType;
 export type EditForm = EditFormType;
+export type UserItemTagFilter = UserItemTagFilterType;
 
 /**
  * 排序方式
@@ -125,6 +130,8 @@ export interface AdminPageControlsProps {
   viewMode: AdminViewMode;
   /** 当前搜索词 */
   searchInput: string;
+  /** 个人标签筛选 */
+  tagFilter: UserItemTagFilter;
   /** 是否禁止后台交互 */
   backgroundInteractionDisabled?: boolean;
   /** 排序变更回调 */
@@ -135,6 +142,8 @@ export interface AdminPageControlsProps {
   onRandomRefresh: () => void;
   /** 视图模式变更回调 */
   onViewModeChange: (value: AdminViewMode) => void;
+  /** 个人标签筛选变更回调 */
+  onTagFilterChange: (value: UserItemTagFilter) => void;
   /** 搜索词变更回调 */
   onSearchInputChange: (value: string) => void;
   /** 搜索回调 */

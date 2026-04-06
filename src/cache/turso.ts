@@ -1,5 +1,6 @@
 import { createClient } from '@libsql/client';
 import type { Translation } from '../types';
+import type { UserItemTag, UserItemTagRecord } from '../../components/shared/types';
 
 /**
  * Turso 缓存访问层。
@@ -7,6 +8,7 @@ import type { Translation } from '../types';
  */
 export class TursoCache {
   private client;
+  private userItemTagsSchemaReady: Promise<void> | null = null;
 
   /**
    * @param url Turso 数据库地址
@@ -14,6 +16,34 @@ export class TursoCache {
    */
   constructor(url: string, authToken: string) {
     this.client = createClient({ url, authToken });
+  }
+
+  private async ensureUserItemTagsTable(): Promise<void> {
+    if (!this.userItemTagsSchemaReady) {
+      this.userItemTagsSchemaReady = (async () => {
+        await this.client.execute(`
+          CREATE TABLE IF NOT EXISTS user_item_tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT NOT NULL,
+            item_code TEXT NOT NULL,
+            tag TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(user_email, item_code, tag)
+          )
+        `);
+        await this.client.execute(`
+          CREATE INDEX IF NOT EXISTS idx_user_item_tags_user_tag_updated
+          ON user_item_tags (user_email, tag, updated_at DESC)
+        `);
+        await this.client.execute(`
+          CREATE INDEX IF NOT EXISTS idx_user_item_tags_user_item
+          ON user_item_tags (user_email, item_code)
+        `);
+      })();
+    }
+
+    await this.userItemTagsSchemaReady;
   }
 
   /**
@@ -173,6 +203,85 @@ export class TursoCache {
       coverUrl: (row.cover_url as string) ?? undefined,
       rawResponse: (row.raw_response as string) ?? undefined,
     };
+  }
+
+  async upsertUserItemTag({
+    userEmail,
+    itemCode,
+    tag,
+  }: {
+    userEmail: string;
+    itemCode: string;
+    tag: UserItemTag;
+  }): Promise<void> {
+    await this.ensureUserItemTagsTable();
+
+    const now = new Date().toISOString();
+    await this.client.execute({
+      sql: `INSERT INTO user_item_tags (user_email, item_code, tag, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(user_email, item_code, tag) DO UPDATE SET
+              updated_at = excluded.updated_at`,
+      args: [userEmail, itemCode, tag, now, now],
+    });
+  }
+
+  async deleteUserItemTag({
+    userEmail,
+    itemCode,
+    tag,
+  }: {
+    userEmail: string;
+    itemCode: string;
+    tag: UserItemTag;
+  }): Promise<void> {
+    await this.ensureUserItemTagsTable();
+
+    await this.client.execute({
+      sql: 'DELETE FROM user_item_tags WHERE user_email = ? AND item_code = ? AND tag = ?',
+      args: [userEmail, itemCode, tag],
+    });
+  }
+
+  async listUserItemTags({
+    userEmail,
+    tag,
+    itemCodes,
+  }: {
+    userEmail: string;
+    tag?: UserItemTag;
+    itemCodes?: string[];
+  }): Promise<UserItemTagRecord[]> {
+    await this.ensureUserItemTagsTable();
+
+    const conditions = ['user_email = ?'];
+    const args: (string | number)[] = [userEmail];
+
+    if (tag) {
+      conditions.push('tag = ?');
+      args.push(tag);
+    }
+
+    if (itemCodes && itemCodes.length > 0) {
+      const placeholders = itemCodes.map(() => '?').join(', ');
+      conditions.push(`item_code IN (${placeholders})`);
+      args.push(...itemCodes);
+    }
+
+    const result = await this.client.execute({
+      sql: `SELECT item_code, tag, created_at, updated_at
+            FROM user_item_tags
+            WHERE ${conditions.join(' AND ')}
+            ORDER BY updated_at DESC, item_code ASC, tag ASC`,
+      args,
+    });
+
+    return result.rows.map((row) => ({
+      itemCode: row.item_code as string,
+      tag: row.tag as UserItemTag,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    }));
   }
 
   /**

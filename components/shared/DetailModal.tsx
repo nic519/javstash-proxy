@@ -8,7 +8,16 @@ import { DetailView, EditFormView, IconButton, useDetailModal } from './detail-m
  * 详情弹窗组件
  * 支持查看和编辑两种模式，可预览封面图片
  */
-export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: DetailModalProps) {
+export function DetailModal({
+  item,
+  onClose,
+  onUpdate,
+  onDelete,
+  readOnly,
+  activeTags,
+  onToggleTag,
+  tagsDisabled,
+}: DetailModalProps) {
   const {
     copied,
     deleting,
@@ -143,6 +152,9 @@ export function DetailModal({ item, onClose, onUpdate, onDelete, readOnly }: Det
                 onCopyCode={handleCopyCode}
                 copied={copied}
                 rawData={rawData}
+                activeTags={activeTags}
+                onToggleTag={onToggleTag}
+                tagsDisabled={tagsDisabled}
               />
             )}
           </div>

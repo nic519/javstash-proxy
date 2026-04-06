@@ -5,12 +5,21 @@ import Image from 'next/image';
 import {
   CalendarDays,
   Clapperboard,
+  Clock3,
   FileVideo,
+  Heart,
   Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import type { SceneData } from '@/src/graphql/queries';
 import { CopyableCode, PerformerList } from '../SceneMeta';
-import type { DetailModalProps, EditForm } from '../types';
+import {
+  USER_ITEM_TAG_LABELS,
+  USER_ITEM_TAGS,
+  type DetailModalProps,
+  type EditForm,
+  type UserItemTag,
+} from '../types';
 import { formatDate, getDetailHeaderMeta, getPerformerNames, getStudioName, getTagColor } from './helpers';
 
 export function DetailView({
@@ -20,6 +29,9 @@ export function DetailView({
   onCopyCode,
   copied,
   rawData,
+  activeTags = [],
+  onToggleTag,
+  tagsDisabled = false,
 }: {
   item: DetailModalProps['item'];
   form: EditForm;
@@ -27,8 +39,16 @@ export function DetailView({
   onCopyCode: () => void;
   copied: boolean;
   rawData: SceneData | null;
+  activeTags?: UserItemTag[];
+  onToggleTag?: (item: DetailModalProps['item'], tag: UserItemTag) => void;
+  tagsDisabled?: boolean;
 }) {
   const [imageLoading, setImageLoading] = useState(true);
+  const iconByTag: Record<UserItemTag, typeof Clock3> = {
+    watch_later: Clock3,
+    favorite: Heart,
+    deleted: Trash2,
+  };
   const performerNames = getPerformerNames(rawData);
   const releaseDate = rawData ? formatDate(rawData.date) : null;
   const studioName = getStudioName(rawData);
@@ -208,6 +228,40 @@ export function DetailView({
           >
             {form.summaryZh || '-'}
           </p>
+
+          <div className="flex flex-col gap-2">
+            <p
+              className="text-xs font-medium uppercase tracking-[0.18em]"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              我的标签
+            </p>
+            <div className="flex flex-wrap gap-2.5">
+              {USER_ITEM_TAGS.map((tag) => {
+                const active = activeTags.includes(tag);
+                const Icon = iconByTag[tag];
+
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    disabled={tagsDisabled}
+                    onClick={() => onToggleTag?.(item, tag)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{
+                      background: active ? 'rgba(212, 175, 55, 0.16)' : 'rgba(255,255,255,0.03)',
+                      borderColor: active ? 'rgba(212, 175, 55, 0.28)' : 'rgba(255,255,255,0.08)',
+                      color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
+                    }}
+                    aria-label={USER_ITEM_TAG_LABELS[tag]}
+                    title={USER_ITEM_TAG_LABELS[tag]}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {rawData ? (
             <>

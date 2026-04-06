@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TursoCache } from '../src/cache/turso.js';
 
-const executeMock = vi.fn(async (stmt: string | { sql: string }) => {
+const executeMock = vi.fn<any>(async (stmt: string | { sql: string }) => {
   const sql = typeof stmt === 'string' ? stmt : stmt.sql;
 
   if (sql.includes('SELECT')) {
@@ -57,5 +57,55 @@ describe('TursoCache', () => {
         args: [20],
       })
     );
+  });
+
+  it('stores multiple preset tags for the same user and item', async () => {
+    executeMock.mockImplementation(async (stmt: any) => {
+      const sql = typeof stmt === 'string' ? stmt : stmt.sql;
+
+      if (sql.includes('SELECT item_code')) {
+        return {
+          rows: [
+            {
+              item_code: 'ABP-123',
+              tag: 'favorite',
+              created_at: '2026-04-07T00:00:00.000Z',
+              updated_at: '2026-04-07T00:00:00.000Z',
+            },
+            {
+              item_code: 'ABP-123',
+              tag: 'watch_later',
+              created_at: '2026-04-07T00:00:00.000Z',
+              updated_at: '2026-04-07T00:00:00.000Z',
+            },
+          ],
+        };
+      }
+
+      return { rows: [] };
+    });
+
+    const cache = new TursoCache('http://localhost', 'token');
+
+    await cache.upsertUserItemTag({
+      userEmail: 'user@example.com',
+      itemCode: 'ABP-123',
+      tag: 'watch_later',
+    });
+    await cache.upsertUserItemTag({
+      userEmail: 'user@example.com',
+      itemCode: 'ABP-123',
+      tag: 'favorite',
+    });
+
+    await expect(
+      cache.listUserItemTags({
+        userEmail: 'user@example.com',
+        itemCodes: ['ABP-123'],
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({ itemCode: 'ABP-123', tag: 'favorite' }),
+      expect.objectContaining({ itemCode: 'ABP-123', tag: 'watch_later' }),
+    ]);
   });
 });

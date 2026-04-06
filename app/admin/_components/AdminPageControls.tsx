@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowUpAZ, ArrowUpDown, Clock3, Dices, ListFilter, Shuffle } from 'lucide-react';
+import { USER_ITEM_TAG_LABELS, USER_ITEM_TAGS } from '../../../components/shared/types';
 import {
   Select,
   SelectContent,
@@ -26,11 +27,13 @@ export function AdminPageControls({
   randomMode,
   viewMode,
   searchInput,
+  tagFilter,
   backgroundInteractionDisabled,
   onSortChange,
   onRandomModeChange,
   onRandomRefresh,
   onViewModeChange,
+  onTagFilterChange,
   onSearchInputChange,
   onSearch,
 }: AdminPageControlsProps) {
@@ -192,6 +195,29 @@ export function AdminPageControls({
 
           <div className="space-y-3">
             <p className="text-xs font-medium uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+              我的标签
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <TagFilterButton
+                active={tagFilter === 'all'}
+                disabled={backgroundInteractionDisabled}
+                label="全部"
+                onClick={() => onTagFilterChange('all')}
+              />
+              {USER_ITEM_TAGS.map((tag) => (
+                <TagFilterButton
+                  key={tag}
+                  active={tagFilter === tag}
+                  disabled={backgroundInteractionDisabled}
+                  label={USER_ITEM_TAG_LABELS[tag]}
+                  onClick={() => onTagFilterChange(tag)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-medium uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
               搜索
             </p>
             <SearchBar
@@ -203,5 +229,33 @@ export function AdminPageControls({
           </div>
         </div>
     </aside>
+  );
+}
+
+function TagFilterButton({
+  active,
+  disabled,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  disabled: boolean | undefined;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-full border px-3 py-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+      style={{
+        background: active ? 'rgba(212, 175, 55, 0.16)' : 'rgba(255,255,255,0.03)',
+        borderColor: active ? 'rgba(212, 175, 55, 0.28)' : 'rgba(255,255,255,0.08)',
+        color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
+      }}
+    >
+      {label}
+    </button>
   );
 }

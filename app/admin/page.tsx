@@ -2,7 +2,9 @@
 
 import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { Navigation } from '@/components/Navigation';
+import { USER_ITEM_TAG_LABELS } from '@/components/shared';
 import { canManageAdminData, type AppAuthState } from '@/lib/session-permissions';
 import {
   AdminPageControls,
@@ -15,6 +17,7 @@ import {
   type SortBy,
   type PageSize,
   type AdminViewMode,
+  type UserItemTagFilter,
   applyAdminSearchOverlayState,
   createAdminListSearchParams,
   readAdminSearchOverlayState,
@@ -26,6 +29,7 @@ import {
   isAdminDetailReadOnly,
   writeAdminListPreferences,
 } from './_components';
+import type { UserItemTag } from '@/components/shared';
 
 /**
  * 缓存管理页面
@@ -75,6 +79,10 @@ function AdminPageContent() {
   const [sessionState, setSessionState] = useState<AppAuthState | null>(null);
   // 操作提示消息
   const [message, setMessage] = useState('');
+  const [tagFilter, setTagFilter] = useState<UserItemTagFilter>('all');
+  const [itemTagsByCode, setItemTagsByCode] = useState<Record<string, UserItemTag[]>>({});
+  const [tagRequestPendingCodes, setTagRequestPendingCodes] = useState<Record<string, UserItemTag[]>>({});
+  const [tagsLoading, setTagsLoading] = useState(false);
   // 本地查询请求版本
   const localRequestVersionRef = useRef(0);
   // 消息清除定时器
@@ -94,6 +102,28 @@ function AdminPageContent() {
     localRequestVersionRef.current = requestId;
     setLoading(true);
     try {
+      if (tagFilter !== 'all') {
+        const params = new URLSearchParams({ tag: tagFilter });
+        const res = await fetch(`/api/admin/item-tags?${params.toString()}`);
+        if (!shouldApplyAdminSearchResponse({
+          requestId,
+          activeRequestId: localRequestVersionRef.current,
+        })) {
+          return;
+        }
+
+        if (res.ok) {
+          const data: {
+            items: Translation[];
+            groupedTags: Record<string, UserItemTag[]>;
+          } = await res.json();
+          setItems(data.items);
+          setTotal(data.items.length);
+          setItemTagsByCode(data.groupedTags);
+        }
+        return;
+      }
+
       const params = new URLSearchParams({
         pageSize: String(pageSize),
       });
@@ -133,12 +163,58 @@ function AdminPageContent() {
         setLoading(false);
       }
     }
-  }, [page, pageSize, randomMode, randomVersion, sortBy]);
+  }, [page, pageSize, randomMode, randomVersion, sortBy, tagFilter]);
 
   // 页码或搜索关键词变化时重新获取数据
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!sessionState?.authenticated || !sessionState.email) {
+      setItemTagsByCode({});
+      return;
+    }
+
+    if (tagFilter !== 'all') {
+      return;
+    }
+
+    if (items.length === 0) {
+      setItemTagsByCode({});
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+
+    for (const item of items) {
+      params.append('code', item.code);
+    }
+
+    setTagsLoading(true);
+    fetch(`/api/admin/item-tags?${params.toString()}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error('failed');
+        }
+
+        const data: { groupedTags: Record<string, UserItemTag[]> } = await res.json();
+        setItemTagsByCode(data.groupedTags);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setItemTagsByCode({});
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setTagsLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [items, sessionState, tagFilter]);
 
   useEffect(() => {
     const nextState = readCurrentListState();
@@ -317,6 +393,57 @@ function AdminPageContent() {
     router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
   };
 
+  const handleToggleTag = async (item: Translation, tag: UserItemTag) => {
+    if (!sessionState?.authenticated || !sessionState.email) {
+      showMessage('请先登录后再打标签');
+      return;
+    }
+
+    const currentTags = tagRequestPendingCodes[item.code] ?? itemTagsByCode[item.code] ?? [];
+    const hasTag = currentTags.includes(tag);
+    const nextTags = hasTag ? currentTags.filter((value) => value !== tag) : [...currentTags, tag];
+
+    setTagRequestPendingCodes((prev) => ({ ...prev, [item.code]: nextTags }));
+    setItemTagsByCode((prev) => ({ ...prev, [item.code]: nextTags }));
+
+    try {
+      const res = await fetch('/api/admin/item-tags', {
+        method: hasTag ? 'DELETE' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: item.code, tag }),
+      });
+
+      if (!res.ok) {
+        throw new Error('request failed');
+      }
+
+      toast.success(hasTag ? `已取消${USER_ITEM_TAG_LABELS[tag]}` : `已加入${USER_ITEM_TAG_LABELS[tag]}`, {
+        id: `user-item-tag-${item.code}-${tag}`,
+      });
+
+      if (tagFilter !== 'all') {
+        const matchesCurrentFilter = nextTags.includes(tagFilter);
+
+        if (!matchesCurrentFilter) {
+          setItems((prev) => prev.filter((entry) => entry.code !== item.code));
+          setTotal((current) => Math.max(current - 1, 0));
+        }
+      }
+    } catch {
+      setItemTagsByCode((prev) => ({ ...prev, [item.code]: currentTags }));
+      toast.error(`更新${USER_ITEM_TAG_LABELS[tag]}失败`, {
+        id: `user-item-tag-${item.code}-${tag}`,
+      });
+      showMessage('标签更新失败');
+    } finally {
+      setTagRequestPendingCodes((prev) => {
+        const next = { ...prev };
+        delete next[item.code];
+        return next;
+      });
+    }
+  };
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden animated-bg">
       <Navigation
@@ -327,6 +454,7 @@ function AdminPageContent() {
             randomMode={randomMode}
             viewMode={viewMode}
             searchInput={searchInput}
+            tagFilter={tagFilter}
             backgroundInteractionDisabled={backgroundInteractionDisabled}
             onSortChange={(value) => {
               setSortBy(value);
@@ -343,6 +471,11 @@ function AdminPageContent() {
               setRandomVersion((current) => current + 1);
             }}
             onViewModeChange={setViewMode}
+            onTagFilterChange={(value) => {
+              setTagFilter(value);
+              setRandomMode(false);
+              setPage(1);
+            }}
             onSearchInputChange={setSearchInput}
             onSearch={handleSearch}
           />
@@ -364,6 +497,7 @@ function AdminPageContent() {
                 randomMode={randomMode}
                 viewMode={viewMode}
                 searchInput={searchInput}
+                tagFilter={tagFilter}
                 backgroundInteractionDisabled={backgroundInteractionDisabled}
                 onSortChange={(value) => {
                   setSortBy(value);
@@ -380,6 +514,11 @@ function AdminPageContent() {
                   setRandomVersion((current) => current + 1);
                 }}
                 onViewModeChange={setViewMode}
+                onTagFilterChange={(value) => {
+                  setTagFilter(value);
+                  setRandomMode(false);
+                  setPage(1);
+                }}
                 onSearchInputChange={setSearchInput}
                 onSearch={handleSearch}
               />
@@ -458,6 +597,9 @@ function AdminPageContent() {
                           // table 模式下，ItemCard 内部会渲染成一行 <tr>
                           variant="table"
                           onClick={handleLocalSelect}
+                          activeTags={itemTagsByCode[item.code] ?? []}
+                          onToggleTag={handleToggleTag}
+                          tagsDisabled={!sessionState?.authenticated || tagsLoading}
                         />
                       ))}
                     </tbody>
@@ -473,6 +615,9 @@ function AdminPageContent() {
                         // grid 模式下，ItemCard 会渲染成可点击卡片
                         variant="grid"
                         onClick={handleLocalSelect}
+                        activeTags={itemTagsByCode[item.code] ?? []}
+                        onToggleTag={handleToggleTag}
+                        tagsDisabled={!sessionState?.authenticated || tagsLoading}
                       />
                     ))}
                   </div>
@@ -480,7 +625,7 @@ function AdminPageContent() {
               </div>
 
               {/* 随机模式没有固定页码概念，所以只在普通列表模式显示分页 */}
-              {!randomMode ? (
+              {!randomMode && tagFilter === 'all' ? (
                 <Pagination
                   page={page}
                   totalPages={totalPages}
@@ -513,6 +658,9 @@ function AdminPageContent() {
                 onUpdate={isAdminDetailReadOnly({ selectedReadOnly, canManage }) ? undefined : handleUpdate}
                 onDelete={isAdminDetailReadOnly({ selectedReadOnly, canManage }) ? undefined : handleDelete}
                 readOnly={isAdminDetailReadOnly({ selectedReadOnly, canManage })}
+                activeTags={itemTagsByCode[selected.code] ?? []}
+                onToggleTag={handleToggleTag}
+                tagsDisabled={!sessionState?.authenticated}
               />
             )}
           </div>

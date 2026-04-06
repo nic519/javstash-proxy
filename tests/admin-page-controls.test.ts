@@ -11,10 +11,12 @@ describe('AdminPageControls', () => {
         randomMode: false,
         viewMode: 'table',
         searchInput: '',
+        tagFilter: 'all',
         onSortChange: () => {},
         onRandomModeChange: () => {},
         onRandomRefresh: () => {},
         onViewModeChange: () => {},
+        onTagFilterChange: () => {},
         onSearchInputChange: () => {},
         onSearch: () => {},
       })
@@ -31,10 +33,12 @@ describe('AdminPageControls', () => {
         randomMode: false,
         viewMode: 'table',
         searchInput: '',
+        tagFilter: 'all',
         onSortChange: () => {},
         onRandomModeChange: () => {},
         onRandomRefresh: () => {},
         onViewModeChange: () => {},
+        onTagFilterChange: () => {},
         onSearchInputChange: () => {},
         onSearch: () => {},
       })
@@ -52,10 +56,12 @@ describe('AdminPageControls', () => {
         randomMode: true,
         viewMode: 'table',
         searchInput: '',
+        tagFilter: 'all',
         onSortChange: () => {},
         onRandomModeChange: () => {},
         onRandomRefresh: () => {},
         onViewModeChange: () => {},
+        onTagFilterChange: () => {},
         onSearchInputChange: () => {},
         onSearch: () => {},
       })
@@ -63,5 +69,29 @@ describe('AdminPageControls', () => {
 
     expect(markup).toContain('rounded-3xl border transition-colors p-4');
     expect(markup).toContain('title="换一组随机结果"');
+  });
+
+  it('renders personal tag filter controls alongside the existing admin tools', () => {
+    const markup = renderToStaticMarkup(
+      createElement(AdminPageControls, {
+        sortBy: 'updated',
+        randomMode: false,
+        viewMode: 'table',
+        searchInput: '',
+        tagFilter: 'all',
+        onSortChange: () => {},
+        onRandomModeChange: () => {},
+        onRandomRefresh: () => {},
+        onViewModeChange: () => {},
+        onTagFilterChange: () => {},
+        onSearchInputChange: () => {},
+        onSearch: () => {},
+      })
+    );
+
+    expect(markup).toContain('我的标签');
+    expect(markup).toContain('稍后再看');
+    expect(markup).toContain('特别收藏');
+    expect(markup).toContain('已删除');
   });
 });

@@ -17,6 +17,23 @@ export interface Translation {
   updatedAt?: string;
 }
 
+export const USER_ITEM_TAGS = ['watch_later', 'favorite', 'deleted'] as const;
+export type UserItemTag = typeof USER_ITEM_TAGS[number];
+export type UserItemTagFilter = 'all' | UserItemTag;
+
+export const USER_ITEM_TAG_LABELS: Record<UserItemTag, string> = {
+  watch_later: '稍后再看',
+  favorite: '特别收藏',
+  deleted: '已删除',
+};
+
+export interface UserItemTagRecord {
+  itemCode: string;
+  tag: UserItemTag;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /**
  * ItemCard 组件变体
  */
@@ -32,6 +49,12 @@ export interface ItemCardProps {
   variant: ItemCardVariant;
   /** 点击回调 */
   onClick: (item: Translation) => void;
+  /** 当前用户在该条目上的已选标签 */
+  activeTags?: UserItemTag[];
+  /** 切换标签 */
+  onToggleTag?: (item: Translation, tag: UserItemTag) => void;
+  /** 标签操作是否禁用 */
+  tagsDisabled?: boolean;
 }
 
 /**
@@ -48,6 +71,12 @@ export interface DetailModalProps {
   onDelete?: (code: string) => void;
   /** 只读模式（Browse 模式为 true） */
   readOnly?: boolean;
+  /** 当前条目的个人标签 */
+  activeTags?: UserItemTag[];
+  /** 切换当前条目的个人标签 */
+  onToggleTag?: (item: Translation, tag: UserItemTag) => void;
+  /** 标签操作是否禁用 */
+  tagsDisabled?: boolean;
 }
 
 /**
