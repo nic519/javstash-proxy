@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Navigation } from '@/components/Navigation';
-import { canManageAdminData, type SessionType } from '@/lib/session-permissions';
+import { canManageAdminData, type AppAuthState } from '@/lib/session-permissions';
 import {
   AdminPageControls,
   Pagination,
@@ -22,6 +22,8 @@ import {
   shouldApplyAdminSearchResponse,
   shouldAllowAdminLocalSelection,
   shouldDisableAdminBackgroundInteractions,
+  createAdminDetailReadOnlyState,
+  isAdminDetailReadOnly,
   writeAdminListPreferences,
 } from './_components';
 
@@ -69,8 +71,8 @@ function AdminPageContent() {
   const [selected, setSelected] = useState<Translation | null>(null);
   // 当前详情是否只读（远端结果）
   const [selectedReadOnly, setSelectedReadOnly] = useState(false);
-  // 当前会话类型
-  const [sessionType, setSessionType] = useState<SessionType | null>(null);
+  // 当前会话信息
+  const [sessionState, setSessionState] = useState<AppAuthState | null>(null);
   // 操作提示消息
   const [message, setMessage] = useState('');
   // 本地查询请求版本
@@ -81,7 +83,7 @@ function AdminPageContent() {
   // 计算总页数
   const totalPages = Math.ceil(total / pageSize);
   const backgroundInteractionDisabled = shouldDisableAdminBackgroundInteractions(remoteOpen);
-  const canManage = canManageAdminData(sessionType);
+  const canManage = canManageAdminData(sessionState);
 
   /**
    * 获取翻译列表数据
@@ -202,10 +204,15 @@ function AdminPageContent() {
     fetch('/api/session')
       .then((res) => res.json())
       .then((data) => {
-        setSessionType(data.type ?? null);
+        setSessionState({
+          authenticated: Boolean(data.authenticated),
+          userId: data.userId ?? null,
+          email: data.email ?? null,
+          isAdmin: Boolean(data.isAdmin),
+        });
       })
       .catch(() => {
-        setSessionType(null);
+        setSessionState(null);
       });
   }, []);
 
@@ -279,12 +286,12 @@ function AdminPageContent() {
     if (!shouldAllowAdminLocalSelection({ backgroundInteractionDisabled, origin })) {
       return;
     }
-    setSelectedReadOnly(!canManage);
+    setSelectedReadOnly(createAdminDetailReadOnlyState('local'));
     setSelected(item);
   };
 
   const handleRemoteSelect = (item: Translation) => {
-    setSelectedReadOnly(true);
+    setSelectedReadOnly(createAdminDetailReadOnlyState('remote'));
     setSelected(item);
   };
 
@@ -503,9 +510,9 @@ function AdminPageContent() {
               <DetailModal
                 item={selected}
                 onClose={handleDetailClose}
-                onUpdate={selectedReadOnly || !canManage ? undefined : handleUpdate}
-                onDelete={selectedReadOnly || !canManage ? undefined : handleDelete}
-                readOnly={selectedReadOnly || !canManage}
+                onUpdate={isAdminDetailReadOnly({ selectedReadOnly, canManage }) ? undefined : handleUpdate}
+                onDelete={isAdminDetailReadOnly({ selectedReadOnly, canManage }) ? undefined : handleDelete}
+                readOnly={isAdminDetailReadOnly({ selectedReadOnly, canManage })}
               />
             )}
           </div>

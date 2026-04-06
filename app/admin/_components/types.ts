@@ -43,6 +43,7 @@ export interface AdminSearchOverlayState {
 }
 
 export type AdminLocalSelectionOrigin = 'list' | 'search-overlay';
+export type AdminDetailSelectionSource = 'local' | 'remote';
 
 interface AdminListSearchParamsLike {
   get(name: string): string | null;
@@ -266,6 +267,22 @@ export function shouldAllowAdminLocalSelection({
   }
 
   return origin === 'search-overlay';
+}
+
+export function createAdminDetailReadOnlyState(
+  source: AdminDetailSelectionSource
+): boolean {
+  return source === 'remote';
+}
+
+export function isAdminDetailReadOnly({
+  selectedReadOnly,
+  canManage,
+}: {
+  selectedReadOnly: boolean;
+  canManage: boolean;
+}): boolean {
+  return selectedReadOnly || !canManage;
 }
 
 /**

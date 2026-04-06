@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getAppAuthState } from '@/lib/authz';
+import { canManageAdminData } from '@/lib/session-permissions';
 import { TursoCache } from '@/src/cache/turso';
 import { loadConfig } from '@/src/config';
 
@@ -32,6 +34,10 @@ export async function GET() {
  */
 export async function DELETE() {
   try {
+    if (!canManageAdminData(await getAppAuthState())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const cache = getCache();
     await cache.clearAll();
     return NextResponse.json({ success: true });

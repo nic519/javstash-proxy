@@ -15,6 +15,15 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
 }));
 
+vi.mock('@clerk/nextjs', () => ({
+  UserButton: ({ children }: { children?: React.ReactNode }) =>
+    createElement(
+      'div',
+      { 'data-testid': 'clerk-user-button' },
+      children ?? 'Account'
+    ),
+}));
+
 describe('Sidebar', () => {
   beforeEach(() => {
     push.mockReset();
@@ -27,7 +36,8 @@ describe('Sidebar', () => {
     expect(markup).toContain('Translation Console');
     expect(markup).toContain('justify-self-center');
     expect(markup).toContain('aria-label="主导航"');
-    expect(markup).toContain('退出登录');
+    expect(markup).toContain('data-testid="clerk-user-button"');
+    expect(markup).not.toContain('退出登录');
   });
 
   it('renders a compact mobile trigger and keeps the mobile drawer collapsed by default', () => {

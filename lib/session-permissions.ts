@@ -1,9 +1,25 @@
-export type SessionType = 'admin' | 'javstash';
+import type { AppAuthState } from './authz';
 
-export function canAccessAdmin(type: SessionType | null): boolean {
-  return type === 'admin' || type === 'javstash';
+export type { AppAuthState } from './authz';
+
+export type PermissionSubject = AppAuthState | null | undefined;
+
+function hasAuthenticatedUser(subject: AppAuthState): boolean {
+  return subject.authenticated && Boolean(subject.userId);
 }
 
-export function canManageAdminData(type: SessionType | null): boolean {
-  return type === 'admin';
+export function canAccessAdmin(subject: PermissionSubject): boolean {
+  if (!subject) {
+    return false;
+  }
+
+  return hasAuthenticatedUser(subject);
+}
+
+export function canManageAdminData(subject: PermissionSubject): boolean {
+  if (!subject) {
+    return false;
+  }
+
+  return hasAuthenticatedUser(subject) && subject.isAdmin;
 }

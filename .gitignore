@@ -9,3 +9,5 @@ tsconfig.tsbuildinfo
 .env*.local
 ui-ux-pro-max
 /docs/superpowers/specs
+# clerk configuration (can include secrets)
+/.clerk/

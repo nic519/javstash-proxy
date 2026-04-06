@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionType } from '@/lib/auth';
+import { getAppAuthState } from '@/lib/authz';
 import { canManageAdminData } from '@/lib/session-permissions';
 import { TursoCache } from '@/src/cache/turso';
 import { loadConfig } from '@/src/config';
@@ -58,7 +58,7 @@ export async function PUT(
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    if (!canManageAdminData(await getSessionType())) {
+    if (!canManageAdminData(await getAppAuthState())) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -86,7 +86,7 @@ export async function DELETE(
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    if (!canManageAdminData(await getSessionType())) {
+    if (!canManageAdminData(await getAppAuthState())) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
