@@ -9,9 +9,14 @@ import {
   BROWSER_LOOKUP_PATH,
   DEFAULT_PROXY_ORIGIN,
   buildLookupUrl,
+  buildLookupCacheKey,
+  createLookupCacheEntry,
   extractCodeFromText,
   extractJavbusCode,
   isJavdbDetailUrl,
+  LOOKUP_CACHE_KEY_PREFIX,
+  LOOKUP_CACHE_TTL_MS,
+  readValidLookupCacheEntry,
 } from '../src/browser/userscript-helpers';
 
 describe('tampermonkey userscript helpers', () => {
@@ -41,6 +46,46 @@ describe('tampermonkey userscript helpers', () => {
     expect(buildLookupUrl(DEFAULT_PROXY_ORIGIN, 'SSIS-828')).toBe(
       'https://javstash.vercel.app/api/browser/lookup?code=SSIS-828'
     );
+  });
+
+  it('builds a stable cache key and stores normalized successful lookup payloads', () => {
+    const now = 1_700_000_000_000;
+
+    expect(LOOKUP_CACHE_KEY_PREFIX).toBe('javstash_lookup_cache_v1:');
+    expect(buildLookupCacheKey('ssis-828')).toBe('javstash_lookup_cache_v1:SSIS-828');
+    expect(createLookupCacheEntry({
+      code: 'ssis-828',
+      title: '中文标题',
+      description: '中文简介',
+    }, now)).toEqual({
+      code: 'SSIS-828',
+      title: '中文标题',
+      description: '中文简介',
+      cachedAt: now,
+      expiresAt: now + LOOKUP_CACHE_TTL_MS,
+    });
+  });
+
+  it('accepts only unexpired cache entries with the expected shape', () => {
+    const now = 1_700_000_000_000;
+    const freshEntry = {
+      code: 'ssis-828',
+      title: '中文标题',
+      description: '中文简介',
+      cachedAt: now - 1000,
+      expiresAt: now + 1000,
+    };
+
+    expect(readValidLookupCacheEntry(freshEntry, now)).toEqual({
+      code: 'SSIS-828',
+      title: '中文标题',
+      description: '中文简介',
+      cachedAt: now - 1000,
+      expiresAt: now + 1000,
+    });
+    expect(readValidLookupCacheEntry({ ...freshEntry, expiresAt: now }, now)).toBeNull();
+    expect(readValidLookupCacheEntry({ code: 'SSIS-828' }, now)).toBeNull();
+    expect(readValidLookupCacheEntry(null, now)).toBeNull();
   });
 
   it('keeps the published userscript free of debug badge and console tracing code', () => {

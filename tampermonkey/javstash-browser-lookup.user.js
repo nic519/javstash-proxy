@@ -21,6 +21,8 @@
   // 统一集中声明脚本运行时所需的持久化键名、接口路径和 DOM 标识，
   // 方便后续切换部署地址或调整注入节点时只改这一处。
   const STORAGE_KEY = 'javstash_api_key';
+  const LOOKUP_CACHE_KEY_PREFIX = 'javstash_lookup_cache_v1:';
+  const LOOKUP_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
   // const PROXY_ORIGIN = 'http://localhost:3456';
   const PROXY_ORIGIN = 'https://javstash.vercel.app';
   const LOOKUP_PATH = '/api/browser/lookup';
@@ -91,6 +93,59 @@
     return String(GM_getValue(STORAGE_KEY, '') || '').trim();
   }
 
+  function buildLookupCacheKey(code) {
+    return LOOKUP_CACHE_KEY_PREFIX + normalizeSceneCode(code);
+  }
+
+  function createLookupCacheEntry(payload, now) {
+    const timestamp = typeof now === 'number' ? now : Date.now();
+    return {
+      code: normalizeSceneCode(payload.code),
+      title: String(payload.title || ''),
+      description: String(payload.description || ''),
+      cachedAt: timestamp,
+      expiresAt: timestamp + LOOKUP_CACHE_TTL_MS,
+    };
+  }
+
+  function readLookupCache(code) {
+    const cacheKey = buildLookupCacheKey(code);
+    const cached = GM_getValue(cacheKey, null);
+    if (!cached || typeof cached !== 'object') {
+      return null;
+    }
+
+    if (
+      typeof cached.code !== 'string' ||
+      typeof cached.title !== 'string' ||
+      typeof cached.description !== 'string' ||
+      typeof cached.cachedAt !== 'number' ||
+      typeof cached.expiresAt !== 'number'
+    ) {
+      GM_setValue(cacheKey, null);
+      return null;
+    }
+
+    if (cached.expiresAt <= Date.now()) {
+      GM_setValue(cacheKey, null);
+      return null;
+    }
+
+    return {
+      code: normalizeSceneCode(cached.code),
+      title: cached.title,
+      description: cached.description,
+      cachedAt: cached.cachedAt,
+      expiresAt: cached.expiresAt,
+    };
+  }
+
+  function writeLookupCache(payload) {
+    const entry = createLookupCacheEntry(payload);
+    GM_setValue(buildLookupCacheKey(entry.code), entry);
+    return entry;
+  }
+
   // 通过油猴菜单让用户自行维护 ApiKey，避免把敏感信息直接硬编码到脚本里。
   function registerMenu() {
     GM_registerMenuCommand('设置 JavStash ApiKey', () => {
@@ -104,6 +159,17 @@
     GM_registerMenuCommand('清除 JavStash ApiKey', () => {
       GM_setValue(STORAGE_KEY, '');
       window.alert('已清除 JavStash ApiKey');
+    });
+
+    GM_registerMenuCommand('清除 JavStash 查询缓存', () => {
+      const code = detectCode();
+      if (!code) {
+        window.alert('当前页面未识别到番号，无法清除此页缓存。');
+        return;
+      }
+
+      GM_setValue(buildLookupCacheKey(code), null);
+      window.alert('已清除当前番号的查询缓存');
     });
   }
 
@@ -291,7 +357,7 @@
     footer.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
     footer.style.fontSize = '12px';
     footer.style.color = '#9ca3af';
-    footer.textContent = '🌐 更多完整中文内容可前往 ';
+    footer.textContent = state.source === 'cache' ? '⚡ 当前内容来自本地缓存，更多完整中文内容可前往 ' : '🌐 更多完整中文内容可前往 ';
 
     const footerLink = document.createElement('a');
     footerLink.href = 'https://javstash.vercel.app/';
@@ -361,6 +427,18 @@
     button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.18)';
 
     button.addEventListener('click', () => {
+      const cached = readLookupCache(code);
+      if (cached) {
+        renderPanel({
+          state: 'success',
+          code: cached.code,
+          title: cached.title,
+          description: cached.description,
+          source: 'cache',
+        });
+        return;
+      }
+
       const apiKey = getApiKey();
       if (!apiKey) {
         renderPanel({ state: 'missing-key', code: code });
@@ -371,11 +449,17 @@
       renderPanel({ state: 'loading', code: code });
       requestLookup(code, apiKey)
         .then((payload) => {
-          renderPanel({
-            state: 'success',
+          const cachedPayload = writeLookupCache({
             code: payload.code || code,
             title: payload.title || '',
             description: payload.description || '',
+          });
+          renderPanel({
+            state: 'success',
+            code: cachedPayload.code,
+            title: cachedPayload.title,
+            description: cachedPayload.description,
+            source: 'network',
           });
         })
         .catch((error) => {
