@@ -26,3 +26,25 @@ export function loadConfig(): AppConfig {
     deeplxApiUrl,
   };
 }
+
+/**
+ * 浏览器查询场景只需要缓存与翻译配置，ApiKey 由请求头透传。
+ */
+export function loadLookupConfig() {
+  const tursoUrl = process.env.TURSO_URL;
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
+  const deeplxApiUrl = process.env.DEEPLX_API_URL ?? '';
+
+  if (!tursoUrl) {
+    throw new Error('TURSO_URL is required');
+  }
+  if (!tursoAuthToken) {
+    throw new Error('TURSO_AUTH_TOKEN is required');
+  }
+
+  return {
+    tursoUrl,
+    tursoAuthToken,
+    deeplxApiUrl,
+  };
+}

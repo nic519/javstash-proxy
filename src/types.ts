@@ -37,3 +37,13 @@ export interface GraphQLRequest {
   variables?: Record<string, unknown>;
   operationName?: string;
 }
+
+/**
+ * 浏览器查询接口返回的精简结果。
+ */
+export interface BrowserLookupResult {
+  code: string;
+  title: string;
+  description: string;
+  translated: boolean;
+}
