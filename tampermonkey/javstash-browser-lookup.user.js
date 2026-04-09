@@ -18,31 +18,38 @@
 (function () {
   'use strict';
 
+  // 统一集中声明脚本运行时所需的持久化键名、接口路径和 DOM 标识，
+  // 方便后续切换部署地址或调整注入节点时只改这一处。
   const STORAGE_KEY = 'javstash_api_key';
-  const PROXY_ORIGIN = 'http://localhost:3456';
+  // const PROXY_ORIGIN = 'http://localhost:3456';
+  const PROXY_ORIGIN = 'https://javstash.vercel.app';
   const LOOKUP_PATH = '/api/browser/lookup';
   const BUTTON_CLASS = 'javstash-lookup-button';
   const PANEL_ID = 'javstash-lookup-panel';
-  const DEBUG_BADGE_ID = 'javstash-debug-badge';
 
+  // 将页面上解析出来的番号统一整理为大写格式，避免后续匹配时因为大小写或空格导致误判。
   function normalizeSceneCode(code) {
     return String(code || '').trim().toUpperCase();
   }
 
+  // JavBus 详情页的番号直接体现在 URL 中，因此优先从路径提取，可减少整页文本扫描开销。
   function extractJavbusCode(url) {
     const match = String(url).match(/^https?:\/\/www\.javbus\.com\/([A-Za-z0-9]{2,10}-\d{2,6})\/?$/i);
     return match ? normalizeSceneCode(match[1]) : null;
   }
 
+  // 仅在 JavDB 作品详情页执行特定 DOM 选择器逻辑，避免搜索页或列表页误触发。
   function isJavdbDetailUrl(url) {
     return /^https?:\/\/(?:www\.)?javdb\.com\/v\/[A-Za-z0-9]+(?:[/?#].*)?$/i.test(String(url));
   }
 
+  // 作为兜底策略，从一段普通文本中提取类似 SSIS-123 的番号模式。
   function extractCodeFromText(text) {
     const match = String(text || '').match(/\b([A-Za-z0-9]{2,10}-\d{2,6})\b/);
     return match ? normalizeSceneCode(match[1]) : null;
   }
 
+  // JavDB 页面结构较稳定，先找到“番号/番號”标签对应的值节点，后续按钮也优先挂到这里。
   function findJavdbCodeValueElement() {
     const blocks = Array.from(document.querySelectorAll('.video-detail .movie-panel-info .panel-block'));
     for (const block of blocks) {
@@ -84,28 +91,7 @@
     return String(GM_getValue(STORAGE_KEY, '') || '').trim();
   }
 
-  function renderDebugBadge(message, background) {
-    let badge = document.getElementById(DEBUG_BADGE_ID);
-    if (!badge) {
-      badge = document.createElement('div');
-      badge.id = DEBUG_BADGE_ID;
-      badge.style.position = 'fixed';
-      badge.style.top = '12px';
-      badge.style.left = '12px';
-      badge.style.zIndex = '2147483647';
-      badge.style.padding = '8px 12px';
-      badge.style.borderRadius = '999px';
-      badge.style.fontSize = '12px';
-      badge.style.fontWeight = '700';
-      badge.style.color = '#fff';
-      badge.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.25)';
-      document.body.appendChild(badge);
-    }
-
-    badge.style.background = background || '#111';
-    badge.textContent = message;
-  }
-
+  // 通过油猴菜单让用户自行维护 ApiKey，避免把敏感信息直接硬编码到脚本里。
   function registerMenu() {
     GM_registerMenuCommand('设置 JavStash ApiKey', () => {
       const current = getApiKey();
@@ -123,12 +109,14 @@
 
   function detectCode() {
     if (isJavdbDetailUrl(window.location.href)) {
+      // 先走结构化 DOM 提取，找不到时再回退到全文正则扫描，兼顾速度与兼容性。
       return extractJavdbCodeFromPage() || extractCodeFromText(document.body.innerText || '');
     }
 
     return extractJavbusCode(window.location.href) || extractCodeFromText(document.body.innerText || '');
   }
 
+  // 优先把按钮插到番号旁边；如果页面结构变化导致命中失败，再退回右上角悬浮按钮。
   function findInjectionTarget(code) {
     if (isJavdbDetailUrl(window.location.href)) {
       const value = findJavdbCodeValueElement();
@@ -184,6 +172,7 @@
       return panel;
     }
 
+    // 结果面板固定挂在页面右下角，避免依赖站点现有样式体系。
     panel = document.createElement('aside');
     panel.id = PANEL_ID;
     panel.style.position = 'fixed';
@@ -194,15 +183,16 @@
     panel.style.maxHeight = '70vh';
     panel.style.overflow = 'auto';
     panel.style.zIndex = '2147483647';
-    panel.style.background = '#fff';
-    panel.style.color = '#111';
-    panel.style.border = '1px solid rgba(0, 0, 0, 0.18)';
-    panel.style.borderRadius = '14px';
-    panel.style.boxShadow = '0 18px 50px rgba(0, 0, 0, 0.24)';
-    panel.style.padding = '16px';
+    panel.style.background = 'linear-gradient(180deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0) 72px), #111418';
+    panel.style.color = '#f3f4f6';
+    panel.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+    panel.style.borderRadius = '12px';
+    panel.style.boxShadow = '0 20px 48px rgba(0, 0, 0, 0.45)';
+    panel.style.padding = '14px 14px 12px';
     panel.style.fontSize = '14px';
-    panel.style.lineHeight = '1.6';
+    panel.style.lineHeight = '1.7';
     panel.style.display = 'none';
+    panel.style.backdropFilter = 'blur(10px)';
 
     document.body.appendChild(panel);
     return panel;
@@ -216,19 +206,30 @@
     const header = document.createElement('div');
     header.style.display = 'flex';
     header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
+    header.style.alignItems = 'flex-start';
     header.style.marginBottom = '12px';
+    header.style.gap = '12px';
+    header.style.paddingBottom = '10px';
+    header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.06)';
 
     const title = document.createElement('strong');
-    title.textContent = state.code ? 'JavStash 查询' : 'JavStash';
+    title.textContent = state.code ? '🔎 番号 ' + state.code + ' 中文内容查询' : '🔎 中文内容查询';
+    title.style.fontWeight = '700';
+    title.style.fontSize = '15px';
+    title.style.lineHeight = '1.5';
     header.appendChild(title);
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
-    closeButton.textContent = '关闭';
+    closeButton.textContent = '×';
     closeButton.style.border = '0';
     closeButton.style.background = 'transparent';
+    closeButton.style.color = '#9ca3af';
     closeButton.style.cursor = 'pointer';
+    closeButton.style.fontSize = '18px';
+    closeButton.style.lineHeight = '1';
+    closeButton.style.padding = '0';
+    closeButton.style.flex = '0 0 auto';
     closeButton.onclick = function () {
       panel.style.display = 'none';
     };
@@ -238,8 +239,9 @@
     const body = document.createElement('div');
     panel.appendChild(body);
 
+    // 按状态分别渲染面板，保证查询前、缺少 ApiKey、请求失败、成功命中时的文案都清晰可见。
     if (state.state === 'loading') {
-      body.textContent = '正在查询标题和简介...';
+      body.textContent = '正在查询中文内容...';
       return;
     }
 
@@ -253,42 +255,62 @@
       return;
     }
 
-    const codeLine = document.createElement('div');
-    codeLine.style.marginBottom = '10px';
-    codeLine.innerHTML = '<strong>番号：</strong>';
-    codeLine.appendChild(document.createTextNode(state.code || '-'));
-    body.appendChild(codeLine);
+    // const codeLine = document.createElement('div');
+    // codeLine.style.marginBottom = '10px';
+    // codeLine.innerHTML = '<strong>番号：</strong>';
+    // codeLine.appendChild(document.createTextNode(state.code || '-'));
+    // body.appendChild(codeLine);
 
     const titleBlock = document.createElement('div');
-    titleBlock.style.marginBottom = '12px';
-    const titleLabel = document.createElement('strong');
-    titleLabel.textContent = '标题';
-    titleBlock.appendChild(titleLabel);
+    titleBlock.style.marginBottom = '14px';
     const titleText = document.createElement('div');
-    titleText.style.marginTop = '6px';
+    titleText.style.fontSize = '16px';
+    titleText.style.fontWeight = '600';
+    titleText.style.color = '#ffffff';
+    titleText.style.letterSpacing = '0.01em';
+    titleText.style.lineHeight = '1.55';
     titleText.textContent = state.title || '暂无标题';
     titleBlock.appendChild(titleText);
     body.appendChild(titleBlock);
 
     const descBlock = document.createElement('div');
-    const descLabel = document.createElement('strong');
-    descLabel.textContent = '简介';
-    descBlock.appendChild(descLabel);
+    descBlock.style.padding = '10px 12px';
+    descBlock.style.background = 'rgba(255, 255, 255, 0.03)';
+    descBlock.style.borderLeft = '2px solid rgba(251, 191, 36, 0.45)';
+    descBlock.style.borderRadius = '8px';
     const descText = document.createElement('div');
-    descText.style.marginTop = '6px';
+    descText.style.color = '#d1d5db';
+    descText.style.whiteSpace = 'pre-wrap';
     descText.textContent = state.description || '暂无简介';
     descBlock.appendChild(descText);
     body.appendChild(descBlock);
+
+    const footer = document.createElement('div');
+    footer.style.marginTop = '14px';
+    footer.style.paddingTop = '10px';
+    footer.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
+    footer.style.fontSize = '12px';
+    footer.style.color = '#9ca3af';
+    footer.textContent = '🌐 更多完整中文内容可前往 ';
+
+    const footerLink = document.createElement('a');
+    footerLink.href = 'https://javstash.vercel.app/';
+    footerLink.target = '_blank';
+    footerLink.rel = 'noreferrer noopener';
+    footerLink.textContent = 'javstash.vercel.app';
+    footerLink.style.color = '#fbbf24';
+    footerLink.style.fontWeight = '600';
+    footerLink.style.textDecoration = 'none';
+    footer.appendChild(footerLink);
+
+    const footerTail = document.createTextNode(' 查看');
+    footer.appendChild(footerTail);
+    body.appendChild(footer);
   }
 
   function requestLookup(code, apiKey) {
     return new Promise((resolve, reject) => {
       const requestUrl = buildLookupUrl(code);
-      console.log('[JavStash] request lookup', {
-        url: requestUrl,
-        code: code,
-        hasApiKey: Boolean(apiKey),
-      });
 
       GM_xmlhttpRequest({
         method: 'GET',
@@ -299,10 +321,6 @@
         timeout: 15000,
         onload(response) {
           try {
-            console.log('[JavStash] response received', {
-              status: response.status,
-              text: response.responseText,
-            });
             const payload = JSON.parse(response.responseText || '{}');
             if (response.status >= 400 || payload.ok === false) {
               reject(new Error(payload.message || '查询失败'));
@@ -314,13 +332,9 @@
           }
         },
         ontimeout() {
-          console.error('[JavStash] request timeout', {
-            url: requestUrl,
-          });
           reject(new Error('请求超时，请稍后重试'));
         },
-        onerror(response) {
-          console.error('[JavStash] request error', response);
+        onerror() {
           reject(new Error('网络请求失败'));
         },
       });
@@ -329,22 +343,22 @@
 
   function injectButton(code) {
     if (!code || document.querySelector('.' + BUTTON_CLASS)) {
-      renderDebugBadge(code ? 'JavStash: 按钮已存在' : 'JavStash: 未识别番号', '#d97706');
       return;
     }
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = BUTTON_CLASS;
-    button.textContent = '查看简介';
+    button.textContent = '中文详情';
     button.style.marginLeft = '8px';
-    button.style.padding = '4px 10px';
-    button.style.border = '1px solid rgba(0, 0, 0, 0.18)';
+    button.style.padding = '5px 10px';
+    button.style.border = '1px solid rgba(251, 191, 36, 0.32)';
     button.style.borderRadius = '999px';
-    button.style.background = '#fff';
-    button.style.color = '#111';
+    button.style.background = '#171b21';
+    button.style.color = '#f3f4f6';
     button.style.cursor = 'pointer';
     button.style.fontSize = '12px';
+    button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.18)';
 
     button.addEventListener('click', () => {
       const apiKey = getApiKey();
@@ -353,6 +367,7 @@
         return;
       }
 
+      // 每次点击都重新读取 ApiKey，这样用户在菜单里更新后无需刷新页面即可生效。
       renderPanel({ state: 'loading', code: code });
       requestLookup(code, apiKey)
         .then((payload) => {
@@ -374,7 +389,6 @@
 
     const target = findInjectionTarget(code);
     if (target) {
-      renderDebugBadge('JavStash: 已命中识别码位置', '#059669');
       if (target.parentNode) {
         target.parentNode.insertBefore(button, target.nextSibling);
       } else {
@@ -383,7 +397,6 @@
       return;
     }
 
-    renderDebugBadge('JavStash: 使用右上角兜底按钮', '#2563eb');
     button.style.position = 'fixed';
     button.style.top = '24px';
     button.style.right = '24px';
@@ -392,14 +405,11 @@
   }
 
   function init() {
-    renderDebugBadge('JavStash: 脚本已加载', '#7c3aed');
     registerMenu();
     const code = detectCode();
     if (!code) {
-      renderDebugBadge('JavStash: 未从页面识别到番号', '#dc2626');
       return;
     }
-    renderDebugBadge('JavStash: 识别到 ' + code, '#0f766e');
     injectButton(code);
   }
 
