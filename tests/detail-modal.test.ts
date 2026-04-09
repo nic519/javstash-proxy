@@ -112,4 +112,36 @@ describe('DetailView', () => {
     expect(markup).toContain('aria-label="特别收藏"');
     expect(markup).toContain('aria-label="不喜欢"');
   });
+
+  it('renders external quick links below the cover', () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailView, {
+        item: {
+          code: 'ABP-123',
+          titleZh: '标题',
+          summaryZh: '简介',
+        },
+        form: {
+          titleZh: '标题',
+          summaryZh: '简介',
+          coverUrl: 'https://example.com/cover.jpg',
+          rawResponse: '',
+        },
+        onClose: () => {},
+        onCopyCode: () => {},
+        copied: false,
+        rawData: null,
+        activeTags: [],
+        onToggleTag: () => {},
+        tagsDisabled: false,
+      })
+    );
+
+    expect(markup).toContain('>JavDB<');
+    expect(markup).toContain('>JavBus<');
+    expect(markup).toContain('>StashApp<');
+    expect(markup).toContain('href="https://javdb.com/search?q=ABP-123&amp;f=all"');
+    expect(markup).toContain('href="https://javbus.com/ABP-123"');
+    expect(markup).toContain('href="http://192.168.7.171:9999/scenes?q=ABP-123&amp;sortby=date"');
+  });
 });

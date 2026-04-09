@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Clapperboard,
   Clock3,
+  ExternalLink,
   FileVideo,
   Heart,
   Image as ImageIcon,
@@ -52,6 +53,20 @@ export function DetailView({
   const performerNames = getPerformerNames(rawData);
   const releaseDate = rawData ? formatDate(rawData.date) : null;
   const studioName = getStudioName(rawData);
+  const quickLinks = [
+    {
+      label: 'JavDB',
+      href: `https://javdb.com/search?q=${encodeURIComponent(item.code)}&f=all`,
+    },
+    {
+      label: 'JavBus',
+      href: `https://javbus.com/${encodeURIComponent(item.code)}`,
+    },
+    {
+      label: 'StashApp',
+      href: `http://192.168.7.171:9999/scenes?q=${encodeURIComponent(item.code)}&sortby=date`,
+    },
+  ];
   const headerMeta = getDetailHeaderMeta({
     code: item.code,
     director: typeof rawData?.director === 'string' ? rawData.director : null,
@@ -68,7 +83,7 @@ export function DetailView({
       {/* 左侧封面区域：
           - `flex-shrink-0` 防止图片在横向布局下被压扁。
           - `xl:self-start` 让封面在大屏时从顶部对齐，而不是被右侧内容拉伸。 */}
-      <div className="flex-shrink-0 xl:self-start">
+      <div className="flex flex-shrink-0 flex-col gap-3 xl:self-start">
         <div
           // 封面图外层容器：
           // - `aspect-[3/2]` 控制封面的基础宽高比，想让卡片更高或更宽可以先改这里。
@@ -118,6 +133,31 @@ export function DetailView({
               <ImageIcon className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />
             </div>
           )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {quickLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm transition-all duration-200 hover:translate-x-0.5"
+              style={{
+                color: 'rgba(212,175,55,0.92)',
+              }}
+            >
+              <span
+                style={{
+                  borderBottom: '1px solid rgba(212,175,55,0.22)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {link.label}
+              </span>
+              <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+            </a>
+          ))}
         </div>
       </div>
 
