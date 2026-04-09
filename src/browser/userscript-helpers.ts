@@ -94,3 +94,19 @@ export function readValidLookupCacheEntry(
     expiresAt: candidate.expiresAt,
   };
 }
+
+export function shouldToggleLookupPanel(
+  isVisible: boolean,
+  requestedCode: string,
+  panelCode: string | null
+): boolean {
+  if (!isVisible) {
+    return false;
+  }
+
+  if (!panelCode) {
+    return true;
+  }
+
+  return normalizeSceneCode(requestedCode) === normalizeSceneCode(panelCode);
+}

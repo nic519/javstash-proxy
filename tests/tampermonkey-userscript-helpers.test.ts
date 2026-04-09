@@ -17,6 +17,7 @@ import {
   LOOKUP_CACHE_KEY_PREFIX,
   LOOKUP_CACHE_TTL_MS,
   readValidLookupCacheEntry,
+  shouldToggleLookupPanel,
 } from '../src/browser/userscript-helpers';
 
 describe('tampermonkey userscript helpers', () => {
@@ -88,12 +89,22 @@ describe('tampermonkey userscript helpers', () => {
     expect(readValidLookupCacheEntry(null, now)).toBeNull();
   });
 
+  it('toggles the detail panel closed only when the same code is already open', () => {
+    expect(shouldToggleLookupPanel(false, 'SSIS-828', 'SSIS-828')).toBe(false);
+    expect(shouldToggleLookupPanel(true, 'SSIS-828', null)).toBe(true);
+    expect(shouldToggleLookupPanel(true, 'ssis-828', 'SSIS-828')).toBe(true);
+    expect(shouldToggleLookupPanel(true, 'SSIS-828', 'ABP-123')).toBe(false);
+  });
+
   it('keeps the published userscript free of debug badge and console tracing code', () => {
     const userscript = readFileSync(
       resolve(process.cwd(), 'tampermonkey/javstash-browser-lookup.user.js'),
       'utf8'
     );
 
+    expect(userscript).toContain("header.style.cursor = 'pointer';");
+    expect(userscript).toContain("header.onclick = function () {");
+    expect(userscript).toContain("title.style.color = '#9ca3af';");
     expect(userscript).not.toContain('DEBUG_BADGE_ID');
     expect(userscript).not.toContain('renderDebugBadge');
     expect(userscript).not.toContain('console.log(');

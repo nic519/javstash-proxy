@@ -22,7 +22,7 @@
   // 方便后续切换部署地址或调整注入节点时只改这一处。
   const STORAGE_KEY = 'javstash_api_key';
   const LOOKUP_CACHE_KEY_PREFIX = 'javstash_lookup_cache_v1:';
-  const LOOKUP_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  const LOOKUP_CACHE_TTL_MS = 7 * 7 * 24 * 60 * 60 * 1000;
   // const PROXY_ORIGIN = 'http://localhost:3456';
   const PROXY_ORIGIN = 'https://javstash.vercel.app';
   const LOOKUP_PATH = '/api/browser/lookup';
@@ -264,10 +264,34 @@
     return panel;
   }
 
+  function isPanelVisible() {
+    const panel = document.getElementById(PANEL_ID);
+    return !!(panel && panel.style.display !== 'none');
+  }
+
+  function closePanel() {
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel) {
+      return;
+    }
+
+    panel.style.display = 'none';
+  }
+
+  function getPanelCode() {
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel) {
+      return null;
+    }
+
+    return panel.dataset.code ? normalizeSceneCode(panel.dataset.code) : null;
+  }
+
   function renderPanel(state) {
     const panel = ensurePanel();
     panel.innerHTML = '';
     panel.style.display = 'block';
+    panel.dataset.code = state.code ? normalizeSceneCode(state.code) : '';
 
     const header = document.createElement('div');
     header.style.display = 'flex';
@@ -277,17 +301,23 @@
     header.style.gap = '12px';
     header.style.paddingBottom = '10px';
     header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.06)';
+    header.style.cursor = 'pointer';
+    header.onclick = function () {
+      closePanel();
+    };
 
     const title = document.createElement('strong');
-    title.textContent = state.code ? '🔎 番号 ' + state.code + ' 中文内容查询' : '🔎 中文内容查询';
-    title.style.fontWeight = '700';
-    title.style.fontSize = '15px';
+    title.textContent = state.code ? '🔎  番号 ' + state.code + ' 中文内容查询' : '🔎 中文内容查询';
+    title.style.fontWeight = '500';
+    title.style.fontSize = '13px';
     title.style.lineHeight = '1.5';
+    title.style.color = '#9ca3af';
     header.appendChild(title);
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
     closeButton.textContent = '×';
+    closeButton.setAttribute('aria-label', '关闭中文详情');
     closeButton.style.border = '0';
     closeButton.style.background = 'transparent';
     closeButton.style.color = '#9ca3af';
@@ -297,7 +327,7 @@
     closeButton.style.padding = '0';
     closeButton.style.flex = '0 0 auto';
     closeButton.onclick = function () {
-      panel.style.display = 'none';
+      closePanel();
     };
     header.appendChild(closeButton);
     panel.appendChild(header);
@@ -357,7 +387,7 @@
     footer.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
     footer.style.fontSize = '12px';
     footer.style.color = '#9ca3af';
-    footer.textContent = state.source === 'cache' ? '⚡ 当前内容来自本地缓存，更多完整中文内容可前往 ' : '🌐 更多完整中文内容可前往 ';
+    footer.textContent = state.source === 'cache' ? '⚡ 更多完整中文内容可前往 ' : '🌐 更多完整中文内容可前往 ';
 
     const footerLink = document.createElement('a');
     footerLink.href = 'https://javstash.vercel.app/';
@@ -427,6 +457,11 @@
     button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.18)';
 
     button.addEventListener('click', () => {
+      if (isPanelVisible() && getPanelCode() === normalizeSceneCode(code)) {
+        closePanel();
+        return;
+      }
+
       const cached = readLookupCache(code);
       if (cached) {
         renderPanel({
