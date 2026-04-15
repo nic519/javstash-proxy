@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ClerkProvider } from '@clerk/nextjs';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -29,10 +28,8 @@ export default function RootLayout({
   return (
     <html lang="zh" className={cn("dark font-sans", geist.variable)}>
       <body className="antialiased" style={{ background: 'var(--bg-primary)' }}>
-        <ClerkProvider>
-          {children}
-          <Toaster position="bottom-center" richColors />
-        </ClerkProvider>
+        {children}
+        <Toaster position="bottom-center" richColors />
       </body>
     </html>
   );

@@ -67,7 +67,13 @@ export async function getOrFetchPerformer(
   cache: Pick<TursoCache, 'getPerformer' | 'upsertPerformer'>,
   apiKey: string
 ): Promise<CachedPerformer | null> {
-  const cached = await cache.getPerformer(id);
+  let cached: CachedPerformer | null = null;
+
+  try {
+    cached = await cache.getPerformer(id);
+  } catch (error) {
+    console.error(`Failed to read performer ${id} from cache`, error);
+  }
 
   if (cached) {
     return cached;
@@ -82,10 +88,14 @@ export async function getOrFetchPerformer(
   const normalized = toCachedPerformer(fetched);
   const updated_at = new Date().toISOString();
 
-  await cache.upsertPerformer({
-    ...normalized,
-    updated_at,
-  });
+  try {
+    await cache.upsertPerformer({
+      ...normalized,
+      updated_at,
+    });
+  } catch (error) {
+    console.error(`Failed to cache performer ${id}`, error);
+  }
 
   return {
     ...normalized,

@@ -3,6 +3,11 @@ import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith('/api/performers')) {
+    return NextResponse.next();
+  }
+
   const { userId } = await auth();
   const authenticated = Boolean(userId);
 

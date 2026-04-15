@@ -220,7 +220,10 @@ export function PerformerList({
           演员
         </span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div
+        className="relative flex min-w-0 flex-1 flex-col"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
         <div
           className={variant === 'row'
             ? 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-6'
@@ -243,7 +246,6 @@ export function PerformerList({
               className="whitespace-nowrap transition-opacity hover:opacity-80"
               title="点击复制演员"
               onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
               onFocus={() => setHoveredIndex(index)}
               onBlur={() => setHoveredIndex((current) => (current === index ? null : current))}
             >
@@ -255,7 +257,7 @@ export function PerformerList({
         </div>
         {variant === 'detail' && hoveredPerformer ? (
           <div
-            className="rounded-2xl border p-3 text-sm shadow-2xl"
+            className="pointer-events-none absolute bottom-full left-0 z-30 mb-2 w-[min(360px,calc(100vw-4rem))] rounded-2xl border p-3 text-sm shadow-2xl"
             style={{
               background: 'rgba(15, 15, 20, 0.96)',
               borderColor: 'rgba(212,175,55,0.18)',

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 import { Copy, Check, ArrowDownRight, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -15,8 +14,6 @@ import { Button } from '@/components/ui/button';
  * - Micro-interactions that feel intentional, not gratuitous
  */
 export default function HomePage() {
-  const router = useRouter();
-  const { isSignedIn } = useAuth();
   const [copied, setCopied] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -240,7 +237,7 @@ export default function HomePage() {
               在线调试
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              使用 Clerk 账号进入控制台与 GraphQL 调试工具
+              公开页面无需登录。进入控制台或 Playground 时，再按受保护路由流程登录。
             </p>
           </div>
 
@@ -256,15 +253,13 @@ export default function HomePage() {
                 Account Access
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                登录后即可访问数据浏览与 Playground。管理员账号会自动获得编辑和删除权限。
+                公开详情页与演员资料查询可直接使用。数据浏览与 Playground 属于受保护区域，访问时会按配置进行登录校验。
               </p>
             </div>
-
-            {isSignedIn ? (
-              <div className="space-y-4">
+            <div className="space-y-3">
+              <Link href="/admin" className="block">
                 <Button
                   type="button"
-                  onClick={() => router.push('/admin')}
                   className="w-full h-11 text-sm font-semibold tracking-[0.1em] uppercase rounded-lg transition-all duration-300"
                   style={{
                     background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
@@ -273,55 +268,22 @@ export default function HomePage() {
                 >
                   进入控制台
                 </Button>
-
-                <div
-                  className="flex items-center justify-between rounded-xl border px-4 py-3"
+              </Link>
+              <Link href="/playground" className="block">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11 text-sm font-semibold tracking-[0.08em] uppercase rounded-lg border transition-all duration-300"
                   style={{
                     background: 'var(--bg-secondary)',
                     borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)',
                   }}
                 >
-                  <div>
-                    <div className="text-xs tracking-[0.18em] uppercase" style={{ color: 'var(--text-muted)' }}>
-                      Account
-                    </div>
-                    <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                      已登录，可前往数据浏览与 Playground
-                    </div>
-                  </div>
-                  <UserButton />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <SignUpButton mode="modal">
-                  <Button
-                    type="button"
-                    className="w-full h-11 text-sm font-semibold tracking-[0.1em] uppercase rounded-lg transition-all duration-300"
-                    style={{
-                      background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark))',
-                      color: 'var(--bg-primary)'
-                    }}
-                  >
-                    注册后进入调试
-                  </Button>
-                </SignUpButton>
-                <SignInButton mode="modal">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 text-sm font-semibold tracking-[0.08em] uppercase rounded-lg border transition-all duration-300"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-subtle)',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    已有账号登录
-                  </Button>
-                </SignInButton>
-              </div>
-            )}
+                  打开 Playground
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Footer Links */}

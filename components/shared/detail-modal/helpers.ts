@@ -79,7 +79,6 @@ export function performerHasExtraDetails(performer?: PerformerData | null): bool
     performer.hip_size,
     performer.career_start_year,
     performer.career_end_year,
-    performer.images?.find((image) => isPresent(image?.url))?.url,
   ].some(isPresent);
 }
 

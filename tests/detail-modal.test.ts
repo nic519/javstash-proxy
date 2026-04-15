@@ -10,6 +10,7 @@ import {
   getPerformerPanelFallback,
   getPerformerNames,
   hydrateMissingPerformerDetails,
+  performerHasExtraDetails,
   getTagColor,
   parseSceneData,
   formatPerformerMeasurements,
@@ -72,6 +73,17 @@ describe('performer detail enrichment', () => {
     expect(getPerformerPanelFallback('error')).toBe('获取演员资料失败');
     expect(getPerformerPanelFallback('missing')).toBe('暂无演员资料');
     expect(getPerformerPanelFallback('idle')).toBe('暂无演员资料');
+  });
+
+  it('does not treat performer images alone as full actor details', () => {
+    expect(
+      performerHasExtraDetails({
+        id: 'performer-1',
+        name: '斉藤帆夏',
+        images: [{ url: 'https://javstash.org/images/example' }],
+        urls: [{ url: 'https://example.com/profile' }],
+      })
+    ).toBe(false);
   });
 
   it('fetches missing performer details by performer id and merges them back into raw scene data', async () => {

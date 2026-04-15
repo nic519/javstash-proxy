@@ -20,8 +20,6 @@ export const PERFORMER_FRAGMENT = `
   breast_type
   career_start_year
   career_end_year
-  tattoos
-  piercings
   images { url }
 `;
 
