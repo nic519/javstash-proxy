@@ -3,6 +3,15 @@
 import { useState, type MouseEvent } from 'react';
 import { Hash, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import type { PerformerData } from '@/src/graphql/queries';
+import {
+  calculatePerformerAgeAtSceneDate,
+  formatDate,
+  formatPerformerCareer,
+  formatPerformerMeasurements,
+  getPerformerPanelFallback,
+  type PerformerPanelStatus,
+} from './detail-modal/helpers';
 
 export async function copySceneCode(code: string) {
   await navigator.clipboard.writeText(code);
@@ -108,17 +117,52 @@ export function CopyableCode({
 
 export function PerformerList({
   names,
+  performers,
+  performerStatusById,
   variant = 'detail',
   maxVisibleNames,
+  sceneDate,
 }: {
   names: string[];
+  performers?: PerformerData[];
+  performerStatusById?: Record<string, PerformerPanelStatus>;
   variant?: 'detail' | 'row' | 'compact';
   maxVisibleNames?: number;
+  sceneDate?: string | null;
 }) {
   if (names.length === 0) return null;
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const visibleNames = typeof maxVisibleNames === 'number' ? names.slice(0, maxVisibleNames) : names;
-  const hasOverflow = visibleNames.length < names.length;
+  const performerItems = names.map((name, index) => ({
+    name,
+    performer: performers?.[index],
+  }));
+  const visiblePerformers = typeof maxVisibleNames === 'number'
+    ? performerItems.slice(0, maxVisibleNames)
+    : performerItems;
+  const hasOverflow = visiblePerformers.length < performerItems.length;
+  const hoveredPerformer = hoveredIndex !== null ? visiblePerformers[hoveredIndex] : null;
+  const hoveredStatus = hoveredPerformer?.performer?.id
+    ? performerStatusById?.[hoveredPerformer.performer.id] ?? (hasHoverData(hoveredPerformer.performer, sceneDate) ? 'ready' : 'idle')
+    : hasHoverData(hoveredPerformer?.performer, sceneDate)
+      ? 'ready'
+      : 'idle';
+  const hoveredAge = calculatePerformerAgeAtSceneDate(hoveredPerformer?.performer?.birth_date, sceneDate);
+  const hoveredMeasurements = formatPerformerMeasurements(hoveredPerformer?.performer);
+  const hoveredBirthDate = hoveredPerformer?.performer?.birth_date
+    ? formatDate(hoveredPerformer.performer.birth_date)
+    : null;
+  const hoveredCareer = formatPerformerCareer(hoveredPerformer?.performer);
+  const hoveredAliases = hoveredPerformer?.performer?.aliases?.filter(Boolean).join(' / ') || null;
+  const hoveredHeight = hoveredPerformer?.performer?.height ? `${hoveredPerformer.performer.height} cm` : null;
+  const hasHoveredDetails = Boolean(
+    hoveredAge !== null ||
+    hoveredMeasurements ||
+    hoveredBirthDate ||
+    hoveredAliases ||
+    hoveredCareer ||
+    hoveredHeight
+  );
 
   const handlePerformerClick = async (
     event: MouseEvent<HTMLButtonElement>,
@@ -136,8 +180,8 @@ export function PerformerList({
           className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"
           style={{ color: 'var(--accent-gold)' }}
         >
-          {visibleNames.map((name, index) => (
-            <div key={name} className="flex items-center gap-2">
+          {visiblePerformers.map(({ name }, index) => (
+            <div key={`${name}-${index}`} className="flex items-center gap-2">
               {index > 0 ? (
                 <span
                   className="h-2.5 w-px rounded-full"
@@ -176,14 +220,16 @@ export function PerformerList({
           演员
         </span>
       </div>
-      <div
-        className={variant === 'row'
-          ? 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-6'
-          : 'flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6'}
-        style={{ color: 'var(--accent-gold)' }}
-      >
-        {visibleNames.map((name, index) => (
-          <div key={name} className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div
+          className={variant === 'row'
+            ? 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-6'
+            : 'flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] leading-6'}
+          style={{ color: 'var(--accent-gold)' }}
+        >
+        {visiblePerformers.map(({ name, performer }, index) => {
+          return (
+          <div key={`${name}-${index}`} className="flex items-center gap-3">
             {index > 0 && (
               <span
                 className="h-3 w-px rounded-full"
@@ -196,13 +242,70 @@ export function PerformerList({
               onClick={(event) => handlePerformerClick(event, name)}
               className="whitespace-nowrap transition-opacity hover:opacity-80"
               title="点击复制演员"
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
+              onFocus={() => setHoveredIndex(index)}
+              onBlur={() => setHoveredIndex((current) => (current === index ? null : current))}
             >
               {name}
             </button>
           </div>
-        ))}
+        )})}
         {hasOverflow ? <span aria-hidden="true">...</span> : null}
+        </div>
+        {variant === 'detail' && hoveredPerformer ? (
+          <div
+            className="rounded-2xl border p-3 text-sm shadow-2xl"
+            style={{
+              background: 'rgba(15, 15, 20, 0.96)',
+              borderColor: 'rgba(212,175,55,0.18)',
+              color: 'var(--text-primary)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <div className="mb-2 text-[13px]" style={{ color: 'var(--accent-gold)' }}>
+              {hoveredPerformer.name}
+            </div>
+            {hasHoveredDetails ? (
+              <div className="space-y-1.5">
+                {hoveredAge !== null ? (
+                  <p><span style={{ color: 'var(--text-muted)' }}>拍摄年龄</span>{' '}{hoveredAge} 岁</p>
+                ) : null}
+                {hoveredMeasurements ? (
+                  <p><span style={{ color: 'var(--text-muted)' }}>三围</span>{' '}{hoveredMeasurements}</p>
+                ) : null}
+                {hoveredBirthDate ? (
+                  <p><span style={{ color: 'var(--text-muted)' }}>生日</span>{' '}{hoveredBirthDate}</p>
+                ) : null}
+                {hoveredHeight ? (
+                  <p><span style={{ color: 'var(--text-muted)' }}>身高</span>{' '}{hoveredHeight}</p>
+                ) : null}
+                {hoveredCareer ? (
+                  <p><span style={{ color: 'var(--text-muted)' }}>Career</span>{' '}{hoveredCareer}</p>
+                ) : null}
+                {hoveredAliases ? (
+                  <p className="whitespace-normal break-words"><span style={{ color: 'var(--text-muted)' }}>Aliases</span>{' '}{hoveredAliases}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-secondary)' }}>{getPerformerPanelFallback(hoveredStatus)}</p>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+function hasHoverData(performer?: PerformerData | null, sceneDate?: string | null) {
+  if (!performer) return false;
+
+  return Boolean(
+    calculatePerformerAgeAtSceneDate(performer.birth_date, sceneDate) !== null ||
+    formatPerformerMeasurements(performer) ||
+    (performer.birth_date ? formatDate(performer.birth_date) : null) ||
+    performer.aliases?.filter(Boolean).length ||
+    formatPerformerCareer(performer) ||
+    performer.height
   );
 }

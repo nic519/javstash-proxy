@@ -1,10 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { SceneData } from '@/src/graphql/queries';
+import type { PerformerData, SceneData } from '@/src/graphql/queries';
 import type { DetailModalProps, EditForm } from '../types';
 import { copySceneCode } from '../SceneMeta';
-import { parseSceneData } from './helpers';
+import {
+  hydrateMissingPerformerDetails,
+  parseSceneData,
+  performerHasExtraDetails,
+  type PerformerPanelStatus,
+} from './helpers';
 
 export function useDetailModal({
   item,
@@ -18,6 +23,7 @@ export function useDetailModal({
   const [rawData, setRawData] = useState<SceneData | null>(() =>
     item.rawResponse ? parseSceneData(item.rawResponse) : null
   );
+  const [performerStatusById, setPerformerStatusById] = useState<Record<string, PerformerPanelStatus>>({});
   const [form, setForm] = useState<EditForm>({
     titleZh: item.titleZh,
     summaryZh: item.summaryZh,
@@ -30,6 +36,7 @@ export function useDetailModal({
     setSaving(false);
     setDeleting(false);
     setCopied(false);
+    setPerformerStatusById({});
     setForm({
       titleZh: item.titleZh,
       summaryZh: item.summaryZh,
@@ -39,7 +46,79 @@ export function useDetailModal({
   }, [item.code, item.coverUrl, item.rawResponse, item.summaryZh, item.titleZh]);
 
   useEffect(() => {
-    setRawData(item.rawResponse ? parseSceneData(item.rawResponse) : null);
+    const baseRawData = item.rawResponse ? parseSceneData(item.rawResponse) : null;
+    setRawData(baseRawData);
+
+    if (!baseRawData) {
+      setPerformerStatusById({});
+      return;
+    }
+
+    let cancelled = false;
+    const initialStatuses = Object.fromEntries(
+      (baseRawData.performers ?? [])
+        .map((entry) => entry.performer)
+        .filter((performer): performer is PerformerData => Boolean(performer?.id))
+        .map((performer) => [
+          performer.id as string,
+          performerHasExtraDetails(performer) ? 'ready' : 'loading',
+        ] satisfies [string, PerformerPanelStatus])
+    );
+    setPerformerStatusById(initialStatuses);
+
+    const fetchPerformerById = async (id: string): Promise<PerformerData | null> => {
+      const response = await fetch(`/api/performers/${encodeURIComponent(id)}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch performer ${id}`);
+      }
+
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        performer?: PerformerData | null;
+        error?: string;
+      };
+
+      if (!payload.ok) {
+        throw new Error(payload.error || `Failed to fetch performer ${id}`);
+      }
+
+      const performer = payload.performer ?? null;
+
+      if (!cancelled) {
+        setPerformerStatusById((current) => ({
+          ...current,
+          [id]: performer && performerHasExtraDetails(performer) ? 'ready' : 'missing',
+        }));
+      }
+
+      return performer;
+    };
+
+    hydrateMissingPerformerDetails(baseRawData, fetchPerformerById)
+      .then((enriched) => {
+        if (!cancelled && enriched) {
+          setRawData(enriched);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          const missingIds = (baseRawData.performers ?? [])
+            .map((entry) => entry.performer)
+            .filter((performer): performer is PerformerData => Boolean(performer?.id))
+            .filter((performer) => !performerHasExtraDetails(performer))
+            .map((performer) => performer.id as string);
+          setPerformerStatusById((current) => ({
+            ...current,
+            ...Object.fromEntries(missingIds.map((id) => [id, 'error' satisfies PerformerPanelStatus])),
+          }));
+        }
+        console.error('Failed to enrich performer details', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [item.rawResponse]);
 
   const handleCopyCode = async () => {
@@ -96,6 +175,7 @@ export function useDetailModal({
     deleting,
     editing,
     form,
+    performerStatusById,
     rawData,
     saving,
     setEditing,

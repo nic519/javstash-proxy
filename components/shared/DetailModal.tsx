@@ -23,6 +23,7 @@ export function DetailModal({
     deleting,
     editing,
     form,
+    performerStatusById,
     rawData,
     saving,
     setEditing,
@@ -152,6 +153,7 @@ export function DetailModal({
                 onCopyCode={handleCopyCode}
                 copied={copied}
                 rawData={rawData}
+                performerStatusById={performerStatusById}
                 activeTags={activeTags}
                 onToggleTag={onToggleTag}
                 tagsDisabled={tagsDisabled}

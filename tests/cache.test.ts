@@ -108,4 +108,107 @@ describe('TursoCache', () => {
       expect.objectContaining({ itemCode: 'ABP-123', tag: 'watch_later' }),
     ]);
   });
+
+  it('reads a cached performer profile with structured arrays and full json', async () => {
+    executeMock.mockImplementation(async (stmt: any) => {
+      const sql = typeof stmt === 'string' ? stmt : stmt.sql;
+
+      if (sql.includes('SELECT id, name') && sql.includes('FROM performers')) {
+        return {
+          rows: [
+            {
+              id: 'performer-1',
+              name: '麻宮わかな',
+              aliases_json: '["Wakana Asamiya","若宮エレナ"]',
+              birth_date: '1998-01-25',
+              height: 165,
+              cup_size: 'E',
+              band_size: 90,
+              waist_size: 60,
+              hip_size: 88,
+              career_start_year: 2021,
+              career_end_year: null,
+              images_json: '[{"url":"https://example.com/a.jpg"}]',
+              full_json: '{"id":"performer-1","name":"麻宮わかな","country":"JP"}',
+              updated_at: '2026-04-16T00:00:00.000Z',
+            },
+          ],
+        };
+      }
+
+      return { rows: [] };
+    });
+
+    const cache = new TursoCache('http://localhost', 'token');
+    const result = await cache.getPerformer('performer-1');
+
+    expect(result).toEqual({
+      id: 'performer-1',
+      name: '麻宮わかな',
+      aliases: ['Wakana Asamiya', '若宮エレナ'],
+      birth_date: '1998-01-25',
+      height: 165,
+      cup_size: 'E',
+      band_size: 90,
+      waist_size: 60,
+      hip_size: 88,
+      career_start_year: 2021,
+      career_end_year: undefined,
+      images: [{ url: 'https://example.com/a.jpg' }],
+      full_json: {
+        id: 'performer-1',
+        name: '麻宮わかな',
+        country: 'JP',
+      },
+      updated_at: '2026-04-16T00:00:00.000Z',
+    });
+  });
+
+  it('upserts performer profiles into the performers table', async () => {
+    const cache = new TursoCache('http://localhost', 'token');
+
+    await cache.upsertPerformer({
+      id: 'performer-1',
+      name: '麻宮わかな',
+      aliases: ['Wakana Asamiya'],
+      birth_date: '1998-01-25',
+      height: 165,
+      cup_size: 'E',
+      band_size: 90,
+      waist_size: 60,
+      hip_size: 88,
+      career_start_year: 2021,
+      career_end_year: undefined,
+      images: [{ url: 'https://example.com/a.jpg' }],
+      full_json: {
+        id: 'performer-1',
+        name: '麻宮わかな',
+        country: 'JP',
+      },
+    });
+
+    expect(executeMock).toHaveBeenCalledWith(
+      expect.stringContaining('CREATE TABLE IF NOT EXISTS performers')
+    );
+    expect(executeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sql: expect.stringContaining('INSERT INTO performers'),
+        args: expect.arrayContaining([
+          'performer-1',
+          '麻宮わかな',
+          '["Wakana Asamiya"]',
+          '1998-01-25',
+          165,
+          'E',
+          90,
+          60,
+          88,
+          2021,
+          null,
+          '[{"url":"https://example.com/a.jpg"}]',
+          '{"id":"performer-1","name":"麻宮わかな","country":"JP"}',
+        ]),
+      })
+    );
+  });
 });

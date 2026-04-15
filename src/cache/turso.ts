@@ -1,5 +1,5 @@
 import { createClient } from '@libsql/client';
-import type { Translation } from '../types';
+import type { CachedPerformer, Translation } from '../types';
 import type { UserItemTag, UserItemTagRecord } from '../../components/shared/types';
 
 /**
@@ -9,6 +9,7 @@ import type { UserItemTag, UserItemTagRecord } from '../../components/shared/typ
 export class TursoCache {
   private client;
   private userItemTagsSchemaReady: Promise<void> | null = null;
+  private performersSchemaReady: Promise<void> | null = null;
 
   /**
    * @param url Turso 数据库地址
@@ -48,6 +49,117 @@ export class TursoCache {
 
   private normalizeUserItemTag(tag: string): UserItemTag {
     return tag === 'deleted' ? 'dislike' : (tag as UserItemTag);
+  }
+
+  private async ensurePerformersTable(): Promise<void> {
+    if (!this.performersSchemaReady) {
+      this.performersSchemaReady = (async () => {
+        await this.client.execute(`
+          CREATE TABLE IF NOT EXISTS performers (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            aliases_json TEXT NOT NULL,
+            birth_date TEXT,
+            height INTEGER,
+            cup_size TEXT,
+            band_size INTEGER,
+            waist_size INTEGER,
+            hip_size INTEGER,
+            career_start_year INTEGER,
+            career_end_year INTEGER,
+            images_json TEXT NOT NULL,
+            full_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        `);
+        await this.client.execute(`
+          CREATE INDEX IF NOT EXISTS idx_performers_updated_at
+          ON performers (updated_at DESC)
+        `);
+      })();
+    }
+
+    await this.performersSchemaReady;
+  }
+
+  async getPerformer(id: string): Promise<CachedPerformer | null> {
+    await this.ensurePerformersTable();
+
+    const result = await this.client.execute({
+      sql: `SELECT id, name, aliases_json, birth_date, height, cup_size, band_size,
+                   waist_size, hip_size, career_start_year, career_end_year,
+                   images_json, full_json, updated_at
+            FROM performers
+            WHERE id = ?`,
+      args: [id],
+    });
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+
+    return {
+      id: row.id as string,
+      name: (row.name as string) ?? undefined,
+      aliases: JSON.parse(((row.aliases_json as string) ?? '[]')) as string[],
+      birth_date: (row.birth_date as string) ?? undefined,
+      height: (row.height as number) ?? undefined,
+      cup_size: (row.cup_size as string) ?? undefined,
+      band_size: (row.band_size as number) ?? undefined,
+      waist_size: (row.waist_size as number) ?? undefined,
+      hip_size: (row.hip_size as number) ?? undefined,
+      career_start_year: (row.career_start_year as number) ?? undefined,
+      career_end_year: (row.career_end_year as number) ?? undefined,
+      images: JSON.parse(((row.images_json as string) ?? '[]')) as Array<{ url?: string }>,
+      full_json: JSON.parse((row.full_json as string) ?? '{}'),
+      updated_at: row.updated_at as string,
+    };
+  }
+
+  async upsertPerformer(performer: Omit<CachedPerformer, 'updated_at'> & { updated_at?: string | null }): Promise<void> {
+    await this.ensurePerformersTable();
+
+    const updatedAt = performer.updated_at ?? new Date().toISOString();
+
+    await this.client.execute({
+      sql: `INSERT INTO performers (
+              id, name, aliases_json, birth_date, height, cup_size, band_size,
+              waist_size, hip_size, career_start_year, career_end_year,
+              images_json, full_json, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              name = excluded.name,
+              aliases_json = excluded.aliases_json,
+              birth_date = excluded.birth_date,
+              height = excluded.height,
+              cup_size = excluded.cup_size,
+              band_size = excluded.band_size,
+              waist_size = excluded.waist_size,
+              hip_size = excluded.hip_size,
+              career_start_year = excluded.career_start_year,
+              career_end_year = excluded.career_end_year,
+              images_json = excluded.images_json,
+              full_json = excluded.full_json,
+              updated_at = excluded.updated_at`,
+      args: [
+        performer.id,
+        performer.name ?? null,
+        JSON.stringify(performer.aliases ?? []),
+        performer.birth_date ?? null,
+        performer.height ?? null,
+        performer.cup_size ?? null,
+        performer.band_size ?? null,
+        performer.waist_size ?? null,
+        performer.hip_size ?? null,
+        performer.career_start_year ?? null,
+        performer.career_end_year ?? null,
+        JSON.stringify(performer.images ?? []),
+        JSON.stringify(performer.full_json ?? {}),
+        updatedAt,
+      ],
+    });
   }
 
   /**

@@ -47,3 +47,20 @@ export interface BrowserLookupResult {
   description: string;
   translated: boolean;
 }
+
+export interface CachedPerformer {
+  id: string;
+  name?: string;
+  aliases: string[];
+  birth_date?: string;
+  height?: number;
+  cup_size?: string;
+  band_size?: number;
+  waist_size?: number;
+  hip_size?: number;
+  career_start_year?: number;
+  career_end_year?: number;
+  images: Array<{ url?: string }>;
+  full_json: unknown;
+  updated_at: string;
+}

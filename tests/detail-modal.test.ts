@@ -6,9 +6,13 @@ import { DetailView } from '../components/shared/detail-modal';
 import { EditFormView } from '../components/shared/detail-modal/EditFormView';
 import { encodePublicCodeToken } from '../lib/public-code-token';
 import {
+  calculatePerformerAgeAtSceneDate,
+  getPerformerPanelFallback,
   getPerformerNames,
+  hydrateMissingPerformerDetails,
   getTagColor,
   parseSceneData,
+  formatPerformerMeasurements,
 } from '../components/shared/detail-modal/helpers';
 
 describe('getPerformerNames', () => {
@@ -36,6 +40,106 @@ describe('getPerformerNames', () => {
         code: 'ABP-456',
       })
     ).toEqual([]);
+  });
+});
+
+describe('performer detail enrichment', () => {
+  it('calculates performer age using the scene date', () => {
+    expect(calculatePerformerAgeAtSceneDate('2000-06-15', '2024-06-14')).toBe(23);
+    expect(calculatePerformerAgeAtSceneDate('2000-06-15', '2024-06-15')).toBe(24);
+    expect(calculatePerformerAgeAtSceneDate('invalid', '2024-06-15')).toBeNull();
+  });
+
+  it('formats performer measurements from band, cup, waist, and hip sizes', () => {
+    expect(
+      formatPerformerMeasurements({
+        cup_size: 'E',
+        band_size: 90,
+        waist_size: 60,
+        hip_size: 88,
+      })
+    ).toBe('E90 / W60 / H88');
+
+    expect(
+      formatPerformerMeasurements({
+        waist_size: 58,
+      })
+    ).toBe('W58');
+  });
+
+  it('returns the right fallback copy for performer panel loading states', () => {
+    expect(getPerformerPanelFallback('loading')).toBe('正在获取演员资料...');
+    expect(getPerformerPanelFallback('error')).toBe('获取演员资料失败');
+    expect(getPerformerPanelFallback('missing')).toBe('暂无演员资料');
+    expect(getPerformerPanelFallback('idle')).toBe('暂无演员资料');
+  });
+
+  it('fetches missing performer details by performer id and merges them back into raw scene data', async () => {
+    const rawData: SceneData = {
+      id: 'scene-1',
+      code: 'ABP-123',
+      date: '2024-06-15',
+      performers: [
+        {
+          performer: {
+            id: 'performer-1',
+            name: '麻宮わかな',
+            gender: 'FEMALE',
+          },
+        },
+        {
+          performer: {
+            id: 'performer-2',
+            name: '已有信息演员',
+            gender: 'FEMALE',
+            birth_date: '1998-01-01',
+            aliases: ['别名A'],
+          },
+        },
+      ],
+    };
+
+    const calls: string[] = [];
+    const enriched = await hydrateMissingPerformerDetails(rawData, async (id) => {
+      calls.push(id);
+
+      if (id !== 'performer-1') {
+        return null;
+      }
+
+      return {
+        id,
+        name: '麻宮わかな',
+        aliases: ['麻宮若菜'],
+        birth_date: '2000-06-15',
+        height: 160,
+        cup_size: 'E',
+        band_size: 90,
+        waist_size: 60,
+        hip_size: 88,
+        career_start_year: 2021,
+        images: [{ url: 'https://example.com/performer.jpg' }],
+      };
+    });
+
+    expect(calls).toEqual(['performer-1']);
+    expect(enriched?.performers?.[0]?.performer).toMatchObject({
+      id: 'performer-1',
+      aliases: ['麻宮若菜'],
+      birth_date: '2000-06-15',
+      height: 160,
+      cup_size: 'E',
+      band_size: 90,
+      waist_size: 60,
+      hip_size: 88,
+      career_start_year: 2021,
+      images: [{ url: 'https://example.com/performer.jpg' }],
+    });
+    expect(enriched?.performers?.[1]?.performer).toMatchObject({
+      id: 'performer-2',
+      aliases: ['别名A'],
+      birth_date: '1998-01-01',
+    });
   });
 });
 

@@ -22,7 +22,9 @@ import {
   type UserItemTag,
 } from '../types';
 import { encodePublicCodeToken } from '@/lib/public-code-token';
-import { formatDate, getDetailHeaderMeta, getPerformerNames, getStudioName, getTagColor } from './helpers';
+import type { PerformerData } from '@/src/graphql/queries';
+import type { PerformerPanelStatus } from './helpers';
+import { formatDate, getDetailHeaderMeta, getStudioName, getTagColor } from './helpers';
 
 export function DetailView({
   item,
@@ -31,6 +33,7 @@ export function DetailView({
   onCopyCode,
   copied,
   rawData,
+  performerStatusById,
   activeTags = [],
   onToggleTag,
   tagsDisabled = false,
@@ -42,6 +45,7 @@ export function DetailView({
   onCopyCode: () => void;
   copied: boolean;
   rawData: SceneData | null;
+  performerStatusById?: Record<string, PerformerPanelStatus>;
   activeTags?: UserItemTag[];
   onToggleTag?: (item: DetailModalProps['item'], tag: UserItemTag) => void;
   tagsDisabled?: boolean;
@@ -53,7 +57,21 @@ export function DetailView({
     favorite: Heart,
     dislike: ThumbsDown,
   };
-  const performerNames = getPerformerNames(rawData);
+  const performerEntries = rawData?.performers?.reduce<PerformerData[]>(
+    (acc, entry) => {
+      const performer = entry.performer;
+
+      if (performer?.name?.trim()) {
+        acc.push(performer);
+      }
+
+      return acc;
+    },
+    []
+  ) ?? [];
+  const performerNames = performerEntries
+    .map((performer) => performer?.name?.trim())
+    .filter((name): name is string => Boolean(name));
   const releaseDate = rawData ? formatDate(rawData.date) : null;
   const studioName = getStudioName(rawData);
   const quickLinks = [
@@ -323,7 +341,13 @@ export function DetailView({
           {rawData ? (
             <>
               {performerNames.length > 0 && (
-                <PerformerList names={performerNames} variant="detail" />
+                <PerformerList
+                  names={performerNames}
+                  performers={performerEntries}
+                  performerStatusById={performerStatusById}
+                  variant="detail"
+                  sceneDate={rawData.date}
+                />
               )}
 
               {Array.isArray(rawData.tags) && rawData.tags.length > 0 && (

@@ -2,7 +2,38 @@
  * GraphQL 查询常量。
  * 统一管理所有 GraphQL 查询，确保缓存和展示使用相同字段。
  */
-import { SCENE_FRAGMENT, SEARCH_SCENE_QUERY } from './query-constants.js';
+import { FIND_PERFORMER_QUERY, SCENE_FRAGMENT, SEARCH_SCENE_QUERY } from './query-constants.js';
+
+export interface PerformerImageData {
+  url?: string;
+}
+
+export interface PerformerData {
+  id?: string;
+  name?: string;
+  disambiguation?: string;
+  aliases?: string[];
+  gender?: string;
+  urls?: Array<{ url?: string }>;
+  birth_date?: string;
+  death_date?: string;
+  age?: number;
+  ethnicity?: string;
+  country?: string;
+  eye_color?: string;
+  hair_color?: string;
+  height?: number;
+  cup_size?: string;
+  band_size?: number;
+  waist_size?: number;
+  hip_size?: number;
+  breast_type?: string;
+  career_start_year?: number;
+  career_end_year?: number;
+  tattoos?: string;
+  piercings?: string;
+  images?: PerformerImageData[];
+}
 
 /**
  * Scene 数据类型定义。
@@ -21,13 +52,7 @@ export interface SceneData {
   images?: Array<{ url?: string }>;
   urls?: Array<{ url?: string }>;
   performers?: Array<{
-    performer?: {
-      id?: string;
-      name?: string;
-      gender?: string;
-      urls?: Array<{ url?: string }>;
-      images?: Array<{ url?: string }>;
-    };
+    performer?: PerformerData;
   }>;
   tags?: Array<{
     id?: string;
@@ -40,4 +65,4 @@ export interface SceneData {
   };
 }
 
-export { SCENE_FRAGMENT, SEARCH_SCENE_QUERY };
+export { FIND_PERFORMER_QUERY, SCENE_FRAGMENT, SEARCH_SCENE_QUERY };

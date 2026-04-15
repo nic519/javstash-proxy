@@ -1,6 +1,5 @@
-const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const DIGITS = '0123456789';
-const PASSTHROUGH_CHARS = new Set(['-', '_', '.']);
+const TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const SOURCE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.';
 const DEFAULT_OBFUSCATION_KEY = 'javstash-public-view';
 
 function getObfuscationKey() {
@@ -32,58 +31,57 @@ function createPrng(seed: number) {
   };
 }
 
-function shuffleAlphabet(alphabet: string, namespace: string) {
-  const chars = alphabet.split('');
-  const prng = createPrng(createSeed(`${getObfuscationKey()}:${namespace}`));
+function buildTokenPairs() {
+  const pairs: string[] = [];
 
-  for (let index = chars.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(prng() * (index + 1));
-    [chars[index], chars[swapIndex]] = [chars[swapIndex], chars[index]];
+  for (const first of TOKEN_ALPHABET) {
+    for (const second of TOKEN_ALPHABET) {
+      pairs.push(`${first}${second}`);
+    }
   }
 
-  return chars.join('');
+  const prng = createPrng(createSeed(`${getObfuscationKey()}:pairs`));
+
+  for (let index = pairs.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(prng() * (index + 1));
+    [pairs[index], pairs[swapIndex]] = [pairs[swapIndex], pairs[index]];
+  }
+
+  return pairs;
 }
 
-const uppercaseCipher = shuffleAlphabet(UPPERCASE, 'uppercase');
-const digitCipher = shuffleAlphabet(DIGITS, 'digits');
-
-function mapCharacter(char: string, source: string, target: string) {
-  const index = source.indexOf(char);
-  return index === -1 ? null : target[index];
-}
+const tokenPairs = buildTokenPairs();
+const encodeMap = new Map(
+  SOURCE_ALPHABET.split('').map((char, index) => [char, tokenPairs[index]])
+);
+const decodeMap = new Map(
+  SOURCE_ALPHABET.split('').map((char, index) => [tokenPairs[index], char])
+);
 
 export function encodePublicCodeToken(code: string) {
   return code
     .split('')
-    .map((char) => {
-      if (PASSTHROUGH_CHARS.has(char)) return char;
-
-      return (
-        mapCharacter(char, UPPERCASE, uppercaseCipher) ??
-        mapCharacter(char, DIGITS, digitCipher) ??
-        char
-      );
-    })
+    .map((char) => encodeMap.get(char) ?? char)
     .join('');
 }
 
 export function decodePublicCodeToken(token: string) {
-  if (!token.trim()) return null;
-
-  const decoded = token
-    .split('')
-    .map((char) => {
-      if (PASSTHROUGH_CHARS.has(char)) return char;
-
-      return (
-        mapCharacter(char, uppercaseCipher, UPPERCASE) ??
-        mapCharacter(char, digitCipher, DIGITS)
-      );
-    });
-
-  if (decoded.some((char) => char == null)) {
+  if (!token.trim() || token.length % 2 !== 0 || /[^A-Za-z]/.test(token)) {
     return null;
   }
 
-  return decoded.join('');
+  let decoded = '';
+
+  for (let index = 0; index < token.length; index += 2) {
+    const chunk = token.slice(index, index + 2);
+    const sourceChar = decodeMap.get(chunk);
+
+    if (!sourceChar) {
+      return null;
+    }
+
+    decoded += sourceChar;
+  }
+
+  return decoded;
 }

@@ -1,3 +1,30 @@
+export const PERFORMER_FRAGMENT = `
+  id
+  name
+  disambiguation
+  aliases
+  gender
+  urls { url }
+  birth_date
+  death_date
+  age
+  ethnicity
+  country
+  eye_color
+  hair_color
+  height
+  cup_size
+  band_size
+  waist_size
+  hip_size
+  breast_type
+  career_start_year
+  career_end_year
+  tattoos
+  piercings
+  images { url }
+`;
+
 // 场景查询片段，尽量把缓存和展示需要的字段一次性取全。
 export const SCENE_FRAGMENT = `
   id
@@ -35,5 +62,11 @@ export const SCENE_FRAGMENT = `
 export const SEARCH_SCENE_QUERY = `query Search($term: String!) {
   searchScene(term: $term) {
     ${SCENE_FRAGMENT}
+  }
+}`;
+
+export const FIND_PERFORMER_QUERY = `query FindPerformer($id: ID!) {
+  findPerformer(id: $id) {
+    ${PERFORMER_FRAGMENT}
   }
 }`;
