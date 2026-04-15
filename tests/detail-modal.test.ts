@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { SceneData } from '../src/graphql/queries';
 import { DetailView } from '../components/shared/detail-modal';
 import { EditFormView } from '../components/shared/detail-modal/EditFormView';
+import { encodePublicCodeToken } from '../lib/public-code-token';
 import {
   getPerformerNames,
   getTagColor,
@@ -114,6 +115,7 @@ describe('DetailView', () => {
   });
 
   it('renders external quick links below the cover', () => {
+    const token = encodePublicCodeToken('ABP-123');
     const markup = renderToStaticMarkup(
       createElement(DetailView, {
         item: {
@@ -140,8 +142,10 @@ describe('DetailView', () => {
     expect(markup).toContain('>JavDB<');
     expect(markup).toContain('>JavBus<');
     expect(markup).toContain('>StashApp<');
+    expect(markup).toContain('>单独页面<');
     expect(markup).toContain('href="https://javdb.com/search?q=ABP-123&amp;f=all"');
     expect(markup).toContain('href="https://javbus.com/ABP-123"');
     expect(markup).toContain('href="http://192.168.7.171:9999/scenes?q=ABP-123&amp;sortby=date"');
+    expect(markup).toContain(`href="/v/${token}"`);
   });
 });

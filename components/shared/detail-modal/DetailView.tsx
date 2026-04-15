@@ -21,6 +21,7 @@ import {
   type EditForm,
   type UserItemTag,
 } from '../types';
+import { encodePublicCodeToken } from '@/lib/public-code-token';
 import { formatDate, getDetailHeaderMeta, getPerformerNames, getStudioName, getTagColor } from './helpers';
 
 export function DetailView({
@@ -33,6 +34,7 @@ export function DetailView({
   activeTags = [],
   onToggleTag,
   tagsDisabled = false,
+  showUserTags = true,
 }: {
   item: DetailModalProps['item'];
   form: EditForm;
@@ -43,6 +45,7 @@ export function DetailView({
   activeTags?: UserItemTag[];
   onToggleTag?: (item: DetailModalProps['item'], tag: UserItemTag) => void;
   tagsDisabled?: boolean;
+  showUserTags?: boolean;
 }) {
   const [imageLoading, setImageLoading] = useState(true);
   const iconByTag: Record<UserItemTag, typeof Clock3> = {
@@ -55,16 +58,28 @@ export function DetailView({
   const studioName = getStudioName(rawData);
   const quickLinks = [
     {
+      label: '单独页面',
+      href: `/v/${encodePublicCodeToken(item.code)}`,
+      external: true,
+      rel: 'noreferrer',
+    },
+    {
       label: 'JavDB',
       href: `https://javdb.com/search?q=${encodeURIComponent(item.code)}&f=all`,
+      external: true,
+      rel: 'noreferrer',
     },
     {
       label: 'JavBus',
       href: `https://javbus.com/${encodeURIComponent(item.code)}`,
+      external: true,
+      rel: 'noreferrer',
     },
     {
       label: 'StashApp',
       href: `http://192.168.7.171:9999/scenes?q=${encodeURIComponent(item.code)}&sortby=date`,
+      external: true,
+      rel: 'noreferrer',
     },
   ];
   const headerMeta = getDetailHeaderMeta({
@@ -140,8 +155,8 @@ export function DetailView({
             <a
               key={link.label}
               href={link.href}
-              target="_blank"
-              rel="noreferrer"
+              target={link.external ? '_blank' : undefined}
+              rel={link.rel}
               className="inline-flex items-center gap-1.5 text-sm transition-all duration-200 hover:translate-x-0.5"
               style={{
                 color: 'rgba(212,175,55,0.92)',
@@ -269,39 +284,41 @@ export function DetailView({
             {form.summaryZh || '-'}
           </p>
 
-          <div className="flex flex-col gap-2">
-            <p
-              className="text-xs font-medium uppercase tracking-[0.18em]"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              我的标签
-            </p>
-            <div className="flex flex-wrap gap-2.5">
-              {USER_ITEM_TAGS.map((tag) => {
-                const active = activeTags.includes(tag);
-                const Icon = iconByTag[tag];
+          {showUserTags ? (
+            <div className="flex flex-col gap-2">
+              <p
+                className="text-xs font-medium uppercase tracking-[0.18em]"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                我的标签
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {USER_ITEM_TAGS.map((tag) => {
+                  const active = activeTags.includes(tag);
+                  const Icon = iconByTag[tag];
 
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    disabled={tagsDisabled}
-                    onClick={() => onToggleTag?.(item, tag)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{
-                      background: active ? 'rgba(212, 175, 55, 0.16)' : 'rgba(255,255,255,0.03)',
-                      borderColor: active ? 'rgba(212, 175, 55, 0.28)' : 'rgba(255,255,255,0.08)',
-                      color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                    }}
-                    aria-label={USER_ITEM_TAG_LABELS[tag]}
-                    title={USER_ITEM_TAG_LABELS[tag]}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      disabled={tagsDisabled}
+                      onClick={() => onToggleTag?.(item, tag)}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                      style={{
+                        background: active ? 'rgba(212, 175, 55, 0.16)' : 'rgba(255,255,255,0.03)',
+                        borderColor: active ? 'rgba(212, 175, 55, 0.28)' : 'rgba(255,255,255,0.08)',
+                        color: active ? 'var(--accent-gold)' : 'var(--text-secondary)',
+                      }}
+                      aria-label={USER_ITEM_TAG_LABELS[tag]}
+                      title={USER_ITEM_TAG_LABELS[tag]}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          ) : null}
 
           {rawData ? (
             <>
